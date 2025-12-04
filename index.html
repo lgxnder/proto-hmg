@@ -247,368 +247,368 @@ dom.coingold = '<small style="color:rgb(255, 215, 0)">●</small>';
 
 
 window.addEventListener('load', ()=>{
-      load();
+    load();
 });
 
 
 //** If `lvr` is undefined or false, it will leave a simple "Game Saved" message in the message log.
 function save(lvr) {
-  let storage = window.localStorage;
-  global.flags.savestate = true;
-  global.stat.gsvs++;
-  
-  let str = ""; //** calculate and display the time since last save.
-  let a = new Date();
-  global.lst_sve = a.getFullYear()+'/'+(a.getMonth()+1)+'/'+a.getDate()+' '+a.getHours()+':'+(a.getMinutes()>=10?a.getMinutes():'0'+a.getMinutes())+':'+(a.getSeconds()>=10?a.getSeconds():'0'+a.getSeconds());
-  dom.sl_extra.innerHTML = 'Last save: ' + global.lst_sve;
-  
-  let o=[];
-  for (let obj in you.eqp) {
-      o[obj] = you.eqp[obj];
-      unequip(you.eqp[obj], {save:true});
-  }
-  you.stat_r();
-  
-  let freezete = global.flags.m_freeze;
-  if ( inSector(sector.home) ) {
-      for (let a in furn) {
-          deactivatef(furn[a]);
-      }
-  }
-  global.flags.m_freeze=true;
-  
-  for (let a in you.eff) {
-      if (you.eff[a].type === 5) {
-          //** if you have any equipment that provides a stat modifier,
-          //** make sure to remove it properly without leaving permanent stats.
-          you.eff[a].onRemove();
-      }
-  }
-  
-  let yu = {
-    name:   you.name,
-    title:  you.title.id,
-    lvl:    you.lvl,
-    exp:    you.exp,
-    exp_t:  you.exp_t,
-    sat:    you.sat,
-    satmax: you.satmax,
-    sat_r:  you.sat_r,
-    hp:     you.hp,
-    hpmax:  you.hpmax,
-    hp_r:   you.hp_r,
-    str:    you.str,
-    str_r:  you.str_r,
-    agl:    you.agl,
-    agl_r:  you.agl_r,
-    int:    you.int,
-    int_r:  you.int_r,
-    spd:    you.spd,
-    spd_r:  you.spd_r,
-    luck:   you.luck,
-    stat_p: you.stat_p,
-    wealth: you.wealth,
-    crt:    you.crt,
-    res:    you.res,
-    mods:   you.mods,
-    stra:   you.stra,
-    strm:   you.strm,
-    inta:   you.inta,
-    intm:   you.intm,
-    agla:   you.agla,
-    aglm:   you.agml,
-    spda:   you.spda,
-    spdm:   you.spdm,
-    hpa:    you.hpa,
-    hpm:    you.hpm,
-    sata:   you.sata,
-    satm:   you.satm,
-    cls:    you.cls,
-    ccls:   you.ccls,
-    aff:    you.aff,
-    maff:   you.maff,
-    caff:   you.caff,
-    cmaff:  you.cmaff,
-    karma:  you.karma,
-    ki:     you.ki
-  };
-  
-  global.flags.m_freeze = true;
-  global.current_a.deactivate();
-  dom.ct_bt3.style.backgroundColor = 'inherit';
-  
-  for (let a in you.eff) {
-      if (you.eff[a].type===5) {
-          //** if you have any equipment that provides a stat mod, ensure to run its onGive property properly.
-          you.eff[a].onGive();
-      }
-  }
-  str += JSON.stringify(yu);
-  str += '|';
-  
-  let a4 = [];
-  for (let obj in you.eff) if (!!you.eff[obj].id) { 
-      var pw;
-      !!you.eff[obj].power?pw = you.eff[obj].power:pw = 1;
-      a4[obj] = {
-          a : you.eff[obj].id, 
-          b : you.eff[obj].duration,
-          c : pw
-      };
-  }; 
-  global.flags.m_freeze=false;
-  str += JSON.stringify(a4);
-  str +='|';
-  
-  let a6 = [];
-  for (let obj in you.skls) {
-      a6[obj] = {
-          id : you.skls[obj].id,
-          lvl : you.skls[obj].lvl,
-          mst : []
-      };
-      for (let m in you.skls[obj].mlstn) {
-        a6[obj].mst[m] = you.skls[obj].mlstn[m].g
-      };
-  };
-  str += JSON.stringify(a6);
-  str +='|';
-  
-  let a7 = [];
-  for (let obj in skl) {
-      a7.push( [skl[obj].exp, skl[obj].p] );
-  };
-  str += JSON.stringify(a7);
-  str +='|';
-  
-  var datasi = [];
-  let nindxdt = 0;
-  for (let obj in item) {
-      if (item[obj].data.tried === true) {
-          datasi[nindxdt++] = item[obj].id;
-      }
-  };
-  
-  var datare = [];
-  let nindxat = 0;
-  for (let obj in item) {
-      if (item[obj].data.finished===true) {
-          datare[nindxat++]=item[obj].id;
-      }
-  };
-  
-  let a1 = {
-      uid:global.uid,
-      jj:global.stat,
-      x:global.current_z.id,
-      a:global.rm,
-      b:global.sm,
-      e:global.flags,
-      f:global.spirits,
-      g:global.msgs_max,
-      i:global.lst_loc,
-      j:time.minute,
-      k:w_manager.duration,
-      l:w_manager.curr.id,
-      m:global.lst_sve,
-      n:global.bg_r,
-      o:global.bg_g,
-      p:global.bg_b,
-      q:global.bestiary,
-      r:global.timehold,
-      r2:global.timewold,
-      datas:datasi,
-      u:global.timescale,
-      datar:datare,
-      z:global.offline_evil_index,
-      drdata:global.drdata
-  };
-  str += JSON.stringify(a1);
-  str +='|';
-  
-  let a2=[];
-  for (let obj in global.rec_d) {
-      a2[obj] = {
-          id   : global.rec_d[obj].id,
-          data : global.rec_d[obj].data
-      }
-  }
-  str += JSON.stringify(a2);
-  str +='|'; 
-  
-  let a3 = [ [], [], [], [], [], [] ];
-  
-  for (let obj in o) {
-      equip(o[obj], { save:true });
-      you.stat_r();
-  }
-  for (let obj in inv) {
-      let expectedIndex = Math.max(0, Math.min(4, Math.floor(inv[obj].id / 10000)));
-      if (expectedIndex === 0) { 
-          a3[0].push({
+    let storage = window.localStorage;
+    global.flags.savestate = true;
+    global.stat.gsvs++;
+    
+    let str = ""; //** calculate and display the time since last save.
+    let a = new Date();
+    global.lst_sve = a.getFullYear()+'/'+(a.getMonth()+1)+'/'+a.getDate()+' '+a.getHours()+':'+(a.getMinutes()>=10?a.getMinutes():'0'+a.getMinutes())+':'+(a.getSeconds()>=10?a.getSeconds():'0'+a.getSeconds());
+    dom.sl_extra.innerHTML = 'Last save: ' + global.lst_sve;
+    
+    let o=[];
+    for (let obj in you.eqp) {
+        o[obj] = you.eqp[obj];
+        unequip(you.eqp[obj], {save:true});
+    }
+    you.stat_r();
+    
+    let freezete = global.flags.m_freeze;
+    if ( inSector(sector.home) ) {
+        for (let a in furn) {
+            deactivatef(furn[a]);
+        }
+    }
+    global.flags.m_freeze=true;
+    
+    for (let a in you.eff) {
+        if (you.eff[a].type === 5) {
+            //** if you have any equipment that provides a stat modifier,
+            //** make sure to remove it properly without leaving permanent stats.
+            you.eff[a].onRemove();
+        }
+    }
+    
+    let yu = {
+        name:   you.name,
+        title:  you.title.id,
+        lvl:    you.lvl,
+        exp:    you.exp,
+        exp_t:  you.exp_t,
+        sat:    you.sat,
+        satmax: you.satmax,
+        sat_r:  you.sat_r,
+        hp:     you.hp,
+        hpmax:  you.hpmax,
+        hp_r:   you.hp_r,
+        str:    you.str,
+        str_r:  you.str_r,
+        agl:    you.agl,
+        agl_r:  you.agl_r,
+        int:    you.int,
+        int_r:  you.int_r,
+        spd:    you.spd,
+        spd_r:  you.spd_r,
+        luck:   you.luck,
+        stat_p: you.stat_p,
+        wealth: you.wealth,
+        crt:    you.crt,
+        res:    you.res,
+        mods:   you.mods,
+        stra:   you.stra,
+        strm:   you.strm,
+        inta:   you.inta,
+        intm:   you.intm,
+        agla:   you.agla,
+        aglm:   you.agml,
+        spda:   you.spda,
+        spdm:   you.spdm,
+        hpa:    you.hpa,
+        hpm:    you.hpm,
+        sata:   you.sata,
+        satm:   you.satm,
+        cls:    you.cls,
+        ccls:   you.ccls,
+        aff:    you.aff,
+        maff:   you.maff,
+        caff:   you.caff,
+        cmaff:  you.cmaff,
+        karma:  you.karma,
+        ki:     you.ki
+    };
+    
+    global.flags.m_freeze = true;
+    global.current_a.deactivate();
+    dom.ct_bt3.style.backgroundColor = 'inherit';
+    
+    for (let a in you.eff) {
+        if (you.eff[a].type===5) {
+            //** if you have any equipment that provides a stat mod, ensure to run its onGive property properly.
+            you.eff[a].onGive();
+        }
+    }
+    str += JSON.stringify(yu);
+    str += '|';
+    
+    let a4 = [];
+    for (let obj in you.eff) if (!!you.eff[obj].id) { 
+        var pw;
+        !!you.eff[obj].power?pw = you.eff[obj].power:pw = 1;
+        a4[obj] = {
+            a : you.eff[obj].id, 
+            b : you.eff[obj].duration,
+            c : pw
+        };
+    }; 
+    global.flags.m_freeze=false;
+    str += JSON.stringify(a4);
+    str +='|';
+    
+    let a6 = [];
+    for (let obj in you.skls) {
+        a6[obj] = {
+            id : you.skls[obj].id,
+            lvl : you.skls[obj].lvl,
+            mst : []
+        };
+        for (let m in you.skls[obj].mlstn) {
+            a6[obj].mst[m] = you.skls[obj].mlstn[m].g
+        };
+    };
+    str += JSON.stringify(a6);
+    str +='|';
+    
+    let a7 = [];
+    for (let obj in skl) {
+        a7.push( [skl[obj].exp, skl[obj].p] );
+    };
+    str += JSON.stringify(a7);
+    str +='|';
+    
+    var datasi = [];
+    let nindxdt = 0;
+    for (let obj in item) {
+        if (item[obj].data.tried === true) {
+            datasi[nindxdt++] = item[obj].id;
+        }
+    };
+    
+    var datare = [];
+    let nindxat = 0;
+    for (let obj in item) {
+        if (item[obj].data.finished===true) {
+            datare[nindxat++]=item[obj].id;
+        }
+    };
+    
+    let a1 = {
+        uid:global.uid,
+        jj:global.stat,
+        x:global.current_z.id,
+        a:global.rm,
+        b:global.sm,
+        e:global.flags,
+        f:global.spirits,
+        g:global.msgs_max,
+        i:global.lst_loc,
+        j:time.minute,
+        k:w_manager.duration,
+        l:w_manager.curr.id,
+        m:global.lst_sve,
+        n:global.bg_r,
+        o:global.bg_g,
+        p:global.bg_b,
+        q:global.bestiary,
+        r:global.timehold,
+        r2:global.timewold,
+        datas:datasi,
+        u:global.timescale,
+        datar:datare,
+        z:global.offline_evil_index,
+        drdata:global.drdata
+    };
+    str += JSON.stringify(a1);
+    str +='|';
+    
+    let a2=[];
+    for (let obj in global.rec_d) {
+        a2[obj] = {
+            id   : global.rec_d[obj].id,
+            data : global.rec_d[obj].data
+        }
+    }
+    str += JSON.stringify(a2);
+    str +='|'; 
+    
+    let a3 = [ [], [], [], [], [], [] ];
+    
+    for (let obj in o) {
+        equip(o[obj], { save:true });
+        you.stat_r();
+    }
+    for (let obj in inv) {
+        let expectedIndex = Math.max(0, Math.min(4, Math.floor(inv[obj].id / 10000)));
+        if (expectedIndex === 0) { 
+            a3[0].push({
                 id : inv[obj].id,
                 am : inv[obj].amount,
                 data : inv[obj].data }); 
-      }
-      else {
-          a3[expectedIndex].push({
+        }
+        else {
+            a3[expectedIndex].push({
                 id : inv[obj].id,
                 dp : inv[obj].dp,
                 toeq : true,
                 data : inv[obj].data
-          });
-      if (!scanbyuid(you.eqp,inv[obj].data.uid)) {
+            });
+        if (!scanbyuid(you.eqp,inv[obj].data.uid)) {
             a3[expectedIndex][a3[expectedIndex].length - 1].toeq = false } //** what the hell is this bracket here for?
-      }
-  }
-  
-  for (let a in item) {
-      if (item[a].save === true) {
-          a3[5].push({
-              item : item[a].id,
-              data:item[a].data });
-      }
-  }
-  str += JSON.stringify(a3);
-  str +='|';
-  
-  let a5 = [];
-  let xx = 0;
-  for (let o in area) {
-      a5[xx++] = area[o].size;
-  }
-  str += JSON.stringify(a5);
-  str +='|';
-  
-  let a8 = dar; 
-  str += JSON.stringify(a8);
-  str +='|';
-  
-  let a9 = [];
-  for (let obj in furn) {
-      a9.push({
-          id:furn[obj].id,
-          data:furn[obj].data });
-  }
-  str += JSON.stringify(a9);
-  str +='|';
-  
-  let a10 = {};
-  let a11 = {};
-  for (let obj in vendor) { 
-      let stock = [];
-      for (let i=0; i<vendor[obj].stock.length; i++) {
-          stock[i] = [];
-          stock[i][0] = vendor[obj].stock[i][0].id;
-          stock[i][1] = vendor[obj].stock[i][1];
-          stock[i][2] = vendor[obj].stock[i][2];
-      }  
-      a10[obj] = { stock : stock,
-                    data : vendor[obj].data }; 
-  }
-  str += JSON.stringify(a10);
-  str +='|';
-  
-  let a12 = [];
-  for (let a in global.titles) {
-      a12.push(global.titles[a].id);
-      /* ** the following has been commented out in the official source code:
-      for (let obj in ttl) {
-          if (ttl[obj].have === true) {
-              a12.push(ttl[obj].id);
-          }
-      }
-      */
-  }
-  str += JSON.stringify(a12);
-  str +='|';
-  
-  let a13 = new Object(); 
-  for (let s in home)
-  a13[s] = home[s].id;
-  str += JSON.stringify(a13);
-  str +='|';
-  
-  let a14 = [];
-  for (let obj in qsts) {
-      a14.push({ id : qsts[obj].id,
-               data : qsts[obj].data });
-  }
-  str += JSON.stringify(a14);
-  str +='|';
-  
-  let a15 = [];
-  for (let obj in acts) {
-      a15.push({ id : acts[obj].id,
-               data : acts[obj].data });
-  }
-  str += JSON.stringify(a15);
-  str +='|';
-  
-  let a17 = [];
-  for (let obj in sector) { 
-      a17.push({ id : sector[obj].id,
-               data : sector[obj].data});
-  }
-  str += JSON.stringify(a17);
-  str +='|';
-  
-  let a18 = [];
-  for(let obj in container){
-    let cont = []; 
-    for (let a in container[obj].c) {
-        cont.push({ id : container[obj].c[a].item.id,
-                  data : container[obj].c[a].data,
-                    am : container[obj].c[a].am,
-                    dp : container[obj].c[a].dp });
+        }
     }
-    a18.push({ id : container[obj].id,
-                c : cont });  
-  }
-  str += JSON.stringify(a18);
-  str +='|';
-  
-  let a19 = [];
-  for (let obj in chss) {
-      if (JSON.stringify(chss[obj].data) !== '{}') {
-          a19.push({ id : chss[obj].id,
-                   data : chss[obj].data });
-      }
-  }
-  str += JSON.stringify(a19);
-  str +='|savevalid|';
-  
-  let a20 = [];
-  for (let a in ttl) {
-      if (ttl[a].tget) {
-          a20.push(ttl[a].id);
-      }
-  }
-  str += JSON.stringify(a20); 
+    
+    for (let a in item) {
+        if (item[a].save === true) {
+            a3[5].push({
+                item : item[a].id,
+                data:item[a].data });
+        }
+    }
+    str += JSON.stringify(a3);
+    str +='|';
+    
+    let a5 = [];
+    let xx = 0;
+    for (let o in area) {
+        a5[xx++] = area[o].size;
+    }
+    str += JSON.stringify(a5);
+    str +='|';
+    
+    let a8 = dar; 
+    str += JSON.stringify(a8);
+    str +='|';
+    
+    let a9 = [];
+    for (let obj in furn) {
+        a9.push({
+            id:furn[obj].id,
+            data:furn[obj].data });
+    }
+    str += JSON.stringify(a9);
+    str +='|';
+    
+    let a10 = {};
+    let a11 = {};
+    for (let obj in vendor) { 
+        let stock = [];
+        for (let i=0; i<vendor[obj].stock.length; i++) {
+            stock[i] = [];
+            stock[i][0] = vendor[obj].stock[i][0].id;
+            stock[i][1] = vendor[obj].stock[i][1];
+            stock[i][2] = vendor[obj].stock[i][2];
+        }  
+        a10[obj] = { stock : stock,
+                      data : vendor[obj].data }; 
+    }
+    str += JSON.stringify(a10);
+    str +='|';
+    
+    let a12 = [];
+    for (let a in global.titles) {
+        a12.push(global.titles[a].id);
+        /* ** the following has been commented out in the official source code:
+        for (let obj in ttl) {
+            if (ttl[obj].have === true) {
+                a12.push(ttl[obj].id);
+            }
+        }
+        */
+    }
+    str += JSON.stringify(a12);
+    str +='|';
+    
+    let a13 = new Object(); 
+    for (let s in home)
+    a13[s] = home[s].id;
+    str += JSON.stringify(a13);
+    str +='|';
+    
+    let a14 = [];
+    for (let obj in qsts) {
+        a14.push({ id : qsts[obj].id,
+                 data : qsts[obj].data });
+    }
+    str += JSON.stringify(a14);
+    str +='|';
+    
+    let a15 = [];
+    for (let obj in acts) {
+        a15.push({ id : acts[obj].id,
+                 data : acts[obj].data });
+    }
+    str += JSON.stringify(a15);
+    str +='|';
+    
+    let a17 = [];
+    for (let obj in sector) { 
+        a17.push({ id : sector[obj].id,
+                 data : sector[obj].data});
+    }
+    str += JSON.stringify(a17);
+    str +='|';
+    
+    let a18 = [];
+    for(let obj in container){
+        let cont = []; 
+        for (let a in container[obj].c) {
+            cont.push({ id : container[obj].c[a].item.id,
+                      data : container[obj].c[a].data,
+                        am : container[obj].c[a].am,
+                        dp : container[obj].c[a].dp });
+        }
+        a18.push({ id : container[obj].id,
+                    c : cont });  
+    }
+    str += JSON.stringify(a18);
+    str +='|';
+    
+    let a19 = [];
+    for (let obj in chss) {
+        if (JSON.stringify(chss[obj].data) !== '{}') {
+            a19.push({ id : chss[obj].id,
+                     data : chss[obj].data });
+        }
+    }
+    str += JSON.stringify(a19);
+    str +='|savevalid|';
+    
+    let a20 = [];
+    for (let a in ttl) {
+        if (ttl[a].tget) {
+            a20.push(ttl[a].id);
+        }
+    }
+    str += JSON.stringify(a20); 
 
-  if (inSector(sector.home)) {
-      for (let a in furn) {
-          activatef(furn[a]);
-      }
-  }
-  
-  global.flags.m_freeze=true;
-  global.current_a.activate();
-  global.flags.m_freeze = freezete;
+    if (inSector(sector.home)) {
+        for (let a in furn) {
+            activatef(furn[a]);
+        }
+    }
+    
+    global.flags.m_freeze=true;
+    global.current_a.activate();
+    global.flags.m_freeze = freezete;
 
-  if (global.flags.busy === true) {
-      dom.ct_bt3.style.backgroundColor='darkslategray';
-  }
-  
-  str = utf8_to_b64(str);
-  storage.setItem("v0.3", str);
-  global.flags.savestate = false;
-  
-  if (!lvr) {
-      msg('Game Saved','cyan'); 
-  }
-  
-  return str;
+    if (global.flags.busy === true) {
+        dom.ct_bt3.style.backgroundColor='darkslategray';
+    }
+    
+    str = utf8_to_b64(str);
+    storage.setItem("v0.3", str);
+    global.flags.savestate = false;
+    
+    if (!lvr) {
+        msg('Game Saved','cyan'); 
+    }
+    
+    return str;
 }
 
 
