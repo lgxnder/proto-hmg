@@ -10753,75 +10753,175 @@ function giveAction(a){
   }
 } 
 
+
 ///////////////////////////////////////////
 //DOM
 ///////////////////////////////////////////
-dom.d0 = addElement(document.body,'div','d1','d'); if(!global.flags.aw_u)dom.d0.style.display='none'; 
-dom.d1 = addElement(dom.d0,'div');   dom.d101 = addElement(dom.d0,'div','se_i'); 
+
+dom.d0 = addElement(document.body,'div','d1','d');
+if (!global.flags.aw_u) {
+    dom.d0.style.display = 'none';
+}
+dom.d1 = addElement(dom.d0,'div');
+dom.d101 = addElement(dom.d0,'div','se_i'); 
+
 dom.d2c = addElement(dom.d1,'div',null,'d2');
-dom.d2 = addElement(dom.d2c,'div'); dom.d2.innerHTML = you.name; 
+dom.d2 = addElement(dom.d2c,'div');
+dom.d2.innerHTML = you.name; 
 dom.d2_a = addElement(dom.d2c,'input','nch'); 
-dom.d2_a.addEventListener('focusin',function(){dom.d2_a.value=you.name;you.name='';dom.d2.innerHTML='　'});
-dom.d2_a.addEventListener('focusout',function(){you.name=dom.d2_a.value;dom.d2_a.value='';dom.d2.innerHTML=you.name});
+dom.d2_a.addEventListener('focusin',function() {
+    dom.d2_a.value = you.name;
+    you.name = '';
+    dom.d2.innerHTML = '　'
+});
+dom.d2_a.addEventListener('focusout',function() {
+    you.name = dom.d2_a.value;
+    dom.d2_a.value = '';
+    dom.d2.innerHTML = you.name;
+});
 addDesc(dom.d2c,null,2,you.name,you.desc); 
+
 dom.d3 = addElement(dom.d1,'div',null,'d3');
 dom.d3.innerHTML = ' lvl:'+you.lvl+' \''+you.title.name+'\'';
-dom.d3.addEventListener('click',function(){if(!global.flags.ttlscrnopn){ global.flags.ttlscrnopn=true;
-  dom.ttlcont=addElement(document.body,'div','youttlc'); 
-  dom.ttlhead=addElement(dom.ttlcont,'div','youttlh');
-  dom.ttlhead.innerHTML='SELECT YOUR TITLE';
-  dom.ttlbd=addElement(dom.ttlcont,'div');
-  dom.ttlbd.style.overflow='auto';
-  dom.ttlbd.style.maxHeight=window.innerHeight-130;
-  for(let obj in global.titles){ 
-    this.ttlent=addElement(dom.ttlbd,'div',null,'youttl'); let title = global.titles[obj]
-    if(obj===0) this.ttlent.style.borderTop='';
-    this.ttlent.innerHTML='"'+title.name+'"'; if(global.titles[obj].talent)  this.ttlent.innerHTML+=" <span style='color:yellow;text-shadow:0px 0px 5px orange'>*</span>"
-    addDesc(this.ttlent,title,5); 
-    this.ttlent.addEventListener('click',function(){ 
-      you.title=title; empty(dom.ttlcont); document.body.removeChild(dom.ttlcont); dom.d3.innerHTML=' lvl:'+you.lvl+' \''+you.title.name+'\''; empty(global.dscr);global.dscr.style.display='none'; global.flags.ttlscrnopn=false; 
-    });
-  }}
+dom.d3.addEventListener('click',function() {
+    if (!global.flags.ttlscrnopn) {
+        global.flags.ttlscrnopn = true;
+        dom.ttlcont = addElement(document.body,'div','youttlc'); 
+        dom.ttlhead = addElement(dom.ttlcont,'div','youttlh');
+        dom.ttlhead.innerHTML = 'SELECT YOUR TITLE';
+        dom.ttlbd = addElement(dom.ttlcont,'div');
+        dom.ttlbd.style.overflow = 'auto';
+        dom.ttlbd.style.maxHeight = window.innerHeight - 130;
+
+        for(let obj in global.titles) { 
+            this.ttlent = addElement(dom.ttlbd,'div',null,'youttl');
+            let title = global.titles[obj];
+            if (obj===0) {
+                this.ttlent.style.borderTop='';
+            }
+            this.ttlent.innerHTML='"'+title.name+'"';
+            if(global.titles[obj].talent) {
+                this.ttlent.innerHTML+=" <span style='color:yellow;text-shadow:0px 0px 5px orange'>*</span>"
+            }
+            addDesc(this.ttlent,title,5); 
+            this.ttlent.addEventListener('click',function() { 
+                you.title=title;
+                empty(dom.ttlcont);
+                document.body.removeChild(dom.ttlcont);
+                dom.d3.innerHTML = ' lvl:' + you.lvl + ' \'' + you.title.name + '\'';
+                empty(global.dscr);
+                global.dscr.style.display = 'none';
+                global.flags.ttlscrnopn = false; 
+            });
+        }
+    }
 });
 addDesc(dom.d3,you.title,5,true);
+
 //dom.d5 = addElement(dom.d1,'div','d5'); ???????
-dom.d5_1 = addElement(dom.d1,'div',null,'hp'); dom.d5_2 = addElement(dom.d1,'div',null,'exp');  dom.d5_3 = addElement(dom.d1,'div',null,'en');
-addDesc(dom.d5_1,null,2,'Health',function(){return('Physical health points, needed to stay alive. You will probably die if it reaches 0<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[0]*100<<0)+'%</span></small>')},true);
-addDesc(dom.d5_2,null,2,'Experience',function(){return('Physical and combat experience. You\'ll have to work hard to achieve new heights<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>EXP Gain Potential: <span style="color:gold">'+(you.exp_t*100<<0)+'%</span><br>Current EXP Gain: <span style="color:yellow">'+(you.exp_t*100*you.efficiency()<<0)+'%</span></small>')},true);
-addDesc(dom.d5_3,null,2,'Energy meter',function(){
-  let lose = you.mods.sdrate; 
-  if(global.flags.iswet===true) lose*=(3/(1+(skl.abw.lvl*.03)))
-  if(global.flags.iscold===true) lose+=effect.cold.duration/1000/(1+skl.coldr.lvl*.05); lose=(lose*100<<0)/100
-return('Influences the effectiveness of your actions, eat a lot to keep it full<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Energy Effectiveness: <span style="color:deeppink">'+((you.mods.sbonus+1)*100<<0)+'%</span><br>Energy Consumption Rate: <span style="color:gold">'+lose+'/s</span></small>')},true)
-dom.d5_1_1 = addElement(dom.d5_1,'div','hpp'); dom.d5_2_1 = addElement(dom.d5_2,'div','expp'); dom.d5_3_1 = addElement(dom.d5_3,'div','enn');
+dom.d5_1 = addElement(dom.d1,'div',null,'hp');
+dom.d5_2 = addElement(dom.d1,'div',null,'exp');
+dom.d5_3 = addElement(dom.d1,'div',null,'en');
+
+addDesc(dom.d5_1, null, 2, 'Health', function() {
+    return('Physical health points, needed to stay alive. You will probably die if it reaches 0<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[0]*100<<0)+'%</span></small>')
+}, true);
+
+addDesc(dom.d5_2, null, 2, 'Experience', function() {
+    return('Physical and combat experience. You\'ll have to work hard to achieve new heights<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>EXP Gain Potential: <span style="color:gold">'+(you.exp_t*100<<0)+'%</span><br>Current EXP Gain: <span style="color:yellow">'+(you.exp_t*100*you.efficiency()<<0)+'%</span></small>')
+}, true);
+
+addDesc(dom.d5_3, null, 2, 'Energy meter', function() {
+    let lose = you.mods.sdrate; 
+
+    if (global.flags.iswet === true) {
+        lose *= ( 3 / (1 + (skl.abw.lvl * 0.03) ) )
+    }
+
+    if (global.flags.iscold === true) {
+        lose += effect.cold.duration / 1000 / (1 + skl.coldr.lvl * 0.05);
+        lose = (lose * 100 << 0) / 100;
+    }
+    return('Influences the effectiveness of your actions, eat a lot to keep it full<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Energy Effectiveness: <span style="color:deeppink">'+((you.mods.sbonus+1)*100<<0)+'%</span><br>Energy Consumption Rate: <span style="color:gold">'+lose+'/s</span></small>')
+}, true);
+
+dom.d5_1_1 = addElement(dom.d5_1,'div','hpp');
+dom.d5_2_1 = addElement(dom.d5_2,'div','expp');
+dom.d5_3_1 = addElement(dom.d5_3,'div','enn');
+
 dom.d6 = addElement(dom.d1,'div','d6');
 addDesc(dom.d6,null,2,'Power rank','Your power position in this realm. The lower the number the stronger you are');
+
 dom.d4 = addElement(dom.d1,'div','d4');
-dom.d4_1 = addElement(dom.d4,'span',null,'dd'); dom.d4_2 = addElement(dom.d4,'span',null,'dd');
-dom.d4_3 = addElement(dom.d4,'span',null,'dd'); dom.d4_4 = addElement(dom.d4,'span',null,'dd');
+dom.d4_1 = addElement(dom.d4,'span',null,'dd');
+dom.d4_2 = addElement(dom.d4,'span',null,'dd');
+dom.d4_3 = addElement(dom.d4,'span',null,'dd');
+dom.d4_4 = addElement(dom.d4,'span',null,'dd');
+
 addDesc(dom.d4_1,null,2,'Physical Strength',function(){return('Determines physical damage dealt and received<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[1]*100<<0)+'%</span></small>')},true);
 addDesc(dom.d4_2,null,2,'Agility',function(){return('Determines hit/dodge rate<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[2]*100<<0)+'%</span></small>')},true);
 addDesc(dom.d4_3,null,2,'Mental acuity',function(){return('Determines magic damage dealt and received<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[3]*100<<0)+'%</span></small>')},true);
 addDesc(dom.d4_4,null,2,'Speed','Allows for faster attacks and multihit combos');
+
 dom.d7 = addElement(dom.d1,'div','eq_w');
 dom.d7_1 = addElement(dom.d7,'div',null,'ddd_2');
-dom.d7_slot_1 = addElement(dom.d7_1,'div',null,'ddd_1'); dom.d7_slot_1.innerHTML = 'Weapon'; dom.d7_slot_1.style.color = 'grey';
-dom.d7_slot_2 = addElement(dom.d7_1,'div',null,'ddd_1'); dom.d7_slot_2.innerHTML = 'Shield'; dom.d7_slot_2.style.color = 'grey';
+
+dom.d7_slot_1 = addElement(dom.d7_1,'div',null,'ddd_1');
+dom.d7_slot_1.innerHTML = 'Weapon';
+dom.d7_slot_1.style.color = 'grey';
+
+dom.d7_slot_2 = addElement(dom.d7_1,'div',null,'ddd_1');
+dom.d7_slot_2.innerHTML = 'Shield';
+dom.d7_slot_2.style.color = 'grey';
+
 dom.d7_2 = addElement(dom.d7,'div',null,'ddd_2');
-dom.d7_slot_3 = addElement(dom.d7_2,'div',null,'ddd_1'); dom.d7_slot_3.innerHTML = 'Head'; dom.d7_slot_3.style.color = 'grey';
-dom.d7_slot_4 = addElement(dom.d7_2,'div',null,'ddd_1'); dom.d7_slot_4.innerHTML = 'Body'; dom.d7_slot_4.style.color = 'grey';
+dom.d7_slot_3 = addElement(dom.d7_2,'div',null,'ddd_1');
+dom.d7_slot_3.innerHTML = 'Head';
+dom.d7_slot_3.style.color = 'grey';
+
+dom.d7_slot_4 = addElement(dom.d7_2,'div',null,'ddd_1');
+dom.d7_slot_4.innerHTML = 'Body';
+dom.d7_slot_4.style.color = 'grey';
+
 dom.d7_3 = addElement(dom.d7,'div',null,'ddd_2');
-dom.d7_slot_5 = addElement(dom.d7_3,'div',null,'ddd_1'); dom.d7_slot_5.innerHTML = 'L Arm'; dom.d7_slot_5.style.color = 'grey';
-dom.d7_slot_6 = addElement(dom.d7_3,'div',null,'ddd_1'); dom.d7_slot_6.innerHTML = 'R Arm'; dom.d7_slot_6.style.color = 'grey';
+dom.d7_slot_5 = addElement(dom.d7_3,'div',null,'ddd_1');
+dom.d7_slot_5.innerHTML = 'L Arm';
+dom.d7_slot_5.style.color = 'grey';
+
+dom.d7_slot_6 = addElement(dom.d7_3,'div',null,'ddd_1');
+dom.d7_slot_6.innerHTML = 'R Arm';
+dom.d7_slot_6.style.color = 'grey';
+
 dom.d7_4 = addElement(dom.d7,'div',null,'ddd_2'); 
-dom.d7_slot_7 = addElement(dom.d7_4,'div',null,'ddd_1'); dom.d7_slot_7.innerHTML = 'Legs'; dom.d7_slot_7.style.color = 'grey';
-dom.d7_slot_8 = addElement(dom.d7_4,'div',null,'ddd_1'); dom.d7_slot_8.innerHTML = 'Accessory'; dom.d7_slot_8.style.color = 'grey';
-dom.d7_5 = addElement(dom.d7,'div',null,'ddd_2'); dom.d7_5.style.borderBottom='solid 2px rgb(12,86,195)';
-dom.d7_slot_9 = addElement(dom.d7_5,'div',null,'ddd_1'); dom.d7_slot_9.innerHTML = '∥LOCKED∥'; dom.d7_slot_9.style.color = 'grey';
-dom.d7_slot_10 = addElement(dom.d7_5,'div',null,'ddd_1'); dom.d7_slot_10.innerHTML = '∥LOCKED∥'; dom.d7_slot_10.style.color = 'grey';
-dom.d8 = addElement(dom.d1,'div');dom.d8.style.fontSize='.9em';dom.d8.style.paddingTop='5px';
-dom.d8_2 = addElement(dom.d1,'div');dom.d8_2.style.fontSize='.7em';if(typeof InstallTrigger == 'undefined') dom.d8_2.style.paddingTop='5px';
+dom.d7_slot_7 = addElement(dom.d7_4,'div',null,'ddd_1');
+dom.d7_slot_7.innerHTML = 'Legs';
+dom.d7_slot_7.style.color = 'grey';
+
+dom.d7_slot_8 = addElement(dom.d7_4,'div',null,'ddd_1');
+dom.d7_slot_8.innerHTML = 'Accessory';
+dom.d7_slot_8.style.color = 'grey';
+
+dom.d7_5 = addElement(dom.d7,'div',null,'ddd_2');
+dom.d7_5.style.borderBottom = 'solid 2px rgb(12,86,195)';
+
+dom.d7_slot_9 = addElement(dom.d7_5,'div',null,'ddd_1');
+dom.d7_slot_9.innerHTML = '∥LOCKED∥';
+dom.d7_slot_9.style.color = 'grey';
+
+dom.d7_slot_10 = addElement(dom.d7_5,'div',null,'ddd_1');
+dom.d7_slot_10.innerHTML = '∥LOCKED∥';
+dom.d7_slot_10.style.color = 'grey';
+
+dom.d8 = addElement(dom.d1,'div');
+dom.d8.style.fontSize = '.9em';
+dom.d8.style.paddingTop = '5px';
+dom.d8_2 = addElement(dom.d1,'div');
+dom.d8_2.style.fontSize = '.7em';
+if (typeof InstallTrigger == 'undefined') {
+    dom.d8_2.style.paddingTop='5px';
+}
 dom.d8_2.innerHTML='Critical chance: '+((you.mods.crflt+you.crt)*100)+'%';
+
 dom.d7_slot_3.addEventListener('mouseenter',function(){global._tad=this.innerHTML; this.innerHTML='DEF: '+Math.round(you.eqp[2].str*(you.eqp[2].dp/you.eqp[2].dpmax)+you.str_r+you.eqp[1].str*(you.eqp[1].dp/you.eqp[1].dpmax))});
 dom.d7_slot_3.addEventListener('mouseleave',function(){this.innerHTML=global._tad;});
 dom.d7_slot_4.addEventListener('mouseenter',function(){global._tad=this.innerHTML; this.innerHTML='DEF: '+Math.round(you.eqp[3].str*(you.eqp[3].dp/you.eqp[3].dpmax)+you.str_r+you.eqp[1].str*(you.eqp[1].dp/you.eqp[1].dpmax))});
@@ -10832,8 +10932,14 @@ dom.d7_slot_6.addEventListener('mouseenter',function(){global._tad=this.innerHTM
 dom.d7_slot_6.addEventListener('mouseleave',function(){this.innerHTML=global._tad;});
 dom.d7_slot_7.addEventListener('mouseenter',function(){global._tad=this.innerHTML; this.innerHTML='DEF: '+Math.round(you.eqp[6].str*(you.eqp[6].dp/you.eqp[6].dpmax)+you.str_r+you.eqp[1].str*(you.eqp[1].dp/you.eqp[1].dpmax))});
 dom.d7_slot_7.addEventListener('mouseleave',function(){this.innerHTML=global._tad;});
-dom.d1m = addElement(document.body,'div','d1','d'); if(!global.flags.aw_u)dom.d1m.style.display='none';  dom.d101m = addElement(dom.d1m,'div','se_i');  
-dom.d1m.style.top=8; dom.d1m.style.left = 457; dom.d1m.style.position='absolute'; dom.d101m.style.top=264
+
+dom.d1m = addElement(document.body,'div','d1','d');
+if(!global.flags.aw_u) dom.d1m.style.display='none'; dom.d101m = addElement(dom.d1m,'div','se_i');  
+dom.d1m.style.top=8;
+dom.d1m.style.left = 457;
+dom.d1m.style.position='absolute';
+dom.d101m.style.top=264;
+
 global.special_x = dom.d1m.style.left;
 global.special_y = dom.d1m.style.top;
 
@@ -10849,17 +10955,24 @@ dom._d23m = addElement(dom.d1m,'div');
 addDesc(dom._d23m,null,3,global.current_m.name,global.current_m.desc);
 dom.d2m = addElement(dom._d23m,'div',null,'d2'); 
 dom.d3m = addElement(dom._d23m,'div',null,'d3m');
-dom.d5_1m = addElement(dom.d1m,'div',null,'hp'); dom.d5_2m = addElement(dom.d1m,'div',null,'exp');
-dom.d5_1_1m = addElement(dom.d5_1m,'div','hpp'); dom.d5_2_1m = addElement(dom.d5_2m,'div');
+dom.d5_1m = addElement(dom.d1m,'div',null,'hp');
+dom.d5_2m = addElement(dom.d1m,'div',null,'exp');
+dom.d5_1_1m = addElement(dom.d5_1m,'div','hpp');
+dom.d5_2_1m = addElement(dom.d5_2m,'div');
 dom.d5_1_1m.update = function(){
   this.innerHTML = 'hp: '+format3(global.current_m.hp.toString())+'/'+format3(global.current_m.hpmax.toString()); dom.d5_1m.style.width = 100*global.current_m.hp/global.current_m.hpmax+'%';
 }
 dom.d4m = addElement(dom.d1m,'div','d4');
-dom.d4_1m = addElement(dom.d4m,'span',null,'dd'); dom.d4_2m = addElement(dom.d4m,'span',null,'dd');
-dom.d4_3m = addElement(dom.d4m,'span',null,'dd'); dom.d4_4m = addElement(dom.d4m,'span',null,'dd');
+dom.d4_1m = addElement(dom.d4m,'span',null,'dd');
+dom.d4_2m = addElement(dom.d4m,'span',null,'dd');
+dom.d4_3m = addElement(dom.d4m,'span',null,'dd');
+dom.d4_4m = addElement(dom.d4m,'span',null,'dd');
+
 dom.d9m = addElement(dom.d1m,'div');
 dom.d9m.update=function(){this.innerHTML='rank: '+global.text.eranks[global.current_m.rnk];if(global.current_m.rnk<=4)this.style.color='lightgrey'; else if(global.current_m.rnk>4&&global.current_m.rnk<=7)this.style.color='white';else if(global.current_m.rnk>7&&global.current_m.rnk<=10)this.style.color='lightblue';else if(global.current_m.rnk>10&&global.current_m.rnk<=13)this.style.color='lightgreen';else if(global.current_m.rnk>13&&global.current_m.rnk<=16)this.style.color='lime';else if(global.current_m.rnk>16&&global.current_m.rnk<=19)this.style.color='yellow'}
-dom.d9m.style.borderBottom='#545299 dotted 2px'; dom.d9m.style.backgroundColor='#272744';
+dom.d9m.style.borderBottom='#545299 dotted 2px';
+dom.d9m.style.backgroundColor='#272744';
+
 dom.d8m_c = addElement(dom.d1m,'small','bbts');
 dom.d8m1 = addElement(dom.d8m_c,'div',null,'bbts');
 dom.d8m1.innerHTML = 'Pause next battle: <span style=\'color:green\'>&nbspOFF';
@@ -10867,6 +10980,7 @@ dom.d8m1.addEventListener('click',function(){
   if(global.flags.to_pause===true) {if(!global.flags.civil) global.flags.btl=true;global.flags.to_pause=false;this.innerHTML='Pause next battle: <span style=\'color:green\'>&nbspOFF';}
   else {global.flags.to_pause=true; this.innerHTML='Pause next battle: <span style=\'color:crimson\'>&nbspON';}
 });
+
 dom.d8m2 = addElement(dom.d8m_c,'div',null,'bbts');
 dom.d8m2.innerHTML = 'Resume the fight';
 dom.d8m2.style.right='0px';dom.d8m2.style.position='absolute';
@@ -10874,57 +10988,127 @@ dom.d8m2.addEventListener('click',function(){if(!global.flags.civil)global.flags
 dom.d7m_c = addElement(dom.d1m,'div','ainfo'); 
 dom.d7m = addElement(dom.d7m_c,'small'); 
 dom.d7m.update=function(){global.current_z.size>=0?this.innerHTML = 'Area: '+global.current_z.name+' / '+global.current_z.size:this.innerHTML = 'Area: '+global.current_z.name+' / '+'∞';}; dom.d7m.update();
-dom.inv_ctx = addElement(document.body,'div','inv'); if(!global.flags.aw_u)dom.inv_ctx.style.display='none'; 
+
+dom.inv_ctx = addElement(document.body,'div','inv');
+if (!global.flags.aw_u) dom.inv_ctx.style.display='none'; 
 dom.inventory = addElement(dom.inv_ctx,'div'); 
 dom.inv_control = addElement(dom.inventory,'div','inv_control');
-dom.inv_btn_1 = addElement(dom.inv_control,'div',null,'bts'); dom.inv_btn_2 = addElement(dom.inv_control,'div',null,'bts');
-dom.inv_btn_3 = addElement(dom.inv_control,'div',null,'bts'); dom.inv_btn_4 = addElement(dom.inv_control,'div',null,'bts');
+dom.inv_btn_1 = addElement(dom.inv_control,'div',null,'bts');
+dom.inv_btn_2 = addElement(dom.inv_control,'div',null,'bts');
+dom.inv_btn_3 = addElement(dom.inv_control,'div',null,'bts');
+dom.inv_btn_4 = addElement(dom.inv_control,'div',null,'bts');
 dom.inv_btn_5 = addElement(dom.inv_control,'div',null,'bts');
 dom.inv_ctx_b = addElement(dom.inventory,'div','inv_ctx_b'); 
 dom.inv_control_b = addElement(dom.inv_ctx,'div','inv_control_b');
 dom.inv_btn_1_b = addElement(dom.inv_control_b,'div',null,'bts_b');
 dom.inv_btn_2_b = addElement(dom.inv_control_b,'div',null,'bts_b');
 dom.inv_btn_3_b = addElement(dom.inv_control_b,'div',null,'bts_b');
+
 dom.mn = addElement(dom.inv_control_b,'div','mn');
 dom.mn_1 = addElement(dom.mn,'small','mnb'); dom.mn_1.innerHTML = '㊧0';
 dom.mn_2 = addElement(dom.mn,'small','mnb'); dom.mn_2.innerHTML = '●0';
 dom.mn_3 = addElement(dom.mn,'small','mnb'); dom.mn_3.innerHTML = '●0';
 dom.mn_4 = addElement(dom.mn,'small','mnb'); dom.mn_4.innerHTML = '●0';
-dom.mn_1.style.textShadow='red -1px 1px 0px, crimson 2px 0px 0px'; dom.mn_1.style.backgroundColor = 'darkred'; dom.mn_1.style.color='chartreuse'; 
-dom.mn_2.style.color='#ffd700'; dom.mn_2.style.backgroundColor='664200';
-dom.mn_3.style.color='#c0c0c0'; dom.mn_3.style.backgroundColor='383838';
-dom.mn_4.style.color='#ff743f'; dom.mn_4.style.backgroundColor='662617';
-dom.mn_1.style.opacity=0;dom.mn_2.style.display='none';dom.mn_3.style.display='none';dom.mn_4.style.display='none';
+
+dom.mn_1.style.textShadow='red -1px 1px 0px, crimson 2px 0px 0px';
+
+dom.mn_1.style.opacity= 0;
+dom.mn_2.style.display='none';
+dom.mn_3.style.display='none';
+dom.mn_4.style.display='none';
+
+dom.mn_1.style.color='chartreuse'; 
+dom.mn_2.style.color='#ffd700';
+dom.mn_3.style.color='#c0c0c0';
+dom.mn_4.style.color='#ff743f';
+
+dom.mn_1.style.backgroundColor = 'darkred';
+dom.mn_2.style.backgroundColor='664200';
+dom.mn_3.style.backgroundColor='383838';
+dom.mn_4.style.backgroundColor='662617';
+
 dom.ctrmg = addElement(document.body,'div','ctrmg');
 dom.ctrmg_ca = addElement(dom.ctrmg,'div');
 dom.ctrmg_cb = addElement(dom.ctrmg,'div');
-dom.ctrwin1 = addElement(dom.ctrmg_cb,'div'); dom.ctrwin1.style.display='';
-dom.ctrwin2 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx'); dom.ctrwin2.style.display='none';
-dom.ctrwin3 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx'); dom.ctrwin3.style.display='none';
-dom.ctrwin4 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx'); dom.ctrwin4.style.display='none';
-dom.ctrwin5 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx'); dom.ctrwin5.style.display='none';
-dom.ctrwin6 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx'); dom.ctrwin6.style.display='none';
-dom.ctrwin7 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx'); dom.ctrwin7.style.display='none';
+
+dom.ctrwin1 = addElement(dom.ctrmg_cb,'div');
+dom.ctrwin2 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx');
+dom.ctrwin3 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx');
+dom.ctrwin4 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx');
+dom.ctrwin5 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx');
+dom.ctrwin6 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx');
+dom.ctrwin7 = addElement(dom.ctrmg_cb,'div',null,'ctrwinbx');
+
+dom.ctrwin1.style.display='';
+dom.ctrwin2.style.display='none';
+dom.ctrwin3.style.display='none';
+dom.ctrwin4.style.display='none';
+dom.ctrwin5.style.display='none';
+dom.ctrwin6.style.display='none';
+dom.ctrwin7.style.display='none';
+
 dom.nthngdsp = addElement(dom.ctrmg_cb,'div');
-dom.nthngdsp.style.top=200; dom.nthngdsp.style.left=210
-dom.nthngdsp.style.position='relative'; dom.nthngdsp.style.color='grey';
-dom.nthngdsp.innerHTML='Nothing here yet'; dom.nthngdsp.style.display='none'
-dom.ctr_1 = addElement(dom.ctrmg_ca,'div','ctrm_1'); if(!global.flags.aw_u)dom.ctr_1.style.display='none';
+dom.nthngdsp.style.top=200;
+dom.nthngdsp.style.left=210;
+dom.nthngdsp.style.position='relative';
+dom.nthngdsp.style.color='grey';
+dom.nthngdsp.innerHTML='Nothing here yet';
+dom.nthngdsp.style.display='none'
+
+dom.ctr_1 = addElement(dom.ctrmg_ca,'div','ctrm_1');
+if(!global.flags.aw_u)dom.ctr_1.style.display='none';
 dom.ctr_1a = addElement(dom.ctr_1,'div');
-dom.d_weather = addElement(dom.ctr_1a ,'div','ctr_w'); dom.d_weathers=addElement(dom.d_weather ,'small');  dom.d_weathert=addElement(dom.d_weather ,'span'); dom.d_weathers.style.marginRight=5
-dom.d_weathers.addEventListener('click',()=>{global.flags.ssngaijin=!global.flags.ssngaijin;wdrseason(global.flags.ssngaijin)})
+
+dom.d_weather = addElement(dom.ctr_1a ,'div','ctr_w');
+dom.d_weathers=addElement(dom.d_weather ,'small');
+dom.d_weathert=addElement(dom.d_weather ,'span');
+dom.d_weathers.style.marginRight=5;
+dom.d_weathers.addEventListener('click',()=>{
+    global.flags.ssngaijin=!global.flags.ssngaijin;
+    wdrseason(global.flags.ssngaijin);
+});
+
 dom.d_moon = addElement(dom.d_weather ,'span'); 
-dom.d_anomaly = addElement(dom.d_weather,'span'); dom.d_anomaly.innerHTML=''; 
-if(typeof InstallTrigger == 'undefined'){
-  dom.d_anomaly.style.float='right'; dom.d_anomaly.style.top=-4; dom.d_anomaly.style.position='relative';
-  dom.d_moon.style.float='right'; dom.d_moon.style.top=-4; dom.d_moon.style.position='relative';
+
+dom.d_anomaly = addElement(dom.d_weather,'span');
+dom.d_anomaly.innerHTML=''; 
+
+if (typeof InstallTrigger == 'undefined'){
+    dom.d_anomaly.style.float='right'; dom.d_anomaly.style.top=-4;
+    dom.d_anomaly.style.position='relative';
+    dom.d_moon.style.float='right';
+    dom.d_moon.style.top=-4;
+    dom.d_moon.style.position='relative';
 }
-dom.d_time = addElement(dom.ctr_1a,'div','ctr_t'); dom.d_time.addEventListener('click',function(){if(global.flags.tmmode>=3)global.flags.tmmode=1; else global.flags.tmmode++;this.innerHTML='<small>'+getDay(global.flags.tmmode)+'</small> '+timeDisp(time)});
-dom.d_lct = addElement(dom.ctr_1a,'div','ctr_l');  dom.d_lct.style.display='none'; dom.d_lct.innerHTML='Location: '
-dom.d_lctc = addElement(dom.d_lct,'div'); dom.d_lctc.style.fontSize='0.85em'; dom.d_lctc.style.paddingTop=7;dom.d_lctc.style.marginLeft=-1;dom.d_lctc.style.display='flex'
-dom.d_lctt = addElement(dom.d_lctc,'span'); dom.d_lctte = addElement(dom.d_lctc,'span')
+
+dom.d_time = addElement(dom.ctr_1a,'div','ctr_t');
+dom.d_time.addEventListener('click',function() {
+    if (global.flags.tmmode>=3) {
+        global.flags.tmmode=1;
+    }
+    else {
+        global.flags.tmmode++;
+        this.innerHTML='<small>'+getDay(global.flags.tmmode)+'</small> '+timeDisp(time);
+    }
+});
+
+dom.d_lct = addElement(dom.ctr_1a,'div','ctr_l');
+dom.d_lct.style.display='none';
+dom.d_lct.innerHTML='Location: '
+
+dom.d_lctc = addElement(dom.d_lct,'div');
+dom.d_lctc.style.fontSize='0.85em';
+dom.d_lctc.style.paddingTop=7;
+dom.d_lctc.style.marginLeft=-1;
+dom.d_lctc.style.display='flex';
+
+dom.d_lctt = addElement(dom.d_lctc,'span');
+dom.d_lctte = addElement(dom.d_lctc,'span');
+
 dom.ctr_2 = addElement(dom.ctrwin1,'div','ctrm_2');
-dom.ct_ctrl = addElement(dom.ctrmg,'div','ct_ctrl'); if(!global.flags.aw_u)dom.ct_ctrl.style.display='none';
+dom.ct_ctrl = addElement(dom.ctrmg,'div','ct_ctrl');
+if (!global.flags.aw_u) dom.ct_ctrl.style.display='none';
+
 dom.ct_bt1 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt1.innerHTML = global.flags.asbu?'assemble':'???????';
 dom.ct_bt2 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt2.innerHTML = global.flags.sklu?'skills':'???????';
 dom.ct_bt3 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt3.innerHTML = global.flags.actsu?'actions':'???????';
