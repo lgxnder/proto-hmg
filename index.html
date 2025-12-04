@@ -2039,46 +2039,98 @@ effect.bled.onGive = function(x,y) {
         this.y = Math.ceil(this.y + y * 0.2 + 1);
         this.duration += x * 0.9 << 0;
     }
-}
-effect.bled.use = function(y,z){
+};
+effect.bled.use = function(y,z) {
     this.duration--; 
-    this.power = y; let dmg = this.power; dmg = Math.ceil(rand(dmg*.6,dmg*1.4)); if(this.target.id===you.id){ 
-    giveSkExp(skl.bledr,this.power*.1); dmg*=Math.ceil(1-skl.bledr.use()); global.stat.dmgrt+=dmg; if(you.hp-dmg>0) you.hp-=dmg; else{you.hp=0;removeEff(this);this.duration=5;you.onDeath();global.atkdfty=[2,3]} 
-    dom.d5_1_1.update();} 
-    else{if(this.target.hp-dmg>0) this.target.hp-=dmg; else{this.target.hp=0;removeEff(this,this.target);this.duration=5;this.target.onDeath(you);global.stat.indkill++}}
-    if(this.duration===0){removeEff(this,this.target);this.duration=5;};
-}
-effect.bled.onClick=function(){ return;
-    let it; if(item.bdgh.have) item.bdgh.use();
-}
+    this.power = y;
+    let dmg = this.power;
+    dmg = Math.ceil(rand (dmg * 0.6, dmg * 1.4) );
 
-effect.tarnish = new Effect(); effect.tarnish.id = 15;
-effect.tarnish.name='Tarnished';
-effect.tarnish.desc='Equipment usability -30%';
+    if (this.target.id === you.id) { 
+        giveSkExp(skl.bledr, this.power * 0.1);
+        dmg *= Math.ceil(1 - skl.bledr.use());
+        global.stat.dmgrt += dmg;
+
+        if (you.hp - dmg > 0) {
+            you.hp -= dmg;
+        }
+        else {
+            you.hp = 0;
+            removeEff(this);
+            this.duration = 5;
+            you.onDeath();
+            global.atkdfty = [2,3]} 
+        dom.d5_1_1.update();
+    } 
+    else {
+        if(this.target.hp - dmg > 0) {
+            this.target.hp -= dmg;
+        }
+        else {
+            this.target.hp = 0;
+            removeEff(this, this.target);
+            this.duration = 5;
+            this.target.onDeath(you);
+            global.stat.indkill++;
+        }
+    }
+    
+    if (this.duration === 0) {
+        removeEff(this, this.target);
+        this.duration = 5;
+    };
+};
+effect.bled.onClick = function(){
+    return; //** this code is unreachable in original codebase
+    let it;
+    if (item.bdgh.have) {
+        item.bdgh.use();
+    }
+};
+
+effect.tarnish = new Effect();
+effect.tarnish.id = 15;
+effect.tarnish.name = 'Tarnished';
+effect.tarnish.desc = 'Equipment usability -30%';
 effect.tarnish.type = 4;
 effect.tarnish.duration = -1;
-effect.tarnish.x='≠';effect.tarnish.c='purple';effect.tarnish.b='grey';
-effect.tarnish.onGive=function(){msg('Your equipment cracks','purple')};
+effect.tarnish.x = '≠';
+effect.tarnish.c = 'purple';
+effect.tarnish.b = 'grey';
+effect.tarnish.onGive = function() {
+    msg('Your equipment cracks', 'purple')
+};
 effect.tarnish.use = function(y,z){}
 
-effect.prostasia = new Effect(); effect.prostasia.id = 16;
-effect.prostasia.name='Prostasía';
-effect.prostasia.desc='Equipment usability +30%';
+effect.prostasia = new Effect();
+effect.prostasia.id = 16;
+effect.prostasia.name = 'Prostasía';
+effect.prostasia.desc = 'Equipment usability +30%';
 effect.prostasia.type = 4; 
 effect.prostasia.duration = -1;
-effect.prostasia.x='≒';effect.prostasia.c='midnightblue';effect.prostasia.b='skyblue';
-effect.prostasia.onGive=function(){msg('You feel secure','skyblue')};
+effect.prostasia.x = '≒';
+effect.prostasia.c = 'midnightblue';
+effect.prostasia.b = 'skyblue';
+effect.prostasia.onGive = function() {
+    msg('You feel secure', 'skyblue')
+};
 effect.prostasia.use = function(y,z){}
 
-effect.incsk = new Effect(); effect.incsk.id = 17;
-effect.incsk.name='Incense Aroma';
-effect.incsk.desc='Your senses are enhanced';
+effect.incsk = new Effect();
+effect.incsk.id = 17;
+effect.incsk.name = 'Incense Aroma';
+effect.incsk.desc = 'Your senses are enhanced';
 effect.incsk.type = 3;
 effect.incsk.duration = 600;
-effect.incsk.x='Í';effect.incsk.c='gold';effect.incsk.b='#440205';
-effect.incsk.use = function(){ 
-    if(--this.duration===0){removeEff(this);this.duration=600;}
-}
+effect.incsk.x = 'Í';
+effect.incsk.c = 'gold';
+effect.incsk.b = '#440205';
+effect.incsk.use = function() { 
+    if (--this.duration === 0) {
+        removeEff(this);
+        this.duration = 600;
+    }
+};
 
 effect.run = new Effect();
 effect.run.id = 18;
@@ -2090,126 +2142,277 @@ effect.run.x = '走';
 effect.run.c = 'black';
 effect.run.b = 'skyblue';
 
-effect.drunk = new Effect(); effect.drunk.id = 19;
-effect.drunk.name='Inebriated'; 
-effect.drunk.desc='You\'re feeling drunk from alcohol';
+effect.drunk = new Effect();
+effect.drunk.id = 19;
+effect.drunk.name = 'Inebriated'; 
+effect.drunk.desc = 'You\'re feeling drunk from alcohol';
 effect.drunk.type = 5; 
 effect.drunk.duration = 15;
-effect.drunk.x='酒';effect.drunk.c='darkred';effect.drunk.b='orange';
-effect.drunk.use = function(){
-    if(--this.duration===0) removeEff(this);
-}
-effect.drunk.mods = function(){you.agle/=1+(.4-skl.drka.lvl*.03); you.stre*=1+(.2+skl.drka.lvl*.02); you.inte/=1+(.5-skl.drka.lvl*.04)}
-effect.drunk.onGive=function(){msg('You\'re feeling tipsy','chocolate')};
-effect.drunk.onRemove=function(){msg('You sober up','orange')};
+effect.drunk.x = '酒';
+effect.drunk.c = 'darkred';
+effect.drunk.b = 'orange';
+effect.drunk.use = function() {
+    if (--this.duration === 0) {
+        removeEff(this);
+    } 
+};
+effect.drunk.mods = function() {
+    you.agle /= 1 + (0.4 - skl.drka.lvl * 0.03);
+    you.stre *= 1 + (0.2 + skl.drka.lvl * 0.02);
+    you.inte /= 1 + (0.5 - skl.drka.lvl * 0.04);
+};
+effect.drunk.onGive = function() {
+    msg('You\'re feeling tipsy', 'chocolate');
+};
+effect.drunk.onRemove = function() {
+    msg('You sober up', 'orange')
+};
 
-effect.virus = new Effect(); effect.virus.id = 20;
-effect.virus.name='Virus'; 
-effect.virus.desc='You are contaminated';
+effect.virus = new Effect();
+effect.virus.id = 20;
+effect.virus.name = 'Virus'; 
+effect.virus.desc = 'You are contaminated';
 effect.virus.type = 5; 
 effect.virus.duration = -1;
-effect.virus.x='⁑';effect.virus.c='black';effect.virus.b='lightgrey';
-effect.virus.use = function(){
-}
-effect.virus.mods = function(){you.agle/=1.1; you.stre/=1.1; you.sat-=70; you.sata-=70}
-effect.virus.onGive=function(){msg('You feel bad','grey')};
-effect.virus.onRemove=function(){msg('You feel better','orange')};
+effect.virus.x = '⁑';
+effect.virus.c = 'black';
+effect.virus.b = 'lightgrey';
+effect.virus.use = function(){}
+effect.virus.mods = function() {
+    you.agle /= 1.1;
+    you.stre /= 1.1;
+    you.sat  -= 70;
+    you.sata -= 70;
+};
+effect.virus.onGive = function() {
+    msg('You feel bad','grey')
+};
+effect.virus.onRemove = function() {
+    msg('You feel better','orange')
+};
 
-effect.scout = new Effect(); effect.scout.id = 21;
-effect.scout.name='Investigating';
-effect.scout.desc='You\'re exploring your surroundings';
+effect.scout = new Effect();
+effect.scout.id = 21;
+effect.scout.name = 'Investigating';
+effect.scout.desc = 'You\'re exploring your surroundings';
 effect.scout.type = 4; 
 effect.scout.duration = -1;
-effect.scout.x='ǔ';effect.scout.c='aquamarine';effect.scout.b='teal';
+effect.scout.x = 'ǔ';
+effect.scout.c = 'aquamarine';
+effect.scout.b = 'teal';
 
 effect.invgrt = new Effect(); effect.invgrt.id = 22;
-effect.invgrt.name='Invigorate';
-effect.invgrt.desc='Your joints feel flexible';
+effect.invgrt.name = 'Invigorate';
+effect.invgrt.desc = 'Your joints feel flexible';
 effect.invgrt.type = 3; 
 effect.invgrt.duration = -1;
-effect.invgrt.x='ℐ';effect.invgrt.c='yellowgreen';effect.invgrt.b='darkgreen';
-effect.invgrt.onGive=function(){if(!this.active){msg(this.target.id===you.id?'You become nimble':(this.target.name+' becomes nimble'),'green');this.target.aglm+=.3}}
-effect.invgrt.onRemove=function(){this.target.aglm-=.3}
-effect.invgrt.use = function(){
-    if(--this.duration===0){removeEff(this);this.duration=5;
-  };
-}
+effect.invgrt.x = 'ℐ';
+effect.invgrt.c = 'yellowgreen';
+effect.invgrt.b = 'darkgreen';
+effect.invgrt.onGive = function() {
+    if (!this.active) {
+        msg(this.target.id === you.id ? 'You become nimble' : (this.target.name + ' becomes nimble'), 'green');
+        this.target.aglm += 0.3;
+    }
+};
+effect.invgrt.onRemove = function() {
+    this.target.aglm -= 0.3
+};
+effect.invgrt.use = function() {
+    if(--this.duration === 0) {
+        removeEff(this);
+        this.duration = 5;
+    };
+};
 
-effect.fei1 = new Effect(); effect.fei1.id = 23;
-effect.fei1.name='Fei poisoning';
-effect.fei1.desc='Fei impurities attack your flesh';
+effect.fei1 = new Effect();
+effect.fei1.id = 23;
+effect.fei1.name = 'Fei poisoning';
+effect.fei1.desc = 'Fei impurities attack your flesh';
 effect.fei1.type = 3; 
 effect.fei1.duration = 60;
-effect.fei1.x='⇔';effect.fei1.c='magenta';effect.fei1.b='#520090';
-effect.fei1.onGive=function(x,y){
-  if(!this.active) {msg('Your body is fighting against the impurities','darkmagenta',null,null,'grey');this.power=y}
-  else{this.power+=y;  this.duration+=30}
-}
-effect.fei1.use = function(y){ 
-  this.duration--; giveSkExp(skl.crptr,1);giveSkExp(skl.painr,this.power);let dmg = (this.power*5*(1-skl.crptr.lvl*.05))<<0; global.stat.dmgrt+=dmg; 
-  if(you.hp-dmg>0) you.hp-=dmg; else{you.hp=0;removeEff(this);you.onDeath();global.atkdfty=[2,4];msg("You fail to purify the pill",'darkgrey')}
-  dom.d5_1_1.update();
-  if(this.duration===0){removeEff(this,this.target);this.duration=5; msg("You have successfully purified the pill!",'lime');giveExp(this.power*5000+(this.power>1?(this.power*.15*5000):0),true,true,true)}
-}
+effect.fei1.x = '⇔';
+effect.fei1.c = 'magenta';
+effect.fei1.b = '#520090';
+effect.fei1.onGive = function(x,y) {
+    if (!this.active) {
+        msg('Your body is fighting against the impurities', 'darkmagenta', null, null, 'grey');
+        this.power = y;
+    }
+    else {
+        this.power += y;
+        this.duration += 30;
+    }
+};
+effect.fei1.use = function(y) { 
+    this.duration--;
+    giveSkExp(skl.crptr, 1);
+    giveSkExp(skl.painr, this.power);
+    let dmg = (this.power * 5 * (1 - skl.crptr.lvl * 0.05)) << 0;
+    global.stat.dmgrt += dmg; 
 
-effect.cold = new Effect(); effect.cold.id = 24;
-effect.cold.name='Cold';
-effect.cold.desc='You\'re freezing';
+    if (you.hp - dmg > 0) {
+        you.hp -= dmg;
+    } else {
+        you.hp = 0;
+        removeEff(this);
+        you.onDeath();
+        global.atkdfty = [2,4];
+        msg("You fail to purify the pill", 'darkgrey')
+    }
+    dom.d5_1_1.update();
+    if (this.duration === 0) {
+        removeEff(this, this.target);
+        this.duration = 5;
+        msg("You have successfully purified the pill!", 'lime');
+        giveExp(this.power * 5000 + (this.power > 1 ? (this.power * 0.15 * 5000) : 0), true, true, true);
+    }
+};
+
+effect.cold = new Effect();
+effect.cold.id = 24;
+effect.cold.name = 'Cold';
+effect.cold.desc = 'You\'re freezing';
 effect.cold.type = 5;
 effect.cold.duration = 5;
-effect.cold.x='冷';effect.cold.c='#88a';effect.cold.b='#eef';
-effect.cold.mods = function(){you.agle/=1.1; you.stre/=1.1; you.hpe/=1.1; you.sate/=1.05}
-effect.cold.onGive=function(){if(this.target.id===you.id) msg('You feel colder','blue',null,null,'cyan');};
-effect.cold.onRemove=function(){if(this.target.id===you.id) msg('You\'re warming up','orange'); };
-effect.cold.use = function(){ 
-  if(this.target.id===you.id){ 
-    giveSkExp(skl.abw,.01); giveSkExp(skl.coldr,.01);
-    effect.fplc.active===true?this.duration-=15:this.duration--; effect.wet.active?global.stat.coldnt+=6:global.stat.coldnt+=2;
-    if(effect.fbite.active) effect.fbite.duration+=5; else if(global.stat.coldnt>=460) giveEff(you,effect.fbite,20); if(global.stat.coldnt>0) global.stat.coldnt--
-  }
-  else this.duration--;  if(this.duration>600) this.duration=600; 
-  if(this.duration<=0){removeEff(this,this.target);this.duration=5;};
-}
+effect.cold.x = '冷';
+effect.cold.c = '#88a';
+effect.cold.b = '#eef';
+effect.cold.mods = function() {
+    you.agle /= 1.1;
+    you.stre /= 1.1;
+    you.hpe  /= 1.1;
+    you.sate /= 1.05;
+};
+effect.cold.onGive = function() {
+    if (this.target.id === you.id) {
+        msg('You feel colder', 'blue', null, null, 'cyan');  
+    } 
+};
+effect.cold.onRemove = function() {
+    if (this.target.id === you.id) {
+        msg('You\'re warming up', 'orange');
+    }
+};
+effect.cold.use = function() { 
+    if (this.target.id === you.id) { 
+        giveSkExp(skl.abw, 0.01);
+        giveSkExp(skl.coldr, 0.01);
 
-effect.smoke = new Effect(); effect.smoke.id = 25;
-effect.smoke.name='Smoke';
-effect.smoke.desc='Thick smoke abstructs your lungs';
+        effect.fplc.active === true ? this.duration -= 15 : this.duration--;
+        effect.wet.active ? global.stat.coldnt += 6 : global.stat.coldnt += 2;
+
+        if (effect.fbite.active) {
+            effect.fbite.duration += 5;
+        } else if (global.stat.coldnt >= 460) {
+            giveEff(you,effect.fbite, 20);
+        }
+
+        if(global.stat.coldnt > 0) {
+            global.stat.coldnt--;
+        }
+    }
+
+    else {
+        this.duration--;
+    }
+    
+    if (this.duration > 600) {
+        this.duration = 600;
+    }
+
+    if (this.duration <= 0) {
+        removeEff(this, this.target);
+        this.duration = 5;
+    };
+};
+
+effect.smoke = new Effect();
+effect.smoke.id = 25;
+effect.smoke.name = 'Smoke';
+effect.smoke.desc = 'Thick smoke abstructs your lungs';
 effect.smoke.type = 3;
 effect.smoke.duration = 5;
-effect.smoke.x='煙';effect.smoke.c='grey';effect.smoke.b='lightgrey';
-effect.smoke.onGive=function(){if(this.target.id===you.id){msg('You breathe heavily','grey')}};
-effect.smoke.onRemove=function(){msg('Your lungs feel lighter','orange')};
-effect.smoke.use = function(){ 
-  if(this.target.id===you.id){ 
-    if(random()<.1){
-      msg(select(['*Cough..*','*Hack..*','*Cough-cough..*','*Khe..*'],'grey'));giveSkExp(skl.painr,rand(0.5,5));
-      if(you.hp>50) you.hp-=(rand(5,35)+you.hp*(rand(.01,.05))); dom.d5_1_1.update();
+effect.smoke.x = '煙';
+effect.smoke.c = 'grey';
+effect.smoke.b = 'lightgrey';
+effect.smoke.onGive = function() {
+    if (this.target.id === you.id) {
+        msg('You breathe heavily', 'grey')
     }
-  }
-  this.duration--;
-  if(this.duration<=0){removeEff(this,this.target);this.duration=5;}
-}
+};
+effect.smoke.onRemove = function() {
+    msg('Your lungs feel lighter', 'orange')
+};
+effect.smoke.use = function() { 
+    if (this.target.id === you.id) { 
+        if (random() < 0.1) {
+            msg(select(['*Cough..*','*Hack..*','*Cough-cough..*','*Khe..*'], 'grey'));
+            giveSkExp(skl.painr, rand(0.5,5));
+            if (you.hp > 50) {
+                you.hp -= (rand(5,35) + you.hp * (rand(0.01, 0.05)));
+                dom.d5_1_1.update();
+            }
+        }
+    }
+    this.duration--;
+    if (this.duration<=0) {
+        removeEff(this, this.target);
+        this.duration = 5;
+    }
+};
 
-effect.fbite = new Effect(); effect.fbite.id = 26;
-effect.fbite.name='Hypothermia';
-effect.fbite.desc='Your limbs are suffering from frostbites';
+effect.fbite = new Effect();
+effect.fbite.id = 26;
+effect.fbite.name = 'Hypothermia';
+effect.fbite.desc = 'Your limbs are suffering from frostbites';
 effect.fbite.type = 5;
 effect.fbite.duration = 5;
-effect.fbite.x='凍';effect.fbite.c='red';effect.fbite.b='#aaf';
-effect.fbite.mods = function(){you.agle/=1.15; you.stre/=1.2; you.hpe/=1.2; you.sate/=1.1}
-effect.fbite.onGive=function(){if(this.target.id===you.id) msg('Sharp pain stings you','red',null,null,'cyan')};
-effect.fbite.onRemove=function(){if(this.target.id===you.id) {msg('You aren\'t freezing anymore','orange');global.stat.coldnt=0}};
-effect.fbite.use = function(){ 
-  if(this.target.id===you.id){ 
-    giveSkExp(skl.coldr,.05);
-    effect.fplc.active===true?this.duration-=5:this.duration--;
-    if(random()<.3){
-      giveSkExp(skl.painr,rand(0.2,1));
-      if(you.hp>50) you.hp-=(rand(5,20)); dom.d5_1_1.update();
+effect.fbite.x = '凍';
+effect.fbite.c = 'red';
+effect.fbite.b = '#aaf';
+effect.fbite.mods = function() {
+    you.agle /= 1.15;
+    you.stre /= 1.2;
+    you.hpe  /= 1.2;
+    you.sate /= 1.1;
+};
+effect.fbite.onGive = function() {
+    if (this.target.id === you.id) {
+        msg('Sharp pain stings you', 'red', null, null, 'cyan');
     }
-  }
-  else this.duration--; if(this.duration>900) this.duration=900;
-  if(this.duration<=0){removeEff(this,this.target);this.duration=5;};
+};
+effect.fbite.onRemove = function() {
+    if (this.target.id === you.id) {
+        msg('You aren\'t freezing anymore', 'orange');
+        global.stat.coldnt = 0;
+    }
+};
+effect.fbite.use = function() { 
+    if (this.target.id === you.id) { 
+        giveSkExp(skl.coldr, 0.05);
+        effect.fplc.active === true ? this.duration -= 5 : this.duration--;
+        if (random() < 0.3) {
+            giveSkExp(skl.painr, rand(0.2, 1));
+            if(you.hp > 50) {
+                you.hp -= (rand(5, 20));
+                dom.d5_1_1.update();
+            }
+        }
+    }
+
+    else {
+        this.duration--;
+    }
+    
+    if (this.duration > 900) {
+        this.duration = 900;
+    }
+
+    if (this.duration <= 0) {
+        removeEff(this, this.target);
+        this.duration = 5;
+    };
 }
 
 ///////////////////////////////////////////
@@ -2217,18 +2420,18 @@ effect.fbite.use = function(){
 ///////////////////////////////////////////
 
 function Furniture(){
-  this.name = '';
-  this.desc = '';
-  this.data={};
-  this.id = 0; 
-  this.removable=false;
-  this.use = function(){};
-  this.onGive=function(){};
-  this.onSelect=function(){};
-  this.onRemove=function(){};
-  this.onDestroy=function(){}
-  this.activate=function(){};
-  this.deactivate=function(){};
+    this.name = '';
+    this.desc = '';
+    this.data = {};
+    this.id = 0; 
+    this.removable = false;
+    this.use        = function(){};
+    this.onGive     = function(){};
+    this.onSelect   = function(){};
+    this.onRemove   = function(){};
+    this.onDestroy  = function(){};
+    this.activate   = function(){};
+    this.deactivate = function(){};
 }
 
 furniture.cat = new Furniture(); furniture.cat.id=2;
@@ -2236,7 +2439,7 @@ furniture.cat.name='Cat';
 furniture.cat.desc='Your best feline friend';
 furniture.cat.data={age:DAY*15,c:0,p:0,l1:0,l2:0,amount:0,named:false,sex:false,name:'Cat',mood:1}; furniture.cat.v=1;
 furniture.cat.use=function(){
-  this.data.age+=global.timescale; this.data.mood=this.data.mood>1?1:this.data.mood+.002;
+    this.data.age+=global.timescale; this.data.mood=this.data.mood>1?1:this.data.mood+.002;
 }
 
 furniture.frplc = new Furniture(); furniture.frplc.id=3;
@@ -2244,7 +2447,7 @@ furniture.frplc.name='Fireplace';
 furniture.frplc.desc='Comfy fireplace. You can light it up for various useful means, or just to warm up';
 furniture.frplc.data={fuel:0,amount:0}; furniture.frplc.v=3;
 furniture.frplc.use=function(){
-  if(this.data.fuel>0)this.data.fuel--
+    if(this.data.fuel>0)this.data.fuel--
 }
 
 furniture.bed1 = new Furniture(); furniture.bed1.id=4;
@@ -2252,7 +2455,7 @@ furniture.bed1.name='Straw Bedding';
 furniture.bed1.desc='A "bed" made from several layers of straw placed onto each other. Extremely itchy and isn\'t much better from sleeping on a rock';
 furniture.bed1.data={amount:0}; furniture.bed1.sq=.1; furniture.bed1.v=1; 
 furniture.bed1.onGive=function(){
-  if(!home.bed||home.bed.sq<this.sq) home.bed=this; 
+    if(!home.bed||home.bed.sq<this.sq) home.bed=this; 
 }
 
 furniture.bed2 = new Furniture(); furniture.bed2.id=5; furniture.bed2.removable=true;
@@ -2260,11 +2463,11 @@ furniture.bed2.name='Plain Bed';
 furniture.bed2.desc='Crude planks cobbled together to form a container for a matress or such. Not a whole lot in terms of sleeping place, but somewhat better than a hard cold floor';
 furniture.bed2.data={amount:0}; furniture.bed2.sq=1; furniture.bed2.v=5;
 furniture.bed2.onGive=function(){
-  if(!home.bed||home.bed.sq<this.sq) home.bed=this; 
+    if(!home.bed||home.bed.sq<this.sq) home.bed=this; 
 }
 furniture.bed2.onRemove=function(){
   home.bed=furniture.bed1;
-  giveItem(item.bed2,1,true);
+    giveItem(item.bed2,1,true);
 }
 
 furniture.tbwr1 = new Furniture(); furniture.tbwr1.id=6; furniture.tbwr1.removable=true;
@@ -2274,34 +2477,30 @@ furniture.tbwr1.data={amount:0}; furniture.tbwr1.sq=1; furniture.tbwr1.v=3;
 furniture.tbwr1.activate=function(){if(home.tbw.id===this.id) skl.glt.p+=.05};
 furniture.tbwr1.deactivate=function(){if(home.tbw.id===this.id) skl.glt.p-=.05};
 furniture.tbwr1.onGive=function(){
-  if(!home.tbw||home.tbw.sq<this.sq) home.tbw=this; 
+    if(!home.tbw||home.tbw.sq<this.sq) home.tbw=this; 
 }
 furniture.tbwr1.onRemove=function(){
-  giveItem(item.tbwr1,1,true);
+    giveItem(item.tbwr1,1,true);
 }
 
 furniture.tbwr2 = new Furniture(); furniture.tbwr2.id=7; furniture.tbwr2.removable=true;
 furniture.tbwr2.name='Clay Tableware';
 furniture.tbwr2.desc='Tableware made from hardened clay. Easy to make and doesn\'t cost very much';
 furniture.tbwr2.data={amount:0}; furniture.tbwr2.v=9;
-furniture.tbwr2.onGive=function(){
-
-}
+furniture.tbwr2.onGive=function(){}
 
 furniture.tbwr3 = new Furniture(); furniture.tbwr3.id=8; furniture.tbwr3.removable=true;
 furniture.tbwr3.name='Ceramic Tableware';
 furniture.tbwr3.desc='Quality and shiny ceramic tableware. Though it is commonly available and not expensive, some prefer to display it on the shelves for decorative purposes';
 furniture.tbwr3.data={amount:0}; furniture.tbwr3.v=21;
-furniture.tbwr3.onGive=function(){
-
-}
+furniture.tbwr3.onGive=function(){}
 
 furniture.wvbkt = new Furniture(); furniture.wvbkt.id=9; furniture.wvbkt.removable=true;
 furniture.wvbkt.name='Straw Basket';
 furniture.wvbkt.desc='Small woven basket. For storing stuff in';
 furniture.wvbkt.data={amount:0};
 furniture.wvbkt.onRemove=function(){
-  giveItem(item.wvbkt,1,true);
+    giveItem(item.wvbkt,1,true);
 }
 
 furniture.strgbx = new Furniture(); furniture.strgbx.id=10; 
@@ -2316,10 +2515,10 @@ furniture.bblkt.data={amount:0}; furniture.bblkt.sq=1; furniture.bblkt.v=2;
 furniture.bblkt.activate=function(){if(home.blkt.id===this.id) skl.sleep.p+=.5};
 furniture.bblkt.deactivate=function(){if(home.blkt.id===this.id) skl.sleep.p-=.5};
 furniture.bblkt.onGive=function(){
-  if(!home.blkt||home.blkt.sq<this.sq) home.blkt=this; 
+    if(!home.blkt||home.blkt.sq<this.sq) home.blkt=this; 
 }
 furniture.bblkt.onRemove=function(){
-  giveItem(item.bblkt,1,true);
+    giveItem(item.bblkt,1,true);
 }
 
 furniture.spillw = new Furniture(); furniture.spillw.id=12; furniture.spillw.removable=true;
@@ -2329,10 +2528,10 @@ furniture.spillw.data={amount:0}; furniture.spillw.sq=1; furniture.spillw.v=3;
 furniture.spillw.activate=function(){if(home.pilw.id===this.id) skl.sleep.p+=.3};
 furniture.spillw.deactivate=function(){if(home.pilw.id===this.id) skl.sleep.p-=.3};
 furniture.spillw.onGive=function(){
-  if(!home.pilw||home.pilw.sq<this.sq) home.pilw=this; 
+    if(!home.pilw||home.pilw.sq<this.sq) home.pilw=this; 
 }
 furniture.spillw.onRemove=function(){
-  giveItem(item.spillw,1,true);
+    giveItem(item.spillw,1,true);
 }
 
 furniture.cyrn = new Furniture(); furniture.cyrn.id=13; furniture.cyrn.removable=true;
@@ -2342,7 +2541,7 @@ furniture.cyrn.data={amount:0};  furniture.cyrn.v=3;
 furniture.cyrn.activate=function(){skl.pet.p+=.15;you.mods.petxp+=.25};
 furniture.cyrn.deactivate=function(){skl.pet.p-=.15;you.mods.petxp-=.25};
 furniture.cyrn.onRemove=function(){
-  giveItem(item.cyrn,1,true);
+    giveItem(item.cyrn,1,true);
 }
 
 furniture.fwdpile = new Furniture(); furniture.fwdpile.id=14; furniture.fwdpile.removable=true;
@@ -2351,13 +2550,13 @@ furniture.fwdpile.desc=function(){return 'Stockpile of firewood neatly packed to
 }
 furniture.fwdpile.data={amount:0,fuel:5};  furniture.fwdpile.v=5;
 furniture.fwdpile.onRemove=function(){
-  giveItem(item.fwdpile,1,true);
+    giveItem(item.fwdpile,1,true);
 }
 furniture.fwdpile.onSelect = function(){
-  let f = item.fwd1; if(f.amount===0) {msg('No firewood!','orange'); return}
-  if(this.data.fuel===this.data.amount*5) {msg('Firewood pile is full','cyan');return} else {
-    let n = this.data.amount*5-this.data.fuel; if(f.amount<n) n=f.amount; this.data.fuel+=n; reduce(f,n);
-  }
+    let f = item.fwd1; if(f.amount===0) {msg('No firewood!','orange'); return}
+    if(this.data.fuel===this.data.amount*5) {msg('Firewood pile is full','cyan');return} else {
+        let n = this.data.amount*5-this.data.fuel; if(f.amount<n) n=f.amount; this.data.fuel+=n; reduce(f,n);
+    }
 }
 
 
@@ -2369,7 +2568,7 @@ furniture.bookgen.activate=function(){skl.rdg.p+=this.data.p};
 furniture.bookgen.deactivate=function(){skl.rdg.p-=this.data.p};
 furniture.bookgen.onGive=function(){;if(inSector(sector.home)&&this.active)skl.rdg.p+=.01; this.data.p+=.01;}
 furniture.bookgen.onRemove=function(){
-  giveItem(item.bookgen,1,true); if(inSector(sector.home)&&this.active)skl.rdg.p-=.01; this.data.p-=.01
+    giveItem(item.bookgen,1,true); if(inSector(sector.home)&&this.active)skl.rdg.p-=.01; this.data.p-=.01
 }
 
 
