@@ -11559,30 +11559,57 @@ dom.tccon=addElement(dom.statbod,'small',null,'sttc'); dom.tcleft=addElement(dom
 });
 
 dom.ct_bt1_c = addElement(dom.ctrwin2,'div','crf_c'); 
-dom.ct_bt1_1_ncont = addElement(dom.ct_bt1_c,'div');  dom.ct_bt1_1_ncont.style.height='100%';dom.ct_bt1_1_ncont.style.width='45%';
+dom.ct_bt1_1_ncont = addElement(dom.ct_bt1_c,'div');
+dom.ct_bt1_1_ncont.style.height='100%';
+dom.ct_bt1_1_ncont.style.width='45%';
 dom.ct_bt1_1_cont = addElement(dom.ct_bt1_1_ncont,'div');
-dom.ct_bt1_1 = addElement(dom.ct_bt1_1_ncont,'div','crf_l'); dom.ct_bt1_1.style.height=343; dom.ct_bt1_1.style.width='100%';
+dom.ct_bt1_1 = addElement(dom.ct_bt1_1_ncont,'div','crf_l');
+dom.ct_bt1_1.style.height=343;
+dom.ct_bt1_1.style.width='100%';
 dom.ct_bt1_1_cont.style.bottom=0;
-dom.ct_bt1_1_cont.style.borderBottom='1px solid cornflowerblue '; dom.ct_bt1_1_cont.style.display='flex';
-dom.ct_bt1_1_cont_a=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts'); dom.ct_bt1_1_cont_c=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
-dom.ct_bt1_1_cont_b=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');  dom.ct_bt1_1_cont_d=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
-dom.ct_bt1_1_cont_e=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts'); dom.ct_bt1_1_cont_f=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
+dom.ct_bt1_1_cont.style.borderBottom='1px solid cornflowerblue';
+dom.ct_bt1_1_cont.style.display='flex';
+dom.ct_bt1_1_cont_a=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
+dom.ct_bt1_1_cont_c=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
+dom.ct_bt1_1_cont_b=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
+dom.ct_bt1_1_cont_d=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
+dom.ct_bt1_1_cont_e=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
+dom.ct_bt1_1_cont_f=addElement(dom.ct_bt1_1_cont,'small',null,'crf_c_bts');
 dom.ct_bt1_1_cont_f.style.borderRight='none';16
-dom.ct_bt1_1_cont_a.style.backgroundColor='darkslategrey'; dom.ct_bt1_1_cont_b.style.backgroundColor='#332e12';
-dom.ct_bt1_1_cont_c.style.backgroundColor='#1c3319'; dom.ct_bt1_1_cont_d.style.backgroundColor='#b73c0d';
-dom.ct_bt1_1_cont_e.style.backgroundColor='#313254'; dom.ct_bt1_1_cont_f.style.backgroundColor='#5155d6';
+dom.ct_bt1_1_cont_a.style.backgroundColor='darkslategrey';
+dom.ct_bt1_1_cont_b.style.backgroundColor='#332e12';
+dom.ct_bt1_1_cont_c.style.backgroundColor='#1c3319';
+dom.ct_bt1_1_cont_d.style.backgroundColor='#b73c0d';
+dom.ct_bt1_1_cont_e.style.backgroundColor='#313254';
+dom.ct_bt1_1_cont_f.style.backgroundColor='#5155d6';
 dom.ct_bt1_1_cont_a.addEventListener('click',function(){rstcrtthg();this.style.color='yellow';rsort(0)});
 dom.ct_bt1_1_cont_b.addEventListener('click',function(){rstcrtthg();this.style.color='yellow';rsort(1)});
 dom.ct_bt1_1_cont_c.addEventListener('click',function(){rstcrtthg();this.style.color='yellow';rsort(2)});
 dom.ct_bt1_1_cont_d.addEventListener('click',function(){rstcrtthg();this.style.color='yellow';rsort(3)});
 dom.ct_bt1_1_cont_e.addEventListener('click',function(){rstcrtthg();this.style.color='yellow';rsort(4)});
 dom.ct_bt1_1_cont_f.addEventListener('click',function(){rstcrtthg();this.style.color='yellow';rsort(5)});
-global.spbtsr=[dom.ct_bt1_1_cont_a,dom.ct_bt1_1_cont_b,dom.ct_bt1_1_cont_c,dom.ct_bt1_1_cont_d,dom.ct_bt1_1_cont_e,dom.ct_bt1_1_cont_f]
-dom.ct_bt1_1_cont_a.innerHTML='ALL';dom.ct_bt1_1_cont_b.innerHTML='FOD';dom.ct_bt1_1_cont_c.innerHTML='MED';
-dom.ct_bt1_1_cont_d.innerHTML='WEP';dom.ct_bt1_1_cont_e.innerHTML='EQP'; dom.ct_bt1_1_cont_f.innerHTML='MAT';
-addDesc(dom.ct_bt1_1_cont_a,null,2,'Filter','All'); addDesc(dom.ct_bt1_1_cont_b,null,2,'Filter','Food');
-addDesc(dom.ct_bt1_1_cont_c,null,2,'Filter','Medicine/Tools'); addDesc(dom.ct_bt1_1_cont_d,null,2,'Filter','Weapons');
-addDesc(dom.ct_bt1_1_cont_e,null,2,'Filter','Equipment/Accessories'); addDesc(dom.ct_bt1_1_cont_f,null,2,'Filter','Materials/Misc.');
+global.spbtsr = [
+    dom.ct_bt1_1_cont_a,
+    dom.ct_bt1_1_cont_b,
+    dom.ct_bt1_1_cont_c,
+    dom.ct_bt1_1_cont_d,
+    dom.ct_bt1_1_cont_e,
+    dom.ct_bt1_1_cont_f
+];
+dom.ct_bt1_1_cont_a.innerHTML='ALL';
+dom.ct_bt1_1_cont_b.innerHTML='FOD';
+dom.ct_bt1_1_cont_c.innerHTML='MED';
+dom.ct_bt1_1_cont_d.innerHTML='WEP';
+dom.ct_bt1_1_cont_e.innerHTML='EQP';
+dom.ct_bt1_1_cont_f.innerHTML='MAT';
+
+addDesc(dom.ct_bt1_1_cont_a,null,2,'Filter','All');
+addDesc(dom.ct_bt1_1_cont_b,null,2,'Filter','Food');
+addDesc(dom.ct_bt1_1_cont_c,null,2,'Filter','Medicine/Tools');
+addDesc(dom.ct_bt1_1_cont_d,null,2,'Filter','Weapons');
+addDesc(dom.ct_bt1_1_cont_e,null,2,'Filter','Equipment/Accessories');
+addDesc(dom.ct_bt1_1_cont_f,null,2,'Filter','Materials/Misc.');
+
 dom.ct_bt1_2 = addElement(dom.ct_bt1_c,'div','crf_r'); 
 dom.ct_bt4_1 = addElement(dom.ctrwin4,'div',null,'opt_c'); 
 dom.ct_bt4_1a = addElement(dom.ct_bt4_1,'div',null,'opt_t');
@@ -11590,34 +11617,70 @@ dom.ct_bt4_1a.innerHTML = 'Message log limit';
 dom.ct_bt4_1b = addElement(dom.ct_bt4_1,'input',null,'opt_v');
 dom.ct_bt4_1b.value = global.msgs_max; dom.ct_bt4_1b.type ='number';
 dom.ct_bt4_1b.min = 1; dom.ct_bt4_1b.max = 100;
-dom.ct_bt4_1b.addEventListener('change',function(){if(this.value<1)this.value=1;else if(this.value>100)this.value=100;global.msgs_max=this.value});
-function rstcrtthg(){for(let a in global.spbtsr) global.spbtsr[a].style.color='inherit';}
+dom.ct_bt4_1b.addEventListener('change',function() {
+    if (this.value < 1) {
+        this.value = 1;
+    } else if (this.value>100) {
+        this.value=100;
+    }
+    global.msgs_max = this.value;
+});
+
+//** no idea what the hell this functions name is
+function rstcrtthg() {
+    for (let a in global.spbtsr) {
+        global.spbtsr[a].style.color = 'inherit';
+    }
+}
 
 dom.ct_bt4_2 = addElement(dom.ctrwin4,'div',null,'opt_c'); 
 dom.ct_bt4_2a = addElement(dom.ct_bt4_2,'div',null,'opt_t');
 dom.ct_bt4_2a.innerHTML = 'BG Color';
+
 dom.ct_bt4_21b = addElement(dom.ct_bt4_2,'input',null,'opt_v');
 dom.ct_bt4_21b.value = global.bg_r; dom.ct_bt4_21b.type ='range';
-dom.ct_bt4_21b.min = 0; dom.ct_bt4_21b.max = 255; dom.ct_bt4_21b.style.width='85px'; dom.ct_bt4_21b.style.height='16px';
+dom.ct_bt4_21b.min = 0; dom.ct_bt4_21b.max = 255;
+dom.ct_bt4_21b.style.width='85px';
+dom.ct_bt4_21b.style.height='16px';
 dom.ct_bt4_21b.addEventListener('input',function(){document.body.removeAttribute('style');global.flags.bgspc=false;global.bg_r=this.value;document.body.style.backgroundColor='rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';dom.ct_bt4_31b.innerHTML = global.bg_r});
+
 dom.ct_bt4_22b = addElement(dom.ct_bt4_2,'input',null,'opt_v');
-dom.ct_bt4_22b.value = global.bg_g; dom.ct_bt4_22b.type ='range'; dom.ct_bt4_21b.style.height='16px'; dom.ct_bt4_22b.style.height='16px';
-dom.ct_bt4_22b.min = 0; dom.ct_bt4_22b.max = 255; dom.ct_bt4_22b.style.width='85px'; dom.ct_bt4_22b.style.left='367px';
+dom.ct_bt4_22b.value = global.bg_g;
+dom.ct_bt4_22b.type ='range';
+dom.ct_bt4_21b.style.height='16px';
+dom.ct_bt4_22b.style.height='16px';
+dom.ct_bt4_22b.min = 0;
+dom.ct_bt4_22b.max = 255;
+dom.ct_bt4_22b.style.width='85px';
+dom.ct_bt4_22b.style.left='367px';
 dom.ct_bt4_22b.addEventListener('input',function(){document.body.removeAttribute('style');global.flags.bgspc=false;global.bg_g=this.value;document.body.style.backgroundColor='rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';dom.ct_bt4_32b.innerHTML = global.bg_g});
+
 dom.ct_bt4_23b = addElement(dom.ct_bt4_2,'input',null,'opt_v');
-dom.ct_bt4_23b.value = global.bg_b; dom.ct_bt4_23b.type ='range'; dom.ct_bt4_21b.style.height='16px'; dom.ct_bt4_23b.style.height='16px';
-dom.ct_bt4_23b.min = 0; dom.ct_bt4_23b.max = 255; dom.ct_bt4_23b.style.width='85px'; dom.ct_bt4_23b.style.left='459px';
+dom.ct_bt4_23b.value = global.bg_b;
+dom.ct_bt4_23b.type ='range';
+dom.ct_bt4_21b.style.height='16px';
+dom.ct_bt4_23b.style.height='16px';
+dom.ct_bt4_23b.min = 0;
+dom.ct_bt4_23b.max = 255;
+dom.ct_bt4_23b.style.width='85px';
+dom.ct_bt4_23b.style.left='459px';
 dom.ct_bt4_23b.addEventListener('input',function(){document.body.removeAttribute('style');global.flags.bgspc=false;global.bg_b=this.value;document.body.style.backgroundColor='rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';dom.ct_bt4_33b.innerHTML = global.bg_b});
 
 dom.ct_bt4_3 = addElement(dom.ctrwin4,'div',null,'opt_c'); 
 dom.ct_bt4_3a = addElement(dom.ct_bt4_3,'div',null,'opt_t');
 dom.ct_bt4_3a.innerHTML = '　';
-dom.ct_bt4_31b = addElement(dom.ct_bt4_3,'div',null,'opt_v'); dom.ct_bt4_31b.style.textAlign='center';
-dom.ct_bt4_31b.style.width='83px'; dom.ct_bt4_31b.innerHTML = global.bg_r||255; 
-dom.ct_bt4_32b = addElement(dom.ct_bt4_3,'div',null,'opt_v'); dom.ct_bt4_32b.style.textAlign='center';
-dom.ct_bt4_32b.style.width='83px'; dom.ct_bt4_32b.innerHTML = global.bg_g||255; dom.ct_bt4_32b.style.left='367px';
-dom.ct_bt4_33b = addElement(dom.ct_bt4_3,'div',null,'opt_v'); dom.ct_bt4_33b.style.textAlign='center';
-dom.ct_bt4_33b.style.width='83px'; dom.ct_bt4_33b.innerHTML = global.bg_b||255; dom.ct_bt4_33b.style.left='459px';
+dom.ct_bt4_31b = addElement(dom.ct_bt4_3,'div',null,'opt_v');
+dom.ct_bt4_31b.style.textAlign='center';
+dom.ct_bt4_31b.style.width='83px';
+dom.ct_bt4_31b.innerHTML = global.bg_r||255; 
+dom.ct_bt4_32b = addElement(dom.ct_bt4_3,'div',null,'opt_v');
+dom.ct_bt4_32b.style.textAlign='center';
+dom.ct_bt4_32b.style.width='83px';
+dom.ct_bt4_32b.innerHTML = global.bg_g||255; dom.ct_bt4_32b.style.left='367px';
+dom.ct_bt4_33b = addElement(dom.ct_bt4_3,'div',null,'opt_v');
+dom.ct_bt4_33b.style.textAlign='center';
+dom.ct_bt4_33b.style.width='83px';
+dom.ct_bt4_33b.innerHTML = global.bg_b||255; dom.ct_bt4_33b.style.left='459px';
 
 dom.ct_bt4_03 = addElement(dom.ctrwin4,'div',null,'opt_c'); 
 dom.ct_bt4_03a = addElement(dom.ct_bt4_03,'div',null,'opt_t');
@@ -11631,85 +11694,145 @@ dom.ct_bt4_03b1.style.color='#000'; dom.ct_bt4_03b1.style.backgroundColor='white
 dom.ct_bt4_03b2.style.color='lightgrey'; dom.ct_bt4_03b2.style.backgroundColor='#666'; 
 dom.ct_bt4_03b3.style.color='yellow'; dom.ct_bt4_03b3.style.backgroundColor='rgb(18,18,46)';
 dom.ct_bt4_03b4.style.background='linear-gradient(180deg,#000,#123)';
-dom.ct_bt4_03b1.addEventListener('click',function(){ global.flags.bgspc=false
-  global.bg_r=255; global.bg_g=255; global.bg_b=255; document.body.removeAttribute('style')
-  dom.ct_bt4_31b.innerHTML=255;dom.ct_bt4_32b.innerHTML=255;dom.ct_bt4_33b.innerHTML=255;
-  dom.ct_bt4_21b.value = global.bg_r;dom.ct_bt4_22b.value = global.bg_g;dom.ct_bt4_23b.value = global.bg_b
-  document.body.style.backgroundColor='rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';
+dom.ct_bt4_03b1.addEventListener('click',function() {
+    global.flags.bgspc = false;
+    global.bg_r=255;
+    global.bg_g=255;
+    global.bg_b=255;
+    document.body.removeAttribute('style');
+    dom.ct_bt4_31b.innerHTML=255;
+    dom.ct_bt4_32b.innerHTML=255;
+    dom.ct_bt4_33b.innerHTML=255;
+    dom.ct_bt4_21b.value = global.bg_r;
+    dom.ct_bt4_22b.value = global.bg_g;
+    dom.ct_bt4_23b.value = global.bg_b;
+    document.body.style.backgroundColor = 'rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';
 });
-dom.ct_bt4_03b2.addEventListener('click',function(){ global.flags.bgspc=false
-  global.bg_r=188; global.bg_g=188; global.bg_b=188; document.body.removeAttribute('style')
-  dom.ct_bt4_31b.innerHTML=188;dom.ct_bt4_32b.innerHTML=188;dom.ct_bt4_33b.innerHTML=188;
-  dom.ct_bt4_21b.value = global.bg_r;dom.ct_bt4_22b.value = global.bg_g;dom.ct_bt4_23b.value = global.bg_b
-  document.body.style.backgroundColor='rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';
+dom.ct_bt4_03b2.addEventListener('click',function() {
+    global.flags.bgspc=false;
+    global.bg_r=188;
+    global.bg_g=188;
+    global.bg_b=188;
+    document.body.removeAttribute('style');
+    dom.ct_bt4_31b.innerHTML=188;
+    dom.ct_bt4_32b.innerHTML=188;
+    dom.ct_bt4_33b.innerHTML=188;
+    dom.ct_bt4_21b.value = global.bg_r;
+    dom.ct_bt4_22b.value = global.bg_g;
+    dom.ct_bt4_23b.value = global.bg_b;
+    document.body.style.backgroundColor = 'rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';
 });
-dom.ct_bt4_03b3.addEventListener('click',function(){ global.flags.bgspc=false
-  global.bg_r=18; global.bg_g=18; global.bg_b=46; document.body.removeAttribute('style')
-  dom.ct_bt4_31b.innerHTML=18;dom.ct_bt4_32b.innerHTML=18;dom.ct_bt4_33b.innerHTML=46;
-  dom.ct_bt4_21b.value = global.bg_r;dom.ct_bt4_22b.value = global.bg_g;dom.ct_bt4_23b.value = global.bg_b
-  document.body.style.backgroundColor='rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';
+dom.ct_bt4_03b3.addEventListener('click',function() {
+    global.flags.bgspc=false;
+    global.bg_r=18;
+    global.bg_g=18;
+    global.bg_b=46;
+    document.body.removeAttribute('style');
+    dom.ct_bt4_31b.innerHTML=18;
+    dom.ct_bt4_32b.innerHTML=18;
+    dom.ct_bt4_33b.innerHTML=46;
+    dom.ct_bt4_21b.value = global.bg_r;
+    dom.ct_bt4_22b.value = global.bg_g;
+    dom.ct_bt4_23b.value = global.bg_b;
+    document.body.style.backgroundColor = 'rgb('+global.bg_r+','+global.bg_g+','+global.bg_b+')';
 });
-dom.ct_bt4_03b4.addEventListener('click',function(){ global.flags.bgspc=true
-  dom.ct_bt4_31b.innerHTML='SPCL';dom.ct_bt4_32b.innerHTML='SPCL';dom.ct_bt4_33b.innerHTML='SPCL';
-  document.body.style.background='linear-gradient(180deg,#000,#123)';
+dom.ct_bt4_03b4.addEventListener('click',function() {
+    global.flags.bgspc=true;
+    dom.ct_bt4_31b.innerHTML='SPCL';
+    dom.ct_bt4_32b.innerHTML='SPCL';
+    dom.ct_bt4_33b.innerHTML='SPCL';
+    document.body.style.background='linear-gradient(180deg,#000,#123)';
 });
 
 dom.ct_bt4_4 = addElement(dom.ctrwin4,'div',null,'opt_c'); 
 dom.ct_bt4_4a = addElement(dom.ct_bt4_4,'div',null,'opt_t');
 dom.ct_bt4_4a.innerHTML = 'Destroy gradients';
-dom.ct_bt4_41b = addElement(dom.ct_bt4_4,'input',null,'opt_v'); dom.ct_bt4_41b.type='checkbox';
+dom.ct_bt4_41b = addElement(dom.ct_bt4_4,'input',null,'opt_v');
+dom.ct_bt4_41b.type='checkbox';
 dom.ct_bt4_41b.addEventListener('click',()=>{nograd(global.flags.grd_s)});
 dom.ct_bt4_5 = addElement(dom.ctrwin4,'div',null,'opt_c'); 
 dom.ct_bt4_5a = addElement(dom.ct_bt4_5,'div',null,'opt_ta');
 dom.ct_bt4_5b = addElement(dom.ct_bt4_5,'div',null,'opt_va');
-dom.ct_bt4_5a.innerHTML = 'Export'; dom.ct_bt4_5a.style.border='1px lightgrey solid';
-dom.ct_bt4_5a.addEventListener('click',function(){if(!global.flags.expatv){
-  t = save(true);global.flags.expatv=true;
-  dom.ct_bt4_5a_nc = addElement(document.body,'div');
-  dom.ct_bt4_5a_nc.style.position='absolute'; dom.ct_bt4_5a_nc.style.padding=2;
-  dom.ct_bt4_5a_nc.style.top=370; dom.ct_bt4_5a_nc.style.left=330;
-  dom.ct_bt4_5a_nc.style.width=600; dom.ct_bt4_5a_nc.style.height=400; dom.ct_bt4_5a_nc.style.border='2px solid black'; 
-  dom.ct_bt4_5a_nc.style.backgroundColor='lightgrey';
-  dom.ct_bt4_5a_nh = addElement(dom.ct_bt4_5a_nc,'div'); dom.ct_bt4_5a_nh.style.height=20; dom.ct_bt4_5a_nh.style.borderBottom='2px solid black';
-  dom.ct_bt4_5a_nhv = addElement(dom.ct_bt4_5a_nh,'div'); 
-  dom.ct_bt4_5a_nhv.style.float='left'; dom.ct_bt4_5a_nhv.style.marginRight=6;
-  dom.ct_bt4_5a_nhv.style.backgroundColor='grey'; dom.ct_bt4_5a_nhv.innerHTML='Export As Text'
-  dom.ct_bt4_5a_nhv.addEventListener('click',function(){dom.ct_bt4_5a_nbc.value = t});
-  dom.ct_bt4_5a_nhz = addElement(dom.ct_bt4_5a_nh,'div'); 
-  dom.ct_bt4_5a_nhz.style.float='left';
-  dom.ct_bt4_5a_nhz.style.backgroundColor='grey'; dom.ct_bt4_5a_nhz.innerHTML='Export As File'
-  dom.ct_bt4_5a_nhz.addEventListener('click',function(){
-    let a = new Date(); let temp = document.createElement('a');
-    temp.href = 'data:text/plain;charset=utf-8,'+t; let n = you.name; if(/(<.*>)|(\(.*\))/.test(you.name))n='';
-    temp.download = n+' - v'+global.ver+' - '+(a.getFullYear()+'/'+(a.getMonth()+1)+'/'+a.getDate()+' '+a.getHours()+'_'+(a.getMinutes()>=10?a.getMinutes():'0'+a.getMinutes())+'_'+(a.getSeconds()>=10?a.getSeconds():'0'+a.getSeconds()))+' [Proto23]'; temp.click(); 
-  });
-  dom.ct_bt4_5a_nhx = addElement(dom.ct_bt4_5a_nh,'div'); draggable(dom.ct_bt4_5a_nh,dom.ct_bt4_5a_nc);
-  dom.ct_bt4_5a_nhx.innerHTML = '✖'; dom.ct_bt4_5a_nhx.style.float='right';
-  dom.ct_bt4_5a_nhx.style.backgroundColor='red';
-  dom.ct_bt4_5a_nhx.addEventListener('click',function(){global.flags.expatv=false;empty(dom.ct_bt4_5a_nc);document.body.removeChild(dom.ct_bt4_5a_nc); kill(dom.ct_bt4_5a_nc)});
-  dom.ct_bt4_5a_nb = addElement(dom.ct_bt4_5a_nc,'div'); 
-  dom.ct_bt4_5a_nbc = addElement(dom.ct_bt4_5a_nb,'textArea');dom.ct_bt4_5a_nbc.style.fontFamily='MS Gothic';
-  dom.ct_bt4_5a_nbc.style.width='100%';dom.ct_bt4_5a_nbc.style.height='378px';dom.ct_bt4_5a_nbc.style.overflow='auto'
-  
+dom.ct_bt4_5a.innerHTML = 'Export';
+dom.ct_bt4_5a.style.border='1px lightgrey solid';
+dom.ct_bt4_5a.addEventListener('click',function(){ if (!global.flags.expatv) {
+    t = save(true);
+    global.flags.expatv = true;
+
+    dom.ct_bt4_5a_nc = addElement(document.body,'div');
+    dom.ct_bt4_5a_nc.style.position='absolute';
+    dom.ct_bt4_5a_nc.style.padding=2;
+    dom.ct_bt4_5a_nc.style.top=370;
+    dom.ct_bt4_5a_nc.style.left=330;
+    dom.ct_bt4_5a_nc.style.width=600;
+    dom.ct_bt4_5a_nc.style.height=400;
+    dom.ct_bt4_5a_nc.style.border='2px solid black'; 
+    dom.ct_bt4_5a_nc.style.backgroundColor='lightgrey';
+    dom.ct_bt4_5a_nh = addElement(dom.ct_bt4_5a_nc,'div');
+    dom.ct_bt4_5a_nh.style.height=20;
+    dom.ct_bt4_5a_nh.style.borderBottom='2px solid black';
+    dom.ct_bt4_5a_nhv = addElement(dom.ct_bt4_5a_nh,'div'); 
+    dom.ct_bt4_5a_nhv.style.float='left';
+    dom.ct_bt4_5a_nhv.style.marginRight=6;
+    dom.ct_bt4_5a_nhv.style.backgroundColor='grey';
+    dom.ct_bt4_5a_nhv.innerHTML='Export As Text'
+    dom.ct_bt4_5a_nhv.addEventListener('click',function(){dom.ct_bt4_5a_nbc.value = t});
+    dom.ct_bt4_5a_nhz = addElement(dom.ct_bt4_5a_nh,'div'); 
+    dom.ct_bt4_5a_nhz.style.float='left';
+    dom.ct_bt4_5a_nhz.style.backgroundColor='grey';
+    dom.ct_bt4_5a_nhz.innerHTML='Export As File'
+
+    dom.ct_bt4_5a_nhz.addEventListener('click',function() {
+        let a = new Date();
+        let temp = document.createElement('a');
+        temp.href = 'data:text/plain;charset=utf-8,'+t;
+        let n = you.name;
+        if (/(<.*>)|(\(.*\))/.test(you.name)) n='';
+        temp.download = n+' - v'+global.ver+' - '+(a.getFullYear()+'/'+(a.getMonth()+1)+'/'+a.getDate()+' '+a.getHours()+'_'+(a.getMinutes()>=10?a.getMinutes():'0'+a.getMinutes())+'_'+(a.getSeconds()>=10?a.getSeconds():'0'+a.getSeconds()))+' [Proto23]'; temp.click(); 
+    });
+
+    dom.ct_bt4_5a_nhx = addElement(dom.ct_bt4_5a_nh,'div');
+    draggable(dom.ct_bt4_5a_nh,dom.ct_bt4_5a_nc);
+    dom.ct_bt4_5a_nhx.innerHTML = '✖';
+    dom.ct_bt4_5a_nhx.style.float='right';
+    dom.ct_bt4_5a_nhx.style.backgroundColor='red';
+    dom.ct_bt4_5a_nhx.addEventListener('click',function(){global.flags.expatv=false;empty(dom.ct_bt4_5a_nc);document.body.removeChild(dom.ct_bt4_5a_nc); kill(dom.ct_bt4_5a_nc)});
+    dom.ct_bt4_5a_nb = addElement(dom.ct_bt4_5a_nc,'div'); 
+    dom.ct_bt4_5a_nbc = addElement(dom.ct_bt4_5a_nb,'textArea');
+    dom.ct_bt4_5a_nbc.style.fontFamily='MS Gothic';
+    dom.ct_bt4_5a_nbc.style.width='100%';
+    dom.ct_bt4_5a_nbc.style.height='378px';
+    dom.ct_bt4_5a_nbc.style.overflow='auto';
 }});
-dom.ct_bt4_5b.innerHTML = 'Import'; dom.ct_bt4_5b.style.border='1px lightgrey solid'; 
-dom.ct_bt4_5b.addEventListener('click',function(){if(!global.flags.impatv){
-  global.flags.impatv=true;
+
+dom.ct_bt4_5b.innerHTML = 'Import';
+dom.ct_bt4_5b.style.border='1px lightgrey solid'; 
+dom.ct_bt4_5b.addEventListener('click',function() { if(!global.flags.impatv) {
+  global.flags.impatv = true;
   dom.ct_bt4_5b_nc = addElement(document.body,'div');
-  dom.ct_bt4_5b_nc.style.position='absolute'; dom.ct_bt4_5b_nc.style.padding=2;
-  dom.ct_bt4_5b_nc.style.top=370; dom.ct_bt4_5b_nc.style.left=330;
-  dom.ct_bt4_5b_nc.style.width=600; dom.ct_bt4_5b_nc.style.height=400; dom.ct_bt4_5b_nc.style.border='2px solid black';
+  dom.ct_bt4_5b_nc.style.position='absolute';
+  dom.ct_bt4_5b_nc.style.padding=2;
+  dom.ct_bt4_5b_nc.style.top=370;
+  dom.ct_bt4_5b_nc.style.left=330;
+  dom.ct_bt4_5b_nc.style.width=600;
+  dom.ct_bt4_5b_nc.style.height=400;
+  dom.ct_bt4_5b_nc.style.border='2px solid black';
   dom.ct_bt4_5b_nc.style.backgroundColor='lightgrey'; 
-  dom.ct_bt4_5b_nh = addElement(dom.ct_bt4_5b_nc,'div'); dom.ct_bt4_5b_nh.style.height=20; dom.ct_bt4_5b_nh.style.borderBottom='2px solid black';
-  dom.ct_bt4_5b_nhv = addElement(dom.ct_bt4_5b_nh,'div'); draggable(dom.ct_bt4_5b_nh,dom.ct_bt4_5b_nc);
+  dom.ct_bt4_5b_nh = addElement(dom.ct_bt4_5b_nc,'div');
+  dom.ct_bt4_5b_nh.style.height=20;
+  dom.ct_bt4_5b_nh.style.borderBottom='2px solid black';
+  dom.ct_bt4_5b_nhv = addElement(dom.ct_bt4_5b_nh,'div');
+  draggable(dom.ct_bt4_5b_nh,dom.ct_bt4_5b_nc);
   dom.ct_bt4_5b_nhv.style.float='left';
-  dom.ct_bt4_5b_nhv.style.backgroundColor='grey'; dom.ct_bt4_5b_nhv.innerHTML='Import As Text'; dom.ct_bt4_5b_nhv.style.marginRight=6
-  dom.ct_bt4_5b_nhv.addEventListener('click',function(){
-    if(dom.ct_bt4_5b_nbc.value==""||dom.ct_bt4_5b_nbc.value=="?") {dom.ct_bt4_5b_nbc.value='?'; return}
-    let storage = window.localStorage; let t = dom.ct_bt4_5b_nbc.value;bt = b64_to_utf8(dom.ct_bt4_5b_nbc.value);
-    if(/savevalid/g.test(bt)){
-    storage.setItem("v0.2a", t); load(t);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
-    else{dom.ct_bt4_5b_nbc.value = 'Save Invalid'; return}
+  dom.ct_bt4_5b_nhv.style.backgroundColor='grey';
+  dom.ct_bt4_5b_nhv.innerHTML='Import As Text';
+  dom.ct_bt4_5b_nhv.style.marginRight=6;
+  dom.ct_bt4_5b_nhv.addEventListener('click', function() {
+      if(dom.ct_bt4_5b_nbc.value==""||dom.ct_bt4_5b_nbc.value=="?") {dom.ct_bt4_5b_nbc.value='?'; return}
+      let storage = window.localStorage; let t = dom.ct_bt4_5b_nbc.value;bt = b64_to_utf8(dom.ct_bt4_5b_nbc.value);
+      if(/savevalid/g.test(bt)){
+      storage.setItem("v0.2a", t); load(t);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
+      else{dom.ct_bt4_5b_nbc.value = 'Save Invalid'; return}
   });
   dom.ct_bt4_5b_nhx = addElement(dom.ct_bt4_5b_nh,'div');
   dom.ct_bt4_5b_nhx.innerHTML = '✖'; dom.ct_bt4_5b_nhx.style.float='right';
@@ -11722,12 +11845,12 @@ dom.ct_bt4_5b.addEventListener('click',function(){if(!global.flags.impatv){
   dom.ct_bt4_5b_nhz2.style.opacity=0; dom.ct_bt4_5b_nhz2.style.position='absolute';dom.ct_bt4_5b_nhz2.style.left=128
   dom.ct_bt4_5b_nhz2.style.width=81; dom.ct_bt4_5b_nhz2.style.top=0;dom.ct_bt4_5b_nhz2.style.height=18;
   dom.ct_bt4_5b_nhz2.addEventListener('change',function(){
-    let r=new FileReader(); r.readAsText(this.files[0]); let storage = window.localStorage;
-    r.addEventListener('load',function(){
-    let t = b64_to_utf8(r.result);
-    if(/savevalid/g.test(t)){  dom.ct_bt4_5b_nbc.value = 'Load Successful';
-    storage.setItem("v0.2a", r.result); load(r.result);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
-    else{dom.ct_bt4_5b_nbc.value = 'Save Invalid'; return}})
+      let r=new FileReader(); r.readAsText(this.files[0]); let storage = window.localStorage;
+      r.addEventListener('load',function(){
+      let t = b64_to_utf8(r.result);
+      if(/savevalid/g.test(t)){  dom.ct_bt4_5b_nbc.value = 'Load Successful';
+      storage.setItem("v0.2a", r.result); load(r.result);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
+      else{dom.ct_bt4_5b_nbc.value = 'Save Invalid'; return}})
   })
   dom.ct_bt4_5b_nb = addElement(dom.ct_bt4_5b_nc,'div'); 
   dom.ct_bt4_5b_nbc = addElement(dom.ct_bt4_5b_nb,'textArea');dom.ct_bt4_5b_nbc.style.fontFamily='MS Gothic';
