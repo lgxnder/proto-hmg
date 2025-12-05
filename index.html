@@ -13465,17 +13465,34 @@ function wpndiestt(killer,me){
 }
 
 function renderRcp(rcp){
-    dom.ct_bt1_1_mc = addElement(dom.ct_bt1_1,'div',null,'crf_lg'); dom.ct_bt1_1_mc.style.position='relative';
-    this.ct_bt1_1_m = addElement(dom.ct_bt1_1_mc,'span'); rcp._t = this.ct_bt1_1_m;
-    if(typeof InstallTrigger !== 'undefined'){this.ct_bt1_1_m.style.paddingTop=0;this.ct_bt1_1_m.style.paddingBottom=0}
-    this.ct_bt1_1_m.innerHTML = rcp.name;
-    let test = make(rcp,true); let safe = false; 
-    if(test.y.length!=rcp.rec.length||test.o[0]===2) this.ct_bt1_1_m.style.color = 'grey';
-    if(dom.spcldom&&rcp.id===dom.spcldom.rcp.id){
-        dom.rcpcurar = addElement(dom.ct_bt1_1_mc,'span'); dom.rcpcurar.innerHTML='⋗⋗'; dom.spcldom = dom.ct_bt1_1_mc; dom.spcldom.rcp=rcp;
-        dom.rcpcurar.style.position='absolute'; dom.rcpcurar.style.right=2; dom.rcpcurar.style.color='rgb(188,254,254)';
+    dom.ct_bt1_1_mc = addElement(dom.ct_bt1_1,'div',null,'crf_lg');
+    dom.ct_bt1_1_mc.style.position='relative';
+    this.ct_bt1_1_m = addElement(dom.ct_bt1_1_mc,'span');
+    rcp._t = this.ct_bt1_1_m;
+    
+    if (typeof InstallTrigger !== 'undefined') {
+        this.ct_bt1_1_m.style.paddingTop=0;
+        this.ct_bt1_1_m.style.paddingBottom=0;
     }
-    dom.ct_bt1_1_mc.addEventListener('mouseenter',function(){  test = make(rcp,true); global.curr_r = rcp
+    this.ct_bt1_1_m.innerHTML = rcp.name;
+    let test = make(rcp,true);
+    let safe = false; 
+    
+    if (test.y.length != rcp.rec.length || test.o[0] === 2) {
+        this.ct_bt1_1_m.style.color = 'grey';
+    }
+    
+    if (dom.spcldom && rcp.id === dom.spcldom.rcp.id) {
+        dom.rcpcurar = addElement(dom.ct_bt1_1_mc,'span');
+        dom.rcpcurar.innerHTML='⋗⋗'
+        dom.spcldom = dom.ct_bt1_1_mc;
+        dom.spcldom.rcp=rcp;
+        dom.rcpcurar.style.position='absolute';
+        dom.rcpcurar.style.right=2;
+        dom.rcpcurar.style.color='rgb(188,254,254)';
+    }
+    
+    dom.ct_bt1_1_mc.addEventListener('mouseenter', function() { test = make(rcp,true); global.curr_r = rcp
         empty(dom.ct_bt1_2); 
         this.ct_bt1_2a = addElement(dom.ct_bt1_2,'div'); this.ct_bt1_2a.innerHTML = 'reagents required';
         this.ct_bt1_2a.style.textAlign = 'center'; this.ct_bt1_2a.style.borderBottom='1px solid #3e4092';
@@ -14216,13 +14233,46 @@ function m_update(){
     dom.mn_4.innerHTML = '●'+(you.wealth%100<<0);
 }
 
-function chs(txt,f,c,bc,iconx,icony,size,ignore,slimsize){
-    if(f===true){clr_chs();dom.ch_1 = addElement(dom.ctr_2,'div','chs'); dom.ch_1.innerHTML = txt;}
-    else{dom.ch_1 = addElement(dom.ctr_2,'div',null,'chs'); dom.ch_1.innerHTML = txt;}
-    if(!!iconx) {dom.ch_1.insertBefore(icon(dom.ch_1,iconx,icony),dom.ch_1.firstChild);}
-    if(c) dom.ch_1.style.color=c; if(bc) dom.ch_1.style.backgroundColor=bc;if(size) dom.ch_1.style.fontSize=size; if(slimsize) dom.ch_1.style.height=slimsize;
-    if(!ignore)global.menuo=0;
-    dom.ch_1.addEventListener('click',()=>{clearInterval(timers.rptbncgt); global.flags.rptbncgtf=false;if(!global.flags.jdgdis){global.flags.jdgdis=true;giveSkExp(skl.jdg,.1);setTimeout(()=>{global.flags.jdgdis=false},500)}})
+function chs(txt, f, c, bc, iconx, icony, size, ignore, slimsize) {
+    if (f === true) {
+        clr_chs();
+        dom.ch_1 = addElement(dom.ctr_2,'div','chs');
+        dom.ch_1.innerHTML = txt;
+    }
+    else {
+        dom.ch_1 = addElement(dom.ctr_2,'div',null,'chs');
+        dom.ch_1.innerHTML = txt;
+    }
+    if (!!iconx) {
+        dom.ch_1.insertBefore( icon(dom.ch_1,iconx,icony), dom.ch_1.firstChild);
+    }
+    if (c) {
+        dom.ch_1.style.color = c;
+    }
+    if (bc) {
+        dom.ch_1.style.backgroundColor = bc;
+    }
+    if (size) {
+        dom.ch_1.style.fontSize = size;
+    }
+    if (slimsize) {
+        dom.ch_1.style.height = slimsize;
+    }
+    if (!ignore) {
+        global.menuo = 0;
+    }
+
+    dom.ch_1.addEventListener('click', () => {
+        clearInterval(timers.rptbncgt);
+        global.flags.rptbncgtf = false;
+        if (!global.flags.jdgdis) {
+            global.flags.jdgdis = true;
+            giveSkExp(skl.jdg, 0.1);
+            setTimeout(() => {
+                global.flags.jdgdis = false
+            }, 500);
+        }
+    });
     return dom.ch_1;
 }
 
@@ -14233,32 +14283,84 @@ global.text.cln=['Sleeping','Playing','Catching fireflies','Eating','Fish','Peop
 
 function chs_spec(type,x){
     switch(type){
-        case 1:{ clr_chs(); let c = findbyid(furn,furniture.cat.id); let br = time.minute-c.data.age;
-        dom.ch_1=addElement(dom.ctr_2,'div','chs');
-        dom.ch_1.style.height='200px';
-        dom.ch_1_1=addElement(dom.ch_1,'div',null,'chs_s');dom.ch_1_1.innerHTML='Name: <span style="color:orange">'+c.data.name+(c.data.sex===true?' ♂':' ♀')+'</span>'; dom.ch_1_1.style.marginTop=-17;
-        dom.ch_1_12=addElement(dom.ch_1,'div',null,'chs_s');dom.ch_1_12.innerHTML='Day of birth: <span style="color:lime">'+(((br/(YEAR))<<0)+'/'+(((br/(MONTH)<<0)%12)+1)+'/'+(((br/DAY<<0)%30)+1))+'</span>';
-        dom.ch_1_2=addElement(dom.ch_1,'div',null,'chs_s');dom.ch_1_2.innerHTML='Age: '+(c.data.age>=YEAR?'<span style="color:orange">'+(c.data.age/YEAR<<0)+'</span> Years ':'')+(c.data.age>=MONTH?'<span style="color:yellow">'+(c.data.age/MONTH<<0)%12+'</span> Months ':'')+(c.data.age>=DAY?'<span style="color:lime">'+(c.data.age/DAY<<0)%30+'</span> Days ':'');
-        dom.ch_1_3=addElement(dom.ch_1,'div',null,'chs_s');dom.ch_1_3.innerHTML='Pattern: <span style="color:cyan">'+global.text.cfp[c.data.p]+'</span> | Color: <span style="color:cyan">'+global.text.cfc[c.data.c]+'</span>';
-        dom.ch_1_4=addElement(dom.ch_1,'div',null,'chs_s');dom.ch_1_4.innerHTML='Likes: <span style="color:lime">'+global.text.cln[c.data.l1]+'</span> And <span style="color:lime">'+global.text.cln[c.data.l2]+'</span>';
-        timers.caupd=setInterval(()=>{dom.ch_1_2.innerHTML='Age: '+(c.data.age>=YEAR?'<span style="color:orange">'+(c.data.age/YEAR<<0)+'</span> Years ':'')+(c.data.age>=MONTH?'<span style="color:yellow">'+(c.data.age/MONTH<<0)%12+'</span> Months ':'')+(c.data.age>=DAY?'<span style="color:lime">'+(c.data.age/DAY<<0)%30+'</span> Days ':'');},1000);
-        };break
-        case 2:{  clr_chs()
-        dom.ch_1=addElement(dom.ctr_2,'div');  dom.ch_1.style.height='76%';dom.ch_1.style.backgroundColor='rgb(0,20,44)';
-        dom.flsthdr = addElement(dom.ch_1,'div'); dom.flsthdra = addElement(dom.flsthdr,'div'); dom.flsthdr.style.display='flex'
-        dom.flsthdra.innerHTML='Furniture Owned'; dom.flsthdra.style.position='relative'; dom.flsthdra.style.left=120;
-        dom.flsthdr.style.borderBottom='1px #44c solid'; dom.flsthdr.style.padding=2; 
-        dom.flsthdrbc = addElement(dom.flsthdr,'div');
-        dom.flsthdrb = addElement(dom.flsthdrbc,'small');dom.flsthdrb.innerHTML='Home rating: '; 
-        dom.flsthdrbc.style.left=237; dom.flsthdrb.style.paddingLeft=6; dom.flsthdrbc.style.position='relative'; dom.flsthdrbc.style.borderLeft='1px solid rgb(68, 68, 204)'
-        dom.flsthdrbb = addElement(dom.flsthdrbc,'small'); dom.flsthdrbb.style.color='lime';
-        let v=0; for(let a in furn) if(furn[a].v){if(furn[a].multv) v+=furn[a].v*furn[a].amount; else v+=furn[a].v} dom.flsthdrbb.innerHTML=v;
-        dom.ch_1h = addElement(dom.ch_1,'div',null); 
-        dom.ch_1h.style.textAlign='left'; dom.ch_1h.style.display='block'
-        for(let a in furn) {
-            renderFurniture(furn[a]);
-        }      
-        };break
+    
+        case 1: { 
+            clr_chs();
+            let c = findbyid(furn,furniture.cat.id);
+            let br = time.minute-c.data.age;
+            
+            dom.ch_1=addElement(dom.ctr_2,'div','chs');
+            dom.ch_1.style.height='200px';
+            dom.ch_1_1=addElement(dom.ch_1,'div',null,'chs_s');
+            dom.ch_1_1.innerHTML='Name: <span style="color:orange">'+c.data.name+(c.data.sex===true?' ♂':' ♀')+'</span>';
+            dom.ch_1_1.style.marginTop=-17;
+            
+            dom.ch_1_12=addElement(dom.ch_1,'div',null,'chs_s');
+            dom.ch_1_12.innerHTML='Day of birth: <span style="color:lime">'+(((br/(YEAR))<<0)+'/'+(((br/(MONTH)<<0)%12)+1)+'/'+(((br/DAY<<0)%30)+1))+'</span>';
+            
+            dom.ch_1_2=addElement(dom.ch_1,'div',null,'chs_s');
+            dom.ch_1_2.innerHTML='Age: '+(c.data.age>=YEAR?'<span style="color:orange">'+(c.data.age/YEAR<<0)+'</span> Years ':'')+(c.data.age>=MONTH?'<span style="color:yellow">'+(c.data.age/MONTH<<0)%12+'</span> Months ':'')+(c.data.age>=DAY?'<span style="color:lime">'+(c.data.age/DAY<<0)%30+'</span> Days ':'');
+            
+            dom.ch_1_3=addElement(dom.ch_1,'div',null,'chs_s');
+            dom.ch_1_3.innerHTML='Pattern: <span style="color:cyan">'+global.text.cfp[c.data.p]+'</span> | Color: <span style="color:cyan">'+global.text.cfc[c.data.c]+'</span>';
+            
+            dom.ch_1_4=addElement(dom.ch_1,'div',null,'chs_s');
+            dom.ch_1_4.innerHTML='Likes: <span style="color:lime">'+global.text.cln[c.data.l1]+'</span> And <span style="color:lime">'+global.text.cln[c.data.l2]+'</span>';
+            
+            timers.caupd = setInterval( () => {
+                dom.ch_1_2.innerHTML = 'Age: '+
+                    (c.data.age >= YEAR  ? '<span style="color:orange">'+(c.data.age/YEAR<<0)    +'</span> Years ' : '')+
+                    (c.data.age >= MONTH ? '<span style="color:yellow">'+(c.data.age/MONTH<<0)%12+'</span> Months ':'')+
+                    (c.data.age >= DAY   ? '<span style="color:lime">'  +(c.data.age/DAY<<0)%30  +'</span> Days ':'');
+            }, 1000);
+        } break;
+        
+        case 2: {
+            clr_chs()
+            
+            dom.ch_1=addElement(dom.ctr_2,'div');
+            dom.ch_1.style.height='76%';
+            dom.ch_1.style.backgroundColor='rgb(0,20,44)';
+            dom.flsthdr = addElement(dom.ch_1,'div');
+            dom.flsthdra = addElement(dom.flsthdr,'div');
+            dom.flsthdr.style.display='flex';
+            dom.flsthdra.innerHTML='Furniture Owned';
+            dom.flsthdra.style.position='relative';
+            dom.flsthdra.style.left=120;
+            dom.flsthdr.style.borderBottom='1px #44c solid';
+            dom.flsthdr.style.padding=2; 
+            dom.flsthdrbc = addElement(dom.flsthdr,'div');
+            dom.flsthdrb = addElement(dom.flsthdrbc,'small');
+            dom.flsthdrb.innerHTML='Home rating: '; 
+            dom.flsthdrbc.style.left=237;
+            dom.flsthdrb.style.paddingLeft=6;
+            dom.flsthdrbc.style.position='relative';
+            dom.flsthdrbc.style.borderLeft='1px solid rgb(68, 68, 204)';
+            dom.flsthdrbb = addElement(dom.flsthdrbc,'small');
+            dom.flsthdrbb.style.color='lime';
+            
+            let v=0;
+            for(let a in furn) {
+                if(furn[a].v) {
+                    if (furn[a].multv) {
+                        v += furn[a].v * furn[a].amount;
+                    }
+                    else {
+                        v+=furn[a].v;
+                    }
+                }
+            }
+            dom.flsthdrbb.innerHTML=v;
+            
+            dom.ch_1h = addElement(dom.ch_1,'div',null); 
+            dom.ch_1h.style.textAlign='left';
+            dom.ch_1h.style.display='block'
+            
+            for(let a in furn) {
+                renderFurniture(furn[a]);
+            }      
+        } break;
+        
         case 3:{ clr_chs(); global.menuo=3; global.cchest = x;
         dom.ch_1a=addElement(dom.ctr_2,'div');  dom.ch_1a.style.height='74.5%';dom.ch_1a.style.backgroundColor='rgb(0,20,44)';
         dom.ch_1a.style.display='flex'; dom.ch_1a.style.overflow='auto'; dom.ch_1a.style.position='relative';
@@ -14270,29 +14372,57 @@ function chs_spec(type,x){
         for(let obj in x.c)rendertrunkitem(dom.invp2,x.c[obj].item,{right:true,nit:{item:x.c[obj].item,data:x.c[obj].data,am:x.c[obj].am,dp:x.c[obj].dp}});
         if(x.c.length>0) dom.invp2noth.style.display='none';
         if(inv.length>=21) dom.invp2noth.style.left=301; else dom.invp2noth.style.left=314
-        };break
-        case 4:{  clr_chs();  global.menuo=4; global.shprf=x;
-        dom.ch_1=addElement(dom.ctr_2,'div');  dom.ch_1.style.height='76%';dom.ch_1.style.backgroundColor='rgb(0,20,44)';
-        dom.flsthdr = addElement(dom.ch_1,'div');dom.flsthdr.innerHTML=x.name
-        dom.flsthdr.style.borderBottom='1px #44c solid'; dom.flsthdr.style.padding=2;
-        dom.ch_1h = addElement(dom.ch_1,'div'); 
-        dom.ch_1h.style.textAlign='left'; dom.ch_1h.style.display='block'; dom.ch_1h.style.height='87%'; dom.ch_1h.style.overflow='auto';
-        if(dom.ch_etn)empty(dom.ch_etn); for(let it in x.stock){
-            rendershopitem(dom.ch_1h,x.stock[it],x)
-        }
-        dom.ch_1c = addElement(dom.ch_1,'div'); dom.ch_1c.style.backgroundColor='rgb(10, 30, 54)'; dom.ch_1c.style.height='5%';dom.ch_1c.style.width='100%';   
-        dom.ch_1e = addElement(dom.ch_1c,'small'); //dom.ch_1e.style.border='1px solid #9485ed'; 
-        dom.ch_1e.style.float=dom.ch_1e.style.textAlign='left';
-        dom.ch_2e = addElement(dom.ch_1c,'small'); //dom.ch_1e.style.border='1px solid #9485ed'; 
-        dom.ch_2e.style.float=dom.ch_2e.style.textAlign='right'; dom.ch_2e.style.paddingRight=6
-        //dom.ch_1e1 = addElement(dom.ch_1e,'input'); dom.ch_1e1.style.height=18;dom.ch_1e1.style.width=40;
-        //dom.ch_1e1.style.textAlign='center'; dom.ch_1e1.style.color='white'; dom.ch_1e1.style.fontFamily='MS Gothic';
-        //dom.ch_1e1.style.backgroundColor='transparent'
-        dom.ch_1e.innerHTML='&nbspBuying price: <span style="color:lime">'+Math.round(((you.mods.infsrate-skl.trad.use())*x.infl*(1-(Math.sqrt(x.data.rep)**1.3+0.05)*.01)*global.offline_evil_index)*10000)/100+'%</span>'
-        dom.ch_2e.innerHTML='&nbspReputation: '+col(x.data.rep<<0,'lime');
-        };break
+        } break;
+        
+        case 4: {
+            clr_chs();
+            
+            global.menuo=4;
+            global.shprf=x;
+            dom.ch_1=addElement(dom.ctr_2,'div');
+            dom.ch_1.style.height='76%';
+            dom.ch_1.style.backgroundColor='rgb(0,20,44)';
+            dom.flsthdr = addElement(dom.ch_1,'div');
+            dom.flsthdr.innerHTML=x.name;
+            dom.flsthdr.style.borderBottom='1px #44c solid';
+            dom.flsthdr.style.padding=2;
+            dom.ch_1h = addElement(dom.ch_1,'div'); 
+            dom.ch_1h.style.textAlign='left';
+            dom.ch_1h.style.display='block';
+            dom.ch_1h.style.height='87%';
+            dom.ch_1h.style.overflow='auto';
+            
+            if (dom.ch_etn) {
+                empty(dom.ch_etn);
+            }
+            for (let it in x.stock) {
+                rendershopitem(dom.ch_1h, x.stock[it], x);
+            }
+            
+            dom.ch_1c = addElement(dom.ch_1,'div');
+            dom.ch_1c.style.backgroundColor='rgb(10, 30, 54)';
+            dom.ch_1c.style.height='5%';
+            dom.ch_1c.style.width='100%';   
+            
+            dom.ch_1e = addElement(dom.ch_1c,'small');
+            dom.ch_1e.style.float=dom.ch_1e.style.textAlign='left';
+            //dom.ch_1e.style.border='1px solid #9485ed'; 
+
+            //dom.ch_1e1 = addElement(dom.ch_1e,'input'); dom.ch_1e1.style.height=18;dom.ch_1e1.style.width=40;
+            //dom.ch_1e1.style.textAlign='center'; dom.ch_1e1.style.color='white'; dom.ch_1e1.style.fontFamily='MS Gothic';
+            //dom.ch_1e1.style.backgroundColor='transparent'
+            
+            dom.ch_2e = addElement(dom.ch_1c,'small');
+            dom.ch_2e.style.float=dom.ch_2e.style.textAlign='right';
+            dom.ch_2e.style.paddingRight=6;
+            
+            dom.ch_1e.innerHTML = '&nbspBuying price: <span style="color:lime">'+
+                    Math.round(((you.mods.infsrate-skl.trad.use())*x.infl*(1-(Math.sqrt(x.data.rep)**1.3+0.05)*.01)*global.offline_evil_index)*10000)/100+'%</span>';
+            dom.ch_2e.innerHTML = '&nbspReputation: ' + col(x.data.rep << 0, 'lime');
+        } break;
+        
         case 5:{  
-        };break
+        } break;
     }
     return dom.ch_1;
 }     
@@ -14723,37 +14853,53 @@ function icon(root,x,y,sx,sy,sz){ //sz=2
     return div;
 }
 
-function Chs(){
+function Chs() {
     this.ttl;
-    this.sl=function(){};
-    this.data={};
-    this.onStay=function(){};
-    this.onEnter=function(){};
-    this.onLeave=function(){};
-    this.onScout=function(){};
-    this.sector=[]
+    this.sl = function(){};
+    this.data = {};
+    this.onStay = function(){};
+    this.onEnter = function(){};
+    this.onLeave = function(){};
+    this.onScout = function(){};
+    this.sector = [];
 }
 
-
-chss.t1 = new Chs(); chss.t1.id = 101; 
-chss.t1.sl=function(){ global.lst_loc = 101; global.flags.inside=true; d_loc('Dojo, training area');
-  chs('???: Kid',true); 
-  chs('"..."',false).addEventListener('click',function(){global.time+=DAY; 
-    appear(dom.ctr_1);  
-    chs('???: Quit daydreaming',true);
-    chs('"?"',false).addEventListener('click',function(){
-      appear(dom.d0);
-      chs('???: You have training to complete',true);
-      chs('"!"',false).addEventListener('click',function(){
-        appear(dom.inv_ctx);  appear(dom.d_lct);
-        chs('???: Grab your stuff and get to it',true); 
-        chs('"..."',false).addEventListener('click',function(){appear(dom.ct_ctrl);smove(chss.tdf,false);giveItem(wpn.stk1); giveItem(item.hrb1,15);global.flags.aw_u=true;});
-      });
+chss.t1 = new Chs();
+chss.t1.id = 101; 
+chss.t1.sl = function() {
+    global.lst_loc = 101;
+    global.flags.inside = true;
+    d_loc('Dojo, training area');
+    chs('???: Kid',true); 
+    chs('"..."',false).addEventListener('click', function() {
+        global.time += DAY; 
+        appear(dom.ctr_1);  
+        chs('???: Quit daydreaming', true);
+        chs('"?"',false).addEventListener('click', function() {
+            appear(dom.d0);
+            chs('???: You have training to complete',true);
+            chs('"!"',false).addEventListener('click', function() {
+                appear(dom.inv_ctx);
+                appear(dom.d_lct);
+                chs('???: Grab your stuff and get to it',true); 
+                chs('"..."',false).addEventListener('click', function() {
+                    appear(dom.ct_ctrl);
+                    smove(chss.tdf,false);
+                    giveItem(wpn.stk1);
+                    giveItem(item.hrb1,15);
+                    global.flags.aw_u=true;
+                });
+            });
+        });
     });
-  });
 };
+
 if(global.flags.gameone===false){
-  global.current_l=chss.t1; smove(chss.t1);giveFurniture(furniture.frplc,null,false); let _b=giveFurniture(furniture.bed1,null,false); home.bed=_b;
+    global.current_l=chss.t1;
+    smove(chss.t1);
+    giveFurniture(furniture.frplc,null,false);
+    let _b = giveFurniture(furniture.bed1,null,false);
+    home.bed = _b;
 }
 
 chss.tdf = new Chs(); chss.tdf.id = 102;
