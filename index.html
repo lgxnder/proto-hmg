@@ -14894,40 +14894,47 @@ chss.t1.sl = function() {
     });
 };
 
-if(global.flags.gameone===false){
-    global.current_l=chss.t1;
+if (global.flags.gameone === false){
+    global.current_l = chss.t1;
     smove(chss.t1);
     giveFurniture(furniture.frplc,null,false);
     let _b = giveFurniture(furniture.bed1,null,false);
     home.bed = _b;
 }
 
-chss.tdf = new Chs(); chss.tdf.id = 102;
-chss.tdf.sl=function(){ global.lst_loc = 102;  global.flags.inside=true;
-  clr_chs(); if(!global.flags.dmap){appear(dom.gmsgs);global.flags.dmap=true}
+chss.tdf = new Chs();
+chss.tdf.id = 102;
+chss.tdf.sl = function() {
+    global.lst_loc = 102;
+    global.flags.inside=true;
+    clr_chs();
+    if (!global.flags.dmap) {
+        appear(dom.gmsgs);
+        global.flags.dmap=true;
+    }
     chs('"Select the difficulty"',true);
-    if(!global.flags.tr1_win) chs('"Easiest"',false).addEventListener('click',function(){
-      chs('"You are fighting training dummies"',true);
-      if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true}; 
-      area_init(area.trn1);
+    if (!global.flags.tr1_win) chs('"Easiest"',false).addEventListener('click',function(){
+        chs('"You are fighting training dummies"',true);
+        if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true}; 
+        area_init(area.trn1);
     });
     if(!global.flags.tr2_win) chs('"Easy"',false).addEventListener('click',function(){
-      chs('"You are fighting training dummies"',true);
-      if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true}
-      area_init(area.trn2); 
+        chs('"You are fighting training dummies"',true);
+        if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true}
+        area_init(area.trn2); 
     });
     if(!global.flags.tr3_win) chs('"Normal"',false).addEventListener('click',function(){
-      chs('"You are fighting training dummies"',true);
-      if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true};
-      area_init(area.trn3); 
+        chs('"You are fighting training dummies"',true);
+        if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true};
+        area_init(area.trn3); 
   });
 }
-chss.tdf.onEnter=function(){
-  area_init(area.nwh); 
+chss.tdf.onEnter = function() {
+    area_init(area.nwh); 
 }
 
 chss.t2 = new Chs(); chss.t2.id = 103;
-chss.t2.sl=function(){  global.lst_loc = 103;  global.flags.inside=true;
+chss.t2.sl=function(){ global.lst_loc = 103; global.flags.inside=true;
   chs('"Instructor: '+select(['Good','Nice','Great','Excellent'])+' '+select(['job','work'])+' kid! Here\'s the reward for completing the course"',true,'lime');
   chs('"->"',false).addEventListener('click',function(){
     if(global.flags.tr1_win===true&&!global.flags.rwd1){global.flags.rwd1=true;giveItem(item.appl,4);giveItem(item.hrb1,5);smove(chss.tdf);}
@@ -14937,7 +14944,8 @@ chss.t2.sl=function(){  global.lst_loc = 103;  global.flags.inside=true;
   });
 }
 
-chss.t3 = new Chs(); chss.t3.id = 104;
+chss.t3 = new Chs();
+chss.t3.id = 104;
 chss.t3.sl=()=>{global.flags.inside=true; d_loc('Dojo, lobby'); global.lst_loc = 104;  global.flags.inside=true;
   if(global.flags.nbtfail){
     chs('"Instructor: You got beaten up by an inanimated dummy?! Pay attention to your condition!"',true);
