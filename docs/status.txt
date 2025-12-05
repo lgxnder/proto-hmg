@@ -12,6 +12,8 @@ This file will be periodically updated to reflect the changes I have made from t
         indentation to everything is more so a visual aid for my eyes.
 - Rearranged the save/load function definitions in order to further organize the beginning initialization of variables/objects/STUFF.
 - Changed references of 'paralize' to 'paralyze'.
+- Adjusted 'giveItem' function to make room for a new '7xxxx' item group.
+- Added item.__sp4.
 
 --- IDENTATION STATUS: (line numbers are for my own reference, will change with updates bleh)
  - beginning of file            X

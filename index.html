@@ -46,7 +46,7 @@ var checksd = [];
 var inv = [];
 var furn = [];
 var qsts = [];
-var dar = [[],[],[],[],[]];
+var dar = [[],[],[],[],[],[],[],[]];
 you = new Object();
 var home = new Object();
 eqp.dummy = {};
@@ -8000,6 +8000,19 @@ item.jnlbk.use = function(){if(canRead()){if(this.data.timep>=this.cmax){ msg('J
 }else chss.trd.sl(this);}
 }
 
+item.__sp4 = new Item();
+item.__sp4.id = 70001;
+item.__sp4.name = 'Tempered Pill of the Immortal';
+item.__sp4.desc = 'A medicinal treasure forged by a great pill-maker. If you are seeking it out, it will surely reward your immortal temperance.'+
+                    dom.dseparator+
+                    '<span style=\'color:orange\'> Grants +185000000 EXP </span><br><span style=\'color:rebeccapurple\'>EXP Gain +8%</span>';
+item.__sp4.stype = 4;
+item.__sp4.rar = 4;
+item.__sp4.use = function() {
+    giveExp(185000000, true, true, true);
+    you.exp_t += 0.08;
+    this.amount--;
+}
 
 
 ///////////////////////////////////////////
@@ -14175,8 +14188,8 @@ function renderItem(obj){
 }
 
 function updateInv(slot){
-  if(global.sm===1) dom.inv_con.children[slot].children[0].children[1].innerHTML = ' x'+inv[slot].amount;
-  else dom.inv_con.children[slot].children[0].children[1].innerHTML = ' x'+global.sinv[slot].amount;
+    if(global.sm===1) dom.inv_con.children[slot].children[0].children[1].innerHTML = ' x'+inv[slot].amount;
+    else dom.inv_con.children[slot].children[0].children[1].innerHTML = ' x'+global.sinv[slot].amount;
 }
 
 function removeItem(obj,flag){
@@ -16866,97 +16879,103 @@ function dropread(){
 }
 
 function roll(itm,c,mi,ma){ mi=mi||1;
-  let r = random();
-  if(r<c+(c/100*you.luck)) giveItem(itm,(!!ma?rand(mi,ma):rand(mi)));
+    let r = random();
+    if(r<c+(c/100*you.luck)) giveItem(itm,(!!ma?rand(mi,ma):rand(mi)));
 }
 
 function handStr(){
-  return (5000+(you.str*800))*(1+you.lvl*.03)*(1+skl.unc.lvl*.1+skl.fgt.lvl*.08+skl.tghs.lvl*.11)/1000<<0
+    return (5000+(you.str*800))*(1+you.lvl*.03)*(1+skl.unc.lvl*.1+skl.fgt.lvl*.08+skl.tghs.lvl*.11)/1000<<0
 }
 
 function format3(a){
-  if(a.length>3){
-    let b = new String();
-    for(let i=0;i<a.length;i++) {if((a.length-i)%3==0&&i>(a>0?0:1)) b+=',';b+=a[i]}
-    return b; 
-  } return a;
+    if(a.length>3){
+        let b = new String();
+        for(let i=0;i<a.length;i++) {if((a.length-i)%3==0&&i>(a>0?0:1)) b+=',';b+=a[i]}
+        return b; 
+    } return a;
 }
 
 function formatw(a){
-  let b = (Math.log(Math.abs(a+1))*0.43429448190325178|0)+1;
-  if(b>3){let n = a/1000**((b-1)/3<<0)*10; return ((n-~~n>=0.5?1:0)+~~n)/10+global.text.nt[((b-4)/3<<0)]} return a;
+    let b = (Math.log(Math.abs(a+1))*0.43429448190325178|0)+1;
+    if(b>3){let n = a/1000**((b-1)/3<<0)*10; return ((n-~~n>=0.5?1:0)+~~n)/10+global.text.nt[((b-4)/3<<0)]} return a;
 }
 
 function d_loc(text){
-  let txt; if(global.flags.inside===true) txt = '|'+text+'|'; else txt=text
-  dom.d_lctt.innerHTML = txt; global.current_l.locn=text; 
+    let txt;
+    if(global.flags.inside===true) {
+        txt = '|'+text+'|';
+    } else { 
+        txt=text;
+    }
+    dom.d_lctt.innerHTML = txt;
+    global.current_l.locn=text; 
 }
 
 function rfeff(what){ 
-  let t = '';
-  for(let a in what.sector) if(what.sector[a].effectors) 
-  for(let b in what.sector[a].effectors) t+='<span style="color:'+what.sector[a].effectors[b].e.c+';font-size:1.2em">&nbsp'+what.sector[a].effectors[b].e.x+'<span>';
-  if(what.effectors) for(let a in what.effectors)  t+='<span style="color:'+what.effectors[a].e.c+';font-size:1.2em">&nbsp'+what.effectors[a].e.x+'<span>';
-  dom.d_lctte.innerHTML = t;
+    let t = '';
+    for(let a in what.sector) if(what.sector[a].effectors) 
+    for(let b in what.sector[a].effectors) t+='<span style="color:'+what.sector[a].effectors[b].e.c+';font-size:1.2em">&nbsp'+what.sector[a].effectors[b].e.x+'<span>';
+    if(what.effectors) for(let a in what.effectors)  t+='<span style="color:'+what.effectors[a].e.c+';font-size:1.2em">&nbsp'+what.effectors[a].e.x+'<span>';
+    dom.d_lctte.innerHTML = t;
 }
 
 function lvlup(p,t){
-  if(t===0) {
-    p.hp=p.hp_r;p.str=p.str_r;p.agl=p.agl_r;p.spd=p.spd_r;
-  } else{ t=t||1
-  p.lvl+=t;
-  let sb =randf(t*p.stat_p[1],2*t*p.stat_p[1]); p.str_r+=sb;
-  let sa =randf(t*p.stat_p[2],2*t*p.stat_p[2]); p.agl_r+=sa;
-  let si =randf(t*p.stat_p[3],2*t*p.stat_p[3]); p.int_r+=si;  
-  let hpp; if(p.id===you.id) hpp = Math.round(rand(1.4*Math.log(p.lvl)*t*p.stat_p[0],1.8*p.lvl*t*p.stat_p[0]));
-  else hpp = Math.round(rand(1.8*Math.log(p.lvl)*t*p.stat_p[0],2.2*p.lvl*t*p.stat_p[0]));
-   p.hp_r+=hpp; p.hpmax+=hpp; p.hp+=hpp; if(p.id!==you.id) p.hp=p.hpmax=p.hp_r;
-  if(p.id!=you.id) p.exp=p.exp*(1+t/5)+1<<0;
-  else {dom.d3.update(); 
-    msg("Leveled Up "+you.lvl,'orange');
-    msg('STR +'+Math.round(sb),'darkturquoise');
-    msg_add(' | AGL +'+Math.round(sa),'darkturquoise');
-    msg_add(' | INT +'+Math.round(si),'darkturquoise');
-    msg_add(' | HP +'+hpp,'darkturquoise');
-    you.expnext_t=you.expnext();
-    if(you.eqp[0].id===10000){you.eqp[0].cls[2]=you.lvl/4<<0;you.eqp[0].aff[0]=you.lvl/5<<0;you.eqp[0].ctype=2}
-    if(global.stat.deadt<1&&you.lvl>=20) giveTitle(ttl.ndthextr)
-  }} p.stat_r(); update_d(); 
+    if(t===0) {
+        p.hp=p.hp_r;p.str=p.str_r;p.agl=p.agl_r;p.spd=p.spd_r;
+    } else{ t=t||1
+    p.lvl+=t;
+    let sb =randf(t*p.stat_p[1],2*t*p.stat_p[1]); p.str_r+=sb;
+    let sa =randf(t*p.stat_p[2],2*t*p.stat_p[2]); p.agl_r+=sa;
+    let si =randf(t*p.stat_p[3],2*t*p.stat_p[3]); p.int_r+=si;  
+    let hpp; if(p.id===you.id) hpp = Math.round(rand(1.4*Math.log(p.lvl)*t*p.stat_p[0],1.8*p.lvl*t*p.stat_p[0]));
+    else hpp = Math.round(rand(1.8*Math.log(p.lvl)*t*p.stat_p[0],2.2*p.lvl*t*p.stat_p[0]));
+    p.hp_r+=hpp; p.hpmax+=hpp; p.hp+=hpp; if(p.id!==you.id) p.hp=p.hpmax=p.hp_r;
+    if(p.id!=you.id) p.exp=p.exp*(1+t/5)+1<<0;
+    else {dom.d3.update(); 
+        msg("Leveled Up "+you.lvl,'orange');
+        msg('STR +'+Math.round(sb),'darkturquoise');
+        msg_add(' | AGL +'+Math.round(sa),'darkturquoise');
+        msg_add(' | INT +'+Math.round(si),'darkturquoise');
+        msg_add(' | HP +'+hpp,'darkturquoise');
+        you.expnext_t=you.expnext();
+        if(you.eqp[0].id===10000){you.eqp[0].cls[2]=you.lvl/4<<0;you.eqp[0].aff[0]=you.lvl/5<<0;you.eqp[0].ctype=2}
+        if(global.stat.deadt<1&&you.lvl>=20) giveTitle(ttl.ndthextr)
+    }} p.stat_r(); update_d(); 
 }
 
 function giveExp(exp,r,g,b){
-  if(!r) exp = Math.round((exp*you.exp_t*(0.4+you.efficiency()*0.6)))-(you.lvl-1); exp=exp<=0?1:exp;
-  if(!b) {if(global.flags.m_blh===false) if(!g) {msg('EXP: +'+formatw(exp),'hotpink');global.stat.exptotl+=exp}}else {msg('EXP: +'+formatw(exp),'hotpink');global.stat.exptotl+=exp}
-  if(you.exp+exp<you.expnext_t) you.exp+=exp;
-  else {
-    let extra = (you.exp+exp)-you.expnext_t; 
-    you.exp=0; 
-    lvlup(you); 
-    giveExp(extra,true,true);
-  } 
-  dom.d5_2_1.update(); 
+    if(!r) exp = Math.round((exp*you.exp_t*(0.4+you.efficiency()*0.6)))-(you.lvl-1); exp=exp<=0?1:exp;
+    if(!b) {if(global.flags.m_blh===false) if(!g) {msg('EXP: +'+formatw(exp),'hotpink');global.stat.exptotl+=exp}}else {msg('EXP: +'+formatw(exp),'hotpink');global.stat.exptotl+=exp}
+    if(you.exp+exp<you.expnext_t) you.exp+=exp;
+    else {
+        let extra = (you.exp+exp)-you.expnext_t; 
+        you.exp=0; 
+        lvlup(you); 
+        giveExp(extra,true,true);
+    } 
+    dom.d5_2_1.update(); 
 }
 
 function giveSkExp(skl,exp,res){ exp=res===false?exp:exp*skl.p; //skl.lastupd = time.minute+2;
-  if(skl.exp+exp<skl.expnext_t) skl.exp+=exp; 
-  else {
-    let extra = (skl.exp+exp)-skl.expnext_t;
-    skl.exp=0; skl.lvl++;  global.stat.slvs++;
-    if(!scanbyid(you.skls,skl.id)) {you.skls.push(skl);msg('<span style="text-shadow:cyan 0px 0px 2px">New Skill Unlocked! <span style="text-shadow:red 0px 0px 2px;color:orange">"'+(!!skl.bname?skl.bname:skl.name)+'"</span></span>','aqua',skl,6);if(!global.flags.sklu){dom.ct_bt2.innerHTML='skills';global.flags.sklu=true}}
-    else {msg('Skill <span style="color:tomato">\''+(!!skl.bname?skl.bname:skl.name)+'\'</span> Leveled Up: '+skl.lvl,'deepskyblue',skl,6);} skl.onLevel();
-    skl.expnext_t=skl.expnext();
-    if(!!skl.mlstn) for(let ss=0;ss<skl.mlstn.length;ss++) if(skl.mlstn[ss].lv===skl.lvl&&skl.mlstn[ss].g===false) {msg("NEW PERK UNLOCKED "+'<span style="color:tomato">("'+skl.name+'")<span style="color:orange">lvl: '+skl.mlstn[ss].lv+'</span></span>','lime',{x:skl.name,y:'Perk lvl '+skl.mlstn[ss].lv+': <span style="color:yellow">'+skl.mlstn[ss].p+'</span>'},7);skl.mlstn[ss].f();skl.mlstn[ss].g=true};
-    giveSkExp(skl,extra,false); 
-  } skl.onGive(exp);
+    if(skl.exp+exp<skl.expnext_t) skl.exp+=exp; 
+    else {
+        let extra = (skl.exp+exp)-skl.expnext_t;
+        skl.exp=0; skl.lvl++;  global.stat.slvs++;
+        if(!scanbyid(you.skls,skl.id)) {you.skls.push(skl);msg('<span style="text-shadow:cyan 0px 0px 2px">New Skill Unlocked! <span style="text-shadow:red 0px 0px 2px;color:orange">"'+(!!skl.bname?skl.bname:skl.name)+'"</span></span>','aqua',skl,6);if(!global.flags.sklu){dom.ct_bt2.innerHTML='skills';global.flags.sklu=true}}
+        else {msg('Skill <span style="color:tomato">\''+(!!skl.bname?skl.bname:skl.name)+'\'</span> Leveled Up: '+skl.lvl,'deepskyblue',skl,6);} skl.onLevel();
+        skl.expnext_t=skl.expnext();
+        if(!!skl.mlstn) for(let ss=0;ss<skl.mlstn.length;ss++) if(skl.mlstn[ss].lv===skl.lvl&&skl.mlstn[ss].g===false) {msg("NEW PERK UNLOCKED "+'<span style="color:tomato">("'+skl.name+'")<span style="color:orange">lvl: '+skl.mlstn[ss].lv+'</span></span>','lime',{x:skl.name,y:'Perk lvl '+skl.mlstn[ss].lv+': <span style="color:yellow">'+skl.mlstn[ss].p+'</span>'},7);skl.mlstn[ss].f();skl.mlstn[ss].g=true};
+        giveSkExp(skl,extra,false); 
+    } skl.onGive(exp);
 }
 
 function giveTitle(title,lv){
-  if(title.have===false) {
-    global.titles.push(title);if(title.id!==0)global.titlese.push(title); you.title = title; title.have=true; if(!title.tget&&title.talent) {title.talent();title.tget=true}
-    title.onGet();
-    for(let x in global.ttlschk) global.ttlschk[x]();
-    if(!lv) {msg('New Title Earned! '+col('"'+title.name+'"','orange'),'cyan',title,5);dom.d3.update();}
-  } else return;
+    if(title.have===false) {
+        global.titles.push(title);if(title.id!==0)global.titlese.push(title); you.title = title; title.have=true; if(!title.tget&&title.talent) {title.talent();title.tget=true}
+        title.onGet();
+        for(let x in global.ttlschk) global.ttlschk[x]();
+        if(!lv) {msg('New Title Earned! '+col('"'+title.name+'"','orange'),'cyan',title,5);dom.d3.update();}
+    } else return;
 }
 
 function isort(type,flags){
@@ -17241,7 +17260,7 @@ function _dbggibberish(w, l){
     } return a;
 }
 
-function giveall(what) { //** ive uncommented this function out for now, for debug purposes
+function giveall(what) { //**
   /*switch(what){
     case item: for(let a in item) giveItem(item[a]);break;
     case wpn: for(let a in wpn) giveItem(wpn[a]);break;
@@ -17254,11 +17273,13 @@ function giveall(what) { //** ive uncommented this function out for now, for deb
 
 function __dbggiveeverything() { //** debug
     for(let a in item) giveItem(item[a], 99);
-    for(let a in wpn) giveItem(wpn[a], 99);
+    for(let a in wpn) giveItem(wpn[a]);
     for(let a in eqp) giveItem(eqp[a]);
+    for(let a in sld) giveItem(sld[a]);
     for(let a in acc) giveItem(acc[a]);
     for(let a in ttl) giveTitle(ttl[a]);
     for(let a in rcp) giveRcp(rcp[a]);
+    return "All items attempted to be given to the player.";
 }
 
 function scan(arr, val, am){

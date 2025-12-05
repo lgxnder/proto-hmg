@@ -179,20 +179,22 @@ input:focus {
 }
 
 .noselect {
-    -moz-users-select: -moz-none;
+    -moz-user-select: -moz-none;
     -khtml-user-select: none;
     -webkit-user-select: none;
     user-select: none;
     cursor: default;
 }
 
+/*
 .doselect {
-    -moz-users-select: ;
+    -moz-user-select: ;
     -khtml-user-select: ;
     -webkit-user-select: ;
     user-select: ;
     cursor: ;
 }
+*/
 
 .bts_m_b {
     margin-top: -1px;
@@ -453,7 +455,7 @@ input:focus {
 }
 
 .exp {
-    text-shadow: black 1px 1px 0px, black 1px 0pzx 0px;
+    text-shadow: black 1px 1px 0px, black 1px 0px 0px;
     background: linear-gradient(90deg, rgb(254, 239, 157), rgb(219, 119, 158));
     width: 100%;
 }
