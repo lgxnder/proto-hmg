@@ -1,0 +1,44 @@
+This file will be periodically updated to reflect the changes I have made from the original source code (the html file) of proto23.
+
+
+- Moved the styles written in css into their own file. Styles updated in javascript
+        like dom.someelement.style.display = none; are not moved in order to prevent any conflicts
+        with the way the game updates. Maybe subject to change ...
+
+- Various indentation fixes in places where a bunch of code with 'if' and 'for' statements was 
+        written have been expanded to fall over multiple lines instead. Additionally, lines
+        where multiple clauses of a similar nature were tightly packed close together have been
+        moved, too. This will probably increase the overall lines of the already quite big html
+        file but, I believe this will be worth it in the end. Honestly, the endeavour to add
+        indentation to everything is more so a visual aid for my eyes.
+
+- Rearranged the save/load function definitions in order to further organize the beginning initialization of variables/objects/STUFF. 
+
+--- IDENTATION STATUS: (line numbers are for my own reference, will change with updates bleh)
+ - beginning of file            X
+ - save/load functions          X
+ - titles section               X
+ - weather                      X
+ - callbacks/handlers           X
+ - time                         X
+ - effects section              X
+ - furniture section            X
+ - quests                       X
+ - skills
+ - items
+ - equipment/Eqp (8005-9669)
+ - misc          (9672-9718)
+ - player/You    (9724-9805)
+ - creatures     (9811-10348)
+ - abilities     (10355-10433)
+ - effectors
+ - area, sector
+ - recipe
+ - Vendor        (11335)
+ - Action
+ - DOM section   (11506)
+
+
+GENERAL TODO:
+ - document what things in the code actually does (lol)
+ - maybe rename/refactor some stuff? 
