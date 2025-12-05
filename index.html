@@ -2398,7 +2398,7 @@ effect.psnwrd.x = '＋';
 effect.psnwrd.c = 'lime';
 effect.psnwrd.b = 'darkmagenta';
 effect.psnwrd.onGive = function() {
-    msg('You feel safer','lime')
+    msg('You feel safer','lime');
 };
 effect.psnwrd.use = function() {
     if (--this.duration === 0) {
@@ -2417,7 +2417,7 @@ effect.psnwrd2.x = '＋';
 effect.psnwrd2.c = 'lime';
 effect.psnwrd2.b = 'magenta';
 effect.psnwrd2.onGive = function() {
-    msg('You feel much safer','lime')
+    msg('You feel much safer','lime');
 };
 effect.psnwrd2.use = function() {
     if (--this.duration === 0) {
@@ -2596,7 +2596,7 @@ effect.fpn.x = '«';
 effect.fpn.c = 'lime';
 effect.fpn.b = 'grey';
 effect.fpn.onGive = function() {
-    msg(select(['You feel bad inside','Your stomach bothers you']),'green')
+    msg(select(['You feel bad inside','Your stomach bothers you']),'green');
 };
 effect.fpn.use = function(y,z) {
     if (you.sat>0) {
@@ -2817,7 +2817,7 @@ effect.tarnish.x = '≠';
 effect.tarnish.c = 'purple';
 effect.tarnish.b = 'grey';
 effect.tarnish.onGive = function() {
-    msg('Your equipment cracks', 'purple')
+    msg('Your equipment cracks', 'purple');
 };
 effect.tarnish.use = function(y,z){}
 
@@ -2831,7 +2831,7 @@ effect.prostasia.x = '≒';
 effect.prostasia.c = 'midnightblue';
 effect.prostasia.b = 'skyblue';
 effect.prostasia.onGive = function() {
-    msg('You feel secure', 'skyblue')
+    msg('You feel secure', 'skyblue');
 };
 effect.prostasia.use = function(y,z){}
 
@@ -2884,7 +2884,7 @@ effect.drunk.onGive = function() {
     msg('You\'re feeling tipsy', 'chocolate');
 };
 effect.drunk.onRemove = function() {
-    msg('You sober up', 'orange')
+    msg('You sober up', 'orange');
 };
 
 effect.virus = new Effect();
@@ -2904,10 +2904,10 @@ effect.virus.mods = function() {
     you.sata -= 70;
 };
 effect.virus.onGive = function() {
-    msg('You feel bad','grey')
+    msg('You feel bad','grey');
 };
 effect.virus.onRemove = function() {
-    msg('You feel better','orange')
+    msg('You feel better','orange');
 };
 
 effect.scout = new Effect();
@@ -2977,7 +2977,7 @@ effect.fei1.use = function(y) {
         removeEff(this);
         you.onDeath();
         global.atkdfty = [2,4];
-        msg("You fail to purify the pill", 'darkgrey')
+        msg("You fail to purify the pill", 'darkgrey');
     }
     dom.d5_1_1.update();
     if (this.duration === 0) {
@@ -3057,11 +3057,11 @@ effect.smoke.c = 'grey';
 effect.smoke.b = 'lightgrey';
 effect.smoke.onGive = function() {
     if (this.target.id === you.id) {
-        msg('You breathe heavily', 'grey')
+        msg('You breathe heavily', 'grey');
     }
 };
 effect.smoke.onRemove = function() {
-    msg('Your lungs feel lighter', 'orange')
+    msg('Your lungs feel lighter', 'orange');
 };
 effect.smoke.use = function() { 
     if (this.target.id === you.id) { 
@@ -9741,7 +9741,7 @@ function You(){
     this.str=this.str_r=this.agl=this.agl_r=this.int=this.int_r=this.spd=this.spd_r=this.str_d=this.agl_d=this.int_d = 1;
     this.stra=this.agla=this.inta=this.spda=this.hpa=this.sata=0; this.strm=this.intm=this.spdm=this.aglm=this.hpm=this.satm=1
     this.stat_p=[1,1,1,1];
-    this.res={poison:1,burn:1,frost:1,paralize:1,blind:1,sleep:1,curse:1,death:1,bleed:1,ph:1,venom:1,fpoison:1};
+    this.res={poison:1,burn:1,frost:1,paralyze:1,blind:1,sleep:1,curse:1,death:1,bleed:1,ph:1,venom:1,fpoison:1};
     this.cls=[0,0,0];
     this.ccls=[0,0,0];
     this.aff=[0,0,0,0,0,0,0];
@@ -9809,47 +9809,72 @@ you.ai = function() {
 ///////////////////////////////////////////
 
 function Creature(){
-    this.name='Nothing';
-    this.desc='Empty space';
+    this.name = 'Nothing';
+    this.desc = 'Empty space';
     this.type = 3; //h,b,u,e,p,d
     this.id = 0;
-    this.lvl=1;
-    this.exp=1;
-    this.stat_p=[1,1,1,1]; //hp, str, agl, int
+    this.lvl = 1;
+    this.exp = 1;
+    this.stat_p = [1,1,1,1]; //hp, str, agl, int
     this.eqp = [eqp.dummy, eqp.dummy];
-    this.cls=[0,0,0];
-    this.aff=[0,0,0,0,0,0,0]; //phy air eth fir wtr lgt drk
-    this.res={poison:1,burn:1,frost:1,paralize:1,blind:1,sleep:1,curse:1,death:1,bleed:1,ph:1,venom:1,fpoison:1};
-    this.atype=0; this.ctype=0;
-    this.atkmode=1;
-    this.hp=this.hp_r=this.hpmax = 17;
-    this.str=this.str_r=this.agl=this.agl_r=this.int=this.int_r=this.spd=this.spd_r=1;
-    this.stra=this.agla=this.inta=this.spda=this.hpa=0; this.strm=this.intm=this.spdm=this.aglm=this.hpm=1
-    this.crt = .008;
-    this.dmlt=1;
-    this.rnk=0;
-    this.pts=1;
-    this.eva=0;
-    this.data={lstdmg:0,oneshot:true};
-    this.stat_r=function(){
+    this.cls = [0,0,0];
+    this.aff = [0,0,0,0,0,0,0]; //phy air eth fir wtr lgt drk
+    this.res = {
+        poison:1,
+        burn:1,
+        frost:1,
+        paralyze:1,
+        blind:1,
+        sleep:1,
+        curse:1,
+        death:1,
+        bleed:1,
+        ph:1,
+        venom:1,
+        fpoison:1
+    };
+    this.atype = 0;
+    this.ctype = 0;
+    this.atkmode = 1;
+    this.hp = this.hp_r = this.hpmax = 17;
+    this.str = this.str_r = 1;
+    this.agl = this.agl_r = 1;
+    this.int = this.int_r = 1;
+    this.spd = this.spd_r = 1;
+    this.stra = this.agla = this.inta = this.spda = this.hpa = 0;
+    this.strm = this.intm = this.spdm = this.aglm = this.hpm = 1;
+    this.crt = 0.008;
+    this.dmlt = 1;
+    this.rnk = 0;
+    this.pts = 1;
+    this.eva = 0;
+    this.data = { lstdmg : 0, oneshot : true };
+    this.stat_r = function() {
         this.stre=this.inte=this.agle=this.spde=this.sate=this.hpe=1;
-        for(let idx in this.eff) this.eff[idx].mods();
-        this.str = (this.str_r+this.stra)*this.strm*this.stre; this.str_d = this.str
-        this.int = (this.int_r+this.inta)*this.intm*this.inte; this.int_d = this.int
-        this.agl = (this.agl_r+this.agla)*this.aglm*this.agle; this.agl_d = this.agl
-        this.spd = (this.spd_r+this.spda)*this.spdm*this.spde; this.spd_d = this.spd
-        this.hpmax = Math.ceil((this.hp_r+this.hpa)*this.hpm*this.hpe); 
+        for (let idx in this.eff) this.eff[idx].mods();
+        this.str = (this.str_r+this.stra)*this.strm*this.stre; this.str_d = this.str;
+        this.int = (this.int_r+this.inta)*this.intm*this.inte; this.int_d = this.int;
+        this.agl = (this.agl_r+this.agla)*this.aglm*this.agle; this.agl_d = this.agl;
+        this.spd = (this.spd_r+this.spda)*this.spdm*this.spde; this.spd_d = this.spd;
+        this.hpmax = Math.ceil((this.hp_r+this.hpa)*this.hpm*this.hpe);
         this.dmlt=1;
-        for(let idx in this.eff) {
-        if(this.eff[idx].type===2) {this.eff[idx].un();this.eff[idx].use(this.eff[idx].y,this.eff[idx].z)};
-        } update_m() ;if(this.hp>this.hpmax)this.hp=this.hpmax}
+        for (let idx in this.eff) {
+            if (this.eff[idx].type===2) {
+                this.eff[idx].un();
+                this.eff[idx].use(this.eff[idx].y,this.eff[idx].z);
+            };
+        } update_m();
+        if (this.hp>this.hpmax) this.hp=this.hpmax;
+    };
     this.alive = true;
     this.eff = [];
     this.drop = [];
-    this.onDeath = function(killer){ 
-        callback.onDeath.fire(this,killer)
-        this.hp=0; this.alive = false; let tt=0; 
-        for(let obj in global.bestiary) {if(global.bestiary[obj].id===this.id) {global.bestiary[obj].kills++;break}
+    this.onDeath = function(killer) { 
+        callback.onDeath.fire(this,killer);
+        this.hp = 0;
+        let tt = 0; 
+        this.alive = false;
+        for(let obj in global.bestiary) { if(global.bestiary[obj].id===this.id) {global.bestiary[obj].kills++;break}
         if(++tt===global.bestiary.length)global.bestiary.push({id:this.id,kills:1});}
         global.stat.akills++; global.stat.pts+=this.pts; if(you.eqp[0].id!==10000) you.eqp[0].data.kills?you.eqp[0].data.kills++:(you.eqp[0].data.kills=1);
         if(this.type!==2&&this.type!==4) global.spirits++; else if(this.type===4) global.spirits--;
@@ -9857,26 +9882,43 @@ function Creature(){
         global.flags.civil=true; global.flags.btl=false; let df = 1; let ld = this.lvl-you.lvl; if(ld<0) df=Math.sqrt(Math.abs(ld))+Math.abs(ld)*.1*Math.abs(ld);
         giveExp(this.exp+(this.exp*this.lvl/10<<0)/df); dropC(this); global.s_l=0;
         if(you.mods.enmondren>0) if(random()<you.mods.enmondren){let aam = 1+rand(this.lvl<<0,(this.lvl/4)<<0)**(1+(this.rnk/5)<<0)*you.mods.enmondrts ;giveWealth(rand(aam*.5<<0||1,aam*1.5<<0||1));} 
-        if(--global.current_z.size>0) area_init(global.current_z); else {if(global.current_z.size<=-1)area_init(global.current_z);else {msg('Area cleared','orange');global.current_z.onEnd();global.flags.civil=true;global.flags.btl=false;}};
+        if(--global.current_z.size>0) {
+            area_init(global.current_z);
+        } else {
+            if (global.current_z.size<=-1) {
+                area_init(global.current_z);
+            } else {
+                msg('Area cleared','orange');
+                global.current_z.onEnd();
+                global.flags.civil = true;
+                global.flags.btl = false;
+            }
+        }
         if(global.flags.to_pause===true) global.flags.btl = false;
-        wpndiestt(killer,this); if(this.blood) global.stat.bloodt+=this.blood;
+        
+        wpndiestt(killer,this);
+        if(this.blood) global.stat.bloodt += this.blood;
+        
         for(let a in checksd) checksd[a].f(this,checksd[a].o);
         for(let x in global.achchk[1]) global.achchk[1][x](killer);
-        dom.d5_1_1m.update(); dom.d7m.update();
-        kill(this)
+        
+        dom.d5_1_1m.update();
+        dom.d7m.update();
+        kill(this);
     };
-    this.onDeathE = function(){
-        giveSkExp(skl.war,(this.rnk*2-1)*(1+this.lvl*.05)*.1);
-    }
-    this.battle_ai = function(x,y,z){
+    this.onDeathE = function() {
+        giveSkExp(skl.war, (this.rnk*2-1)*(1+this.lvl*.05)*.1);
+    };
+    this.battle_ai = function(x,y,z) {
     /*me = this.data;
         if(!me.lasthp) me.lasthp=this.hp;
         me.cdmg = me.lasthp-this.hp;
         me.avgdmg = (me.cdmg+me.lstdmg)/2;
         me.lasthp=this.hp; me.lstdmg=me.cdmg;
         if(this.hp-me.avgdmg<=0) {msg('too scary, running away'); global.flags.btlinterrupt=true;}
-        */return attack(x,y)
-    }
+        */
+        return attack(x,y);
+    };
 }
 creature.default = new Creature();
 global.current_m = creature.default;
