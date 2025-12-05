@@ -17253,8 +17253,8 @@ function giveall(what) { //** ive uncommented this function out for now, for deb
 }
 
 function __dbggiveeverything() { //** debug
-    for(let a in item) giveItem(item[a]);
-    for(let a in wpn) giveItem(wpn[a]);
+    for(let a in item) giveItem(item[a], 99);
+    for(let a in wpn) giveItem(wpn[a], 99);
     for(let a in eqp) giveItem(eqp[a]);
     for(let a in acc) giveItem(acc[a]);
     for(let a in ttl) giveTitle(ttl[a]);
