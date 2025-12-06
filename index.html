@@ -197,7 +197,8 @@ global.flags = {
     gameone:   false,
     tmmode:    1,
     ssngaijin: true,
-    rptbncgt:  false //** these variable names are incredible
+    rptbncgt:  false, //** these variable names are incredible
+    mountainstart: false
 };
               
 global.spirits = 100;
@@ -1744,7 +1745,7 @@ ttl.tqtm.tdesc = 'Dummies may drop something special'
 ttl.ddw = new Title(46); 
 ttl.ddw.name = 'Glass Bones';
 ttl.ddw.rar = 0;
-ttl.ddw.rars= true;
+ttl.ddw.rars = true;
 ttl.ddw.desc = 'Bizzarely, you got yourself knocked out by the weakest enemy in existence. How did that happen? You feel like you have achieved somewhat absurd understanding of how frail your body actually is. Perhaps violence isn\'t for you';
 
 ttl.neet = new Title(47); 
@@ -2041,6 +2042,15 @@ ttl.indkill.rar = 2;
 ttl.indkill.rars = true;
 ttl.indkill.desc = '';
 
+ttl.__mountainchild = new Title(701);
+ttl.__mountainchild.name = 'Mountain Child';
+ttl.__mountainchild.rar = 1;
+ttl.__mountainchild.rars = true;
+ttl.__mountainchild.desc = 'You descended from the peak of a harsh mountain, leaving you with a great proficiency in unarmed combat.';
+ttl.__mountainchild.talent = function() {
+    you.mods.undc += 5;
+};
+ttl.__mountainchild.tdesc = 'Improves your unarmed combat skill by a considerable amount.';
 
 function Weather(id){
     this.name = '?';
@@ -3755,9 +3765,11 @@ skl.unc.mlstn = [
     {lv:5, f:()=>{
         you.agla += 1;
         you.stat_r();
-        giveTitle(ttl.pbg)},
+        //giveTitle(ttl.pbg)
+        },
         g : false,
-        p : "AGL +1, New Title"},
+        p : "AGL +1"},
+        //p : "AGL +1, New Title"},
 
     {lv:8, f:()=>{
         you.exp_t += 0.01;
@@ -7353,7 +7365,7 @@ item.key0.use = function(){
 
 item.ywlt = new Item(); item.ywlt.id = 5024;
 item.ywlt.name='Woven Wallet';
-item.ywlt.desc='This is your personal wallet, you received it as a gift'+dom.dseparator+'<span style=\'color:orange\'>You can feel coinage inside</spam>';
+item.ywlt.desc='This is your personal wallet, you received it as a gift'+dom.dseparator+'<span style=\'color:orange\'>You can feel coinage inside</span>';
 item.ywlt.stype=4;
 item.ywlt.rar=2;
 item.ywlt.use=function(x){
@@ -8016,6 +8028,22 @@ item.__sp4.use = function() {
     this.amount--;
 }
 
+item.__leatherwallet = new Item();
+item.__leatherwallet.id = 70002;
+item.__leatherwallet.name = "Leather Wallet";
+item.__leatherwallet.desc = "A plain, but sturdy leather wallet gifted to by an old friend."+
+                        dom.dseparator+
+                        '<span style=\'color:orange\'>There\'s quite a bit of money inside.</span>';
+item.__leatherwallet.stype = 4;
+item.__leatherwallet.rar = 1;
+item.__leatherwallet.use = function() {
+    giveItem(item.lcn, 5);
+    giveItem(item.cp, 3);
+    giveItem(item.cn, 6);
+    giveItem(item.cd, 6);
+    giveItem(item.cq, 4);
+    this.amount--;
+}
 
 ///////////////////////////////////////////
 //EQP
@@ -14900,18 +14928,18 @@ chss.t1.sl = function() {
     global.lst_loc = 101;
     global.flags.inside = true;
     d_loc('Dojo, training area');
-    chs('???: Kid',true); 
+    chs('???: Kid...',true); 
     chs('"..."',false).addEventListener('click', function() {
         global.time += DAY; 
         appear(dom.ctr_1);  
-        chs('???: Quit daydreaming', true);
+        chs('???: Quit daydreaming!', true);
         chs('"?"',false).addEventListener('click', function() {
             appear(dom.d0);
-            chs('???: You have training to complete',true);
+            chs('???: You have training to complete.',true);
             chs('"!"',false).addEventListener('click', function() {
                 appear(dom.inv_ctx);
                 appear(dom.d_lct);
-                chs('???: Grab your stuff and get to it',true); 
+                chs('???: Grab your stuff and get to it!',true); 
                 chs('"..."',false).addEventListener('click', function() {
                     appear(dom.ct_ctrl);
                     smove(chss.tdf, false);
@@ -14925,7 +14953,10 @@ chss.t1.sl = function() {
     //** quickstart the game
     chs('Remember your training', false).addEventListener('click', function () {
         global.time += DAY;
-        smove(chss.__quickstart, false);
+        chs('???: You alright?', true);
+        chs('"I came down from a mountain..."', false).addEventListener('click', function() {
+            smove(chss.__quickstart, false);
+        });
     });
 };
 
@@ -15749,11 +15780,12 @@ chss.jbgd1.onLeave=function(){
 }
 
 chss.fdwrg1qt = new Chs(); chss.fdwrg1qt.id = 165; 
-chss.fdwrg1qt.sl=()=>{ d_loc('Marketplace, Stalls'); 
-  chs('"<span style="color:cyan">Nervous Guy:</span> Argh, what am I gonna do now! How could this... Uh? S-sorry, can\'t talk right now, please leave me be. Ahh damn it..."<div style="color: darkgrey">The man then proceeds to fidget in unrest</div>',true)
-  chs('"<= Walk away"',false).addEventListener('click',()=>{ 
-    smove(chss.mrktvg1,false);
-  });
+chss.fdwrg1qt.sl=()=>{
+    d_loc('Marketplace, Stalls'); 
+    chs('"<span style="color:cyan">Nervous Guy:</span> Argh, what am I gonna do now! How could this... Uh? S-sorry, can\'t talk right now, please leave me be. Ahh damn it..."<div style="color: darkgrey">The man then proceeds to fidget in unrest</div>',true)
+    chs('"<= Walk away"',false).addEventListener('click',()=>{ 
+        smove(chss.mrktvg1,false);
+    });
 }
 
 
@@ -15996,7 +16028,6 @@ chss.cat1.sl = () => {
         if (global.stat.cat_c >= 100) {
             if (!global.flags.cat_g) {
                 clr_chs(2);
-                global.flags.cat_g = true;
                 chs('"???"', false).addEventListener('click', () => {
                     chs('Cat wants to tag along', true);
                     chs('"Take it with you"', false).addEventListener('click', () => {
@@ -16654,8 +16685,8 @@ chss.__quickstart.sl = function () {
     appear(dom.ct_ctrl);
     appear(dom.d1m);
 
-    // unlock menu options
-    global.flags.aw_u  = true;
+    global.flags.mountainstart = true;
+    global.flags.aw_u  = true; // unlock menu options
     global.flags.dm1ap = true;
     global.flags.asbu  = true;
     global.flags.sklu  = true;
@@ -16667,18 +16698,31 @@ chss.__quickstart.sl = function () {
     dom.ct_bt3.innerHTML = 'actions';
     dom.ct_bt2.innerHTML = 'skills';
 
+    appear(dom.mn_2); // make wealth appear
+    appear(dom.mn_3);
+    appear(dom.mn_4);
+    m_update();
+
     global.flags.mkplc1u = true;
     global.flags.dj1end = true;  // do not show any skillbook at the dojo
     global.flags.hbgget = true;  // get the bag at home
     global.flags.chbdfst = true; // hidden stash
-    global.flags.cat_g = true;
-    __get_cat();
-    global.stat.cat_c = 100;
+    global.flags.frst1u = true;
+    global.flags.frst1um = true; // give permission to enter south forest
+    
+    //__get_cat();
+    //global.stat.cat_c = 100;
 
-    dbg = [
-        giveItem(item.sp0a), // give tier 4 spirit pill
-        area.trn.size = 1000 // change 10k dummies to 1k
-    ];
+    giveItem(item.__leatherwallet); // coinage
+    giveItem(item.sp2, 5);          // pills
+    //giveItem(item.__sp4);
+
+    giveTitle(ttl.__mountainchild, false);
+    you.title = ttl.__mountainchild;
+    //give unarmed mastery
+    giveSkExp(skl.unc, 853, showLevelUp=false);
+
+    //area.trn.size = 1000 // change 10k dummies to 1k
     
     smove(chss.lsmain1); // move to courtyard
 };
@@ -17230,25 +17274,55 @@ function giveExp(exp,r,g,b){
     dom.d5_2_1.update(); 
 }
 
-function giveSkExp(skl,exp,res){ exp=res===false?exp:exp*skl.p; //skl.lastupd = time.minute+2;
-    if(skl.exp+exp<skl.expnext_t) skl.exp+=exp; 
+function giveSkExp(skl, exp, res, showSkillUnlocked, showLevelUp) {
+    exp = res === false ? exp : exp * skl.p; //skl.lastupd = time.minute+2;
+    if(skl.exp + exp < skl.expnext_t) skl.exp+=exp; 
     else {
         let extra = (skl.exp+exp)-skl.expnext_t;
-        skl.exp=0; skl.lvl++;  global.stat.slvs++;
-        if(!scanbyid(you.skls,skl.id)) {you.skls.push(skl);msg('<span style="text-shadow:cyan 0px 0px 2px">New Skill Unlocked! <span style="text-shadow:red 0px 0px 2px;color:orange">"'+(!!skl.bname?skl.bname:skl.name)+'"</span></span>','aqua',skl,6);if(!global.flags.sklu){dom.ct_bt2.innerHTML='skills';global.flags.sklu=true}}
-        else {msg('Skill <span style="color:tomato">\''+(!!skl.bname?skl.bname:skl.name)+'\'</span> Leveled Up: '+skl.lvl,'deepskyblue',skl,6);} skl.onLevel();
+        skl.exp=0;
+        skl.lvl++;
+        global.stat.slvs++;
+        if(!scanbyid(you.skls,skl.id)) {
+            you.skls.push(skl);
+            if (showSkillUnlocked) {
+                msg('<span style="text-shadow:cyan 0px 0px 2px">New Skill Unlocked! <span style="text-shadow:red 0px 0px 2px;color:orange">"'+(!!skl.bname?skl.bname:skl.name)+'"</span></span>','aqua',skl,6);
+            }
+            if (!global.flags.sklu) {
+                dom.ct_bt2.innerHTML = 'skills';
+                global.flags.sklu = true;
+            }
+        }
+        else {
+            if (showLevelUp) {
+                msg('Skill <span style="color:tomato">\''+(!!skl.bname?skl.bname:skl.name)+'\'</span> Leveled Up: '+skl.lvl,'deepskyblue',skl,6);
+            }
+        }
+        skl.onLevel();
         skl.expnext_t=skl.expnext();
         if(!!skl.mlstn) for(let ss=0;ss<skl.mlstn.length;ss++) if(skl.mlstn[ss].lv===skl.lvl&&skl.mlstn[ss].g===false) {msg("NEW PERK UNLOCKED "+'<span style="color:tomato">("'+skl.name+'")<span style="color:orange">lvl: '+skl.mlstn[ss].lv+'</span></span>','lime',{x:skl.name,y:'Perk lvl '+skl.mlstn[ss].lv+': <span style="color:yellow">'+skl.mlstn[ss].p+'</span>'},7);skl.mlstn[ss].f();skl.mlstn[ss].g=true};
         giveSkExp(skl,extra,false); 
-    } skl.onGive(exp);
+    }
+    skl.onGive(exp);
 }
 
-function giveTitle(title,lv){
-    if(title.have===false) {
-        global.titles.push(title);if(title.id!==0)global.titlese.push(title); you.title = title; title.have=true; if(!title.tget&&title.talent) {title.talent();title.tget=true}
+function giveTitle(title, lv){
+    if (title.have === false) {
+        global.titles.push(title);
+        if (title.id!==0) {
+            global.titlese.push(title);
+        }
+        you.title = title;
+        title.have = true;
+        if(!title.tget&&title.talent) {
+            title.talent();
+            title.tget=true;
+        }
         title.onGet();
         for(let x in global.ttlschk) global.ttlschk[x]();
-        if(!lv) {msg('New Title Earned! '+col('"'+title.name+'"','orange'),'cyan',title,5);dom.d3.update();}
+        if(!lv) {
+            msg('New Title Earned! '+col('"'+title.name+'"','orange'),'cyan',title,5);
+            dom.d3.update();
+        }
     } else return;
 }
 
@@ -18343,6 +18417,7 @@ function b64_to_utf8( str ) {
 
 
 function __get_cat() {
+    global.flags.cat_g = true;
     let cat = giveFurniture(furniture.cat, true, false);
     cat.data.sex = rand(1);
     cat.data.c = rand(global.text.cfc.length - 1);
@@ -18354,6 +18429,11 @@ function __get_cat() {
     } while (tg === cat.data.l1);
     cat.data.l2 = rand(global.text.cln.length - 1);
     global.flags.catget = true;
+}
+
+function __heal() {
+    you.hp = you.hpmax;
+    dom.d5_1_1.update();
 }
 
 </script>
