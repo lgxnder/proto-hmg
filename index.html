@@ -73,9 +73,11 @@ global.sm = 1;
 global.rm = 0;
 
 //** specifiy background RGB values
-global.bg_g = 255;
 global.bg_r = 255;
-global.bg_b = 255;
+global.bg_g = 227;
+global.bg_b = 207;
+//global.bg_g = 255;
+//global.bg_b = 255;
 
 global.s_l = 0;
 global.spnew = 0;
@@ -14233,6 +14235,9 @@ function m_update(){
     dom.mn_4.innerHTML = '●'+(you.wealth%100<<0);
 }
 
+// str  txt - dialogue to present/label
+// bool f   - true  : display at top of choice menu
+//            false : display as a choice
 function chs(txt, f, c, bc, iconx, icony, size, ignore, slimsize) {
     if (f === true) {
         clr_chs();
@@ -14339,14 +14344,14 @@ function chs_spec(type,x){
             dom.flsthdrbb = addElement(dom.flsthdrbc,'small');
             dom.flsthdrbb.style.color='lime';
             
-            let v=0;
-            for(let a in furn) {
+            let v = 0;
+            for (let a in furn) {
                 if(furn[a].v) {
                     if (furn[a].multv) {
                         v += furn[a].v * furn[a].amount;
                     }
                     else {
-                        v+=furn[a].v;
+                        v += furn[a].v;
                     }
                 }
             }
@@ -14361,17 +14366,42 @@ function chs_spec(type,x){
             }      
         } break;
         
-        case 3:{ clr_chs(); global.menuo=3; global.cchest = x;
-        dom.ch_1a=addElement(dom.ctr_2,'div');  dom.ch_1a.style.height='74.5%';dom.ch_1a.style.backgroundColor='rgb(0,20,44)';
-        dom.ch_1a.style.display='flex'; dom.ch_1a.style.overflow='auto'; dom.ch_1a.style.position='relative';
-        dom.invp1=addElement(dom.ch_1a,'div'); dom.invp2=addElement(dom.ch_1a,'div'); 
-        dom.invp1.style.width=dom.invp2.style.width='50%';
-        dom.invp2noth=addElement(dom.ctr_2,'div'); dom.invp2noth.style.top=150; dom.invp2noth.style.position='absolute'; dom.invp2noth.style.color='grey';
-        dom.invp2noth.innerHTML='Nothing in the box yet'; dom.invp2noth.style.left=301; dom.invp2noth.style.pointerEvents='none';
-        for(let obj in inv)rendertrunkitem(dom.invp1,inv[obj]);
-        for(let obj in x.c)rendertrunkitem(dom.invp2,x.c[obj].item,{right:true,nit:{item:x.c[obj].item,data:x.c[obj].data,am:x.c[obj].am,dp:x.c[obj].dp}});
-        if(x.c.length>0) dom.invp2noth.style.display='none';
-        if(inv.length>=21) dom.invp2noth.style.left=301; else dom.invp2noth.style.left=314
+        case 3: {
+            clr_chs();
+            global.menuo=3;
+            global.cchest = x;
+            dom.ch_1a=addElement(dom.ctr_2,'div');
+            dom.ch_1a.style.height='74.5%';
+            dom.ch_1a.style.backgroundColor='rgb(0,20,44)';
+            dom.ch_1a.style.display='flex';
+            dom.ch_1a.style.overflow='auto';
+            dom.ch_1a.style.position='relative';
+            dom.invp1=addElement(dom.ch_1a,'div');
+            dom.invp2=addElement(dom.ch_1a,'div'); 
+            dom.invp1.style.width=dom.invp2.style.width='50%';
+            dom.invp2noth=addElement(dom.ctr_2,'div');
+            dom.invp2noth.style.top=150;
+            dom.invp2noth.style.position='absolute';
+            dom.invp2noth.style.color='grey';
+            dom.invp2noth.innerHTML='Nothing in the box yet';
+            dom.invp2noth.style.left=301;
+            dom.invp2noth.style.pointerEvents='none';
+            
+            for(let obj in inv) {
+                rendertrunkitem(dom.invp1,inv[obj]);
+            }
+            for(let obj in x.c) {
+                rendertrunkitem(dom.invp2,x.c[obj].item,{right:true,nit:{item:x.c[obj].item,data:x.c[obj].data,am:x.c[obj].am,dp:x.c[obj].dp}});
+            }
+            if(x.c.length>0) {
+                dom.invp2noth.style.display='none';
+            }
+            if(inv.length>=21) {
+                dom.invp2noth.style.left=301;
+            } else {
+                dom.invp2noth.style.left=314;
+            }
+            
         } break;
         
         case 4: {
@@ -14884,13 +14914,18 @@ chss.t1.sl = function() {
                 chs('???: Grab your stuff and get to it',true); 
                 chs('"..."',false).addEventListener('click', function() {
                     appear(dom.ct_ctrl);
-                    smove(chss.tdf,false);
+                    smove(chss.tdf, false);
                     giveItem(wpn.stk1);
                     giveItem(item.hrb1,15);
                     global.flags.aw_u=true;
                 });
             });
         });
+    });
+    //** quickstart the game
+    chs('Remember your training', false).addEventListener('click', function () {
+        global.time += DAY;
+        smove(chss.__quickstart, false);
     });
 };
 
@@ -14927,21 +14962,28 @@ chss.tdf.sl = function() {
         chs('"You are fighting training dummies"',true);
         if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true};
         area_init(area.trn3); 
-  });
+    });
 }
 chss.tdf.onEnter = function() {
     area_init(area.nwh); 
 }
 
 chss.t2 = new Chs(); chss.t2.id = 103;
-chss.t2.sl=function(){ global.lst_loc = 103; global.flags.inside=true;
-  chs('"Instructor: '+select(['Good','Nice','Great','Excellent'])+' '+select(['job','work'])+' kid! Here\'s the reward for completing the course"',true,'lime');
-  chs('"->"',false).addEventListener('click',function(){
-    if(global.flags.tr1_win===true&&!global.flags.rwd1){global.flags.rwd1=true;giveItem(item.appl,4);giveItem(item.hrb1,5);smove(chss.tdf);}
-    else if(global.flags.tr2_win===true&&!global.flags.rwd2){global.flags.rwd2=true;giveItem(item.brd,2);giveItem(item.hrb1,5);giveItem(eqp.sndl);smove(chss.tdf);}
-    else if(global.flags.tr3_win===true&&!global.flags.rwd3){global.flags.rwd3=true;let itm = giveItem(eqp.vst);itm.dp*=.7;if(global.flags.m_un===true)giveItem(item.cp,10);}
-    if(!global.flags.tr3_win||!global.flags.tr2_win||!global.flags.tr1_win) smove(chss.tdf); else {;smove(chss.t3);giveTitle(ttl.inn);}
-  });
+chss.t2.sl = function() {
+    global.lst_loc = 103;
+    global.flags.inside = true;
+    chs('"Instructor: '+select(['Good','Nice','Great','Excellent'])+' '+select(['job','work'])+' kid! Here\'s the reward for completing the course"',true,'lime');
+    chs('"->"',false).addEventListener('click',function(){
+        if (global.flags.tr1_win === true && !global.flags.rwd1) {
+            global.flags.rwd1=true;
+            giveItem(item.appl,4);
+            giveItem(item.hrb1,5);
+            smove(chss.tdf);
+        }
+        else if (global.flags.tr2_win===true&&!global.flags.rwd2){global.flags.rwd2=true;giveItem(item.brd,2);giveItem(item.hrb1,5);giveItem(eqp.sndl);smove(chss.tdf);}
+        else if (global.flags.tr3_win===true&&!global.flags.rwd3){global.flags.rwd3=true;let itm = giveItem(eqp.vst);itm.dp*=.7;if(global.flags.m_un===true)giveItem(item.cp,10);}
+        if (!global.flags.tr3_win||!global.flags.tr2_win||!global.flags.tr1_win) smove(chss.tdf); else {;smove(chss.t3);giveTitle(ttl.inn);}
+    });
 }
 
 chss.t3 = new Chs();
@@ -15556,63 +15598,78 @@ chss.frstn9a1m.onEnter=function(){
 
 
 chss.lsmain1 = new Chs(); chss.lsmain1.id = 106; addtosector(sector.vcent,chss.lsmain1); addtosector(sector.vmain1,chss.lsmain1)
-chss.lsmain1.sl=()=>{global.flags.inside=false; d_loc('Village Center'); global.lst_loc = 106; 
-  if(isWeather(weather.sunny)||isWeather(weather.clear)) chs('The surroundings are flourishing with life, nothing bad can happen',true);
-  else if(isWeather(weather.cloudy)||isWeather(weather.overcast)||isWeather(weather.stormy)) chs('You have a feeling it might rain soon',true);
-  else if(isWeather(weather.storm)||isWeather(weather.rain)||isWeather(weather.drizzle)) chs('The rain feels surprisingly refreshing',true);
-  else if(isWeather(weather.heavyrain)||isWeather(weather.thunder)) chs('It\'s pouring so hard the streets are completely flooded. There\'s noone around '+(getHour()>6&&getHour()<21?'except for a few kids':''),true);
-  else if(isWeather(weather.misty)||isWeather(weather.foggy)) chs('Can\'t see a meter in front of you with all this fog',true);
-  chs('"=> Check the Message Board"',false).addEventListener('click',()=>{
-    smove(chss.mbrd,false);
-  });
-  chs('"=> Enter Dojo"',false).addEventListener('click',()=>{
-    smove(chss.t3);
-  });
-  chs('"=> Enter Southern forest"',false).addEventListener('click',()=>{
-    if(!global.flags.frst1u) msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow'); else{
-      if(!global.flags.frst1um){msg('Gate Guard: "You were given permission to proceed. Go on"','yellow');global.flags.frst1um=true} smove(chss.frstn3main)
-    } 
-  })
-  chs('"=> Enter Western Woods"',false).addEventListener('click',()=>{
-    if(you.lvl>=6) smove(chss.frstn1main); else msg('Gate Guard: "It is too dangerous for you to leave at this moment. Come back when you train a bit"','yellow');
-  })
-//  chs('"=> Visit Pill Tower"',false).addEventListener('click',()=>{
-//    smove(chss.pltwr1);
-//  });
-  if(global.flags.mkplc1u===true) chs('"=> Visit Marketplace"',false).addEventListener('click',()=>{
-    smove(chss.mrktvg1); 
-  });
-  chs('"=> Go home"',false,'green').addEventListener('click',()=>{
-    smove(chss.home);
-  });
-  if(!global.flags.scrtgltt) chs('"=> Food stand"',false).addEventListener('click',()=>{
-    if(skl.trad.lvl>=2&&random()<.2) global.flags.scrtglti=true;
-    if(global.flags.scrtglti===true){
-      chs('...',true);
-      chs('?',false).addEventListener('click',()=>{
-          chs('"Passerby: Looking for the foodstand guy? He took his stuff and went South. That one supposedly travels from place to place to sell the food he makes, doubt we\'ll see him back any time soon"',true);
-        chs('Well then..',false).addEventListener('click',()=>{
-         global.flags.scrtgltt=true; smove(chss.lsmain1,false); 
-        });
-      });
-    } else smove(chss.vndr1,false); 
-  });
-  if(random()<.15)chs('"=> Shady Kid"',false,'springgreen').addEventListener('click',()=>{
-    smove(chss.vndrkd1,false);
-  });
-
- // chs('"test"',false,'red').addEventListener('click',()=>{
- //   chss.tst.sl();
- // });
-  if(!global.flags.catget)chs('"=> Approach the cat"',false).addEventListener('click',()=>{
-    smove(chss.cat1); if(!global.stat.cat_c)global.stat.cat_c=0;
-  });
-  if(!global.flags.mkplc1u){
-    if(global.flags.dj1end===true&&global.flags.pmfspmkm1!==true&&random()<.4){
-      chs('Paper Boy: Hey, this is for you!',true);
-      chs('?',false).addEventListener('click',()=>{giveItem(item.shppmf);smove(chss.lsmain1,false)});
+chss.lsmain1.sl = () => {
+    global.flags.inside=false;
+    d_loc('Village Center');
+    global.lst_loc = 106; 
+    
+    if (isWeather(weather.sunny) || isWeather(weather.clear)) {
+        chs('The surroundings are flourishing with life, nothing bad can happen',true);
     }
-  }
+    else if (isWeather(weather.cloudy) || isWeather(weather.overcast) || isWeather(weather.stormy)) {
+        chs('You have a feeling it might rain soon',true);
+    }
+    else if (isWeather(weather.storm) || isWeather(weather.rain)||isWeather(weather.drizzle)) {
+        chs('The rain feels surprisingly refreshing',true);
+    }
+    else if (isWeather(weather.heavyrain) || isWeather(weather.thunder)) {
+        chs('It\'s pouring so hard the streets are completely flooded. There\'s noone around '+(getHour()>6&&getHour()<21?'except for a few kids':''),true);
+    }
+    else if (isWeather(weather.misty) || isWeather(weather.foggy)) {
+        chs('Can\'t see a meter in front of you with all this fog',true);
+    }
+    
+    chs('"=> Check the Message Board"',false).addEventListener('click',()=>{
+        smove(chss.mbrd,false);
+    });
+    chs('"=> Enter Dojo"',false).addEventListener('click',()=>{
+        smove(chss.t3);
+    });
+    chs('"=> Enter Southern forest"',false).addEventListener('click',()=>{
+        if(!global.flags.frst1u) msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow'); else{
+        if(!global.flags.frst1um){msg('Gate Guard: "You were given permission to proceed. Go on"','yellow');global.flags.frst1um=true} smove(chss.frstn3main)
+        } 
+    })
+    chs('"=> Enter Western Woods"',false).addEventListener('click',()=>{
+        if(you.lvl>=6) smove(chss.frstn1main); else msg('Gate Guard: "It is too dangerous for you to leave at this moment. Come back when you train a bit"','yellow');
+    })
+    //  chs('"=> Visit Pill Tower"',false).addEventListener('click',()=>{
+    //    smove(chss.pltwr1);
+    //  });
+    if(global.flags.mkplc1u===true) chs('"=> Visit Marketplace"',false).addEventListener('click',()=>{
+        smove(chss.mrktvg1); 
+    });
+    chs('"=> Go home"',false,'green').addEventListener('click',()=>{
+        smove(chss.home);
+    });
+    if(!global.flags.scrtgltt) chs('"=> Food stand"',false).addEventListener('click',()=>{
+        if(skl.trad.lvl>=2&&random()<.2) global.flags.scrtglti=true;
+        if(global.flags.scrtglti===true){
+        chs('...',true);
+        chs('?',false).addEventListener('click',()=>{
+            chs('"Passerby: Looking for the foodstand guy? He took his stuff and went South. That one supposedly travels from place to place to sell the food he makes, doubt we\'ll see him back any time soon"',true);
+            chs('Well then..',false).addEventListener('click',()=>{
+            global.flags.scrtgltt=true; smove(chss.lsmain1,false); 
+            });
+        });
+        } else smove(chss.vndr1,false); 
+    });
+    if(random()<.15)chs('"=> Shady Kid"',false,'springgreen').addEventListener('click',()=>{
+        smove(chss.vndrkd1,false);
+    });
+
+    // chs('"test"',false,'red').addEventListener('click',()=>{
+    //   chss.tst.sl();
+    // });
+    if(!global.flags.catget)chs('"=> Approach the cat"',false).addEventListener('click',()=>{
+        smove(chss.cat1); if(!global.stat.cat_c)global.stat.cat_c=0;
+    });
+    if(!global.flags.mkplc1u){
+        if(global.flags.dj1end===true&&global.flags.pmfspmkm1!==true&&random()<.4){
+        chs('Paper Boy: Hey, this is for you!',true);
+        chs('?',false).addEventListener('click',()=>{giveItem(item.shppmf);smove(chss.lsmain1,false)});
+        }
+    }
 }
 
 chss.mrktvg1 = new Chs(); chss.mrktvg1.id = 127; addtosector(sector.vmain1,chss.mrktvg1)
@@ -15901,60 +15958,79 @@ chss.tst.sl=()=>{ d_loc('Test'); global.lst_loc = -1;
   });    
 }
 
-chss.cat1 = new Chs(); chss.cat1.id = 107; addtosector(sector.vcent,chss.cat1); addtosector(sector.vmain1,chss.cat1)
-chss.cat1.sl=()=>{ d_loc('Village Center, Cat'); //global.lst_loc = 107;
-  let w = !global.stat.cat_c?chs('There is a cat.',true):chs('There is a cat. Pets: '+global.stat.cat_c,true);
-  chs('"Pet the cat"',false).addEventListener('click',x=>{
-    let a = addElement(document.body,'span');
-    a.style.pointerEvents='none';
-    a.style.position='absolute'; a.style.color='lime';
-    a.innerHTML = select([':3','\'w\'','\'ω\'','(=・∀・=)','*ﾟヮﾟ']);
-    a.style.top=-55; a.style.left=-55;
-    a.style.fontSize = '1.25em'; a.style.textShadow='2px 2px 1px blue';
-    a.posx = x.clientX-20; a.posy = x.clientY-20; a.spos = randf(-1,1);
-    let t = 0;
-    let g = setInterval(()=>{
-      t++;
-      a.style.top = a.posy-2*t;
-      a.style.left = a.posx+Math.sin(t/5+a.spos)*15;    
-      a.style.opacity = (110-t)/110;
-      if(t===110) {
-        clearInterval(g);
-        document.body.removeChild(a);
-      }
-    },20);
-    global.stat.cat_c++; if(global.stat.cat_c<333) skl.pet.use(); w.innerHTML = 'There is a cat. Pets: '+global.stat.cat_c;
-    if(global.stat.cat_c>=100){ if(!global.flags.cat_g) {clr_chs(2); global.flags.cat_g=true;
-      chs('"???"',false).addEventListener('click',()=>{
-        chs('Cat wants to tag along',true);
-        chs('"Take it with you"',false).addEventListener('click',()=>{ 
-          let cat = giveFurniture(furniture.cat,true,false); cat.data.sex=rand(1);
-          cat.data.c=rand(global.text.cfc.length-1); cat.data.p=rand(global.text.cfp.length-1);cat.data.l1=rand(global.text.cln.length-1); let tg=rand(global.text.cln.length-1); do{tg=rand(global.text.cln.length-1)}while(tg===cat.data.l1); cat.data.l2=rand(global.text.cln.length-1);
-          global.flags.catget=true; msg('The cat decided to move into your house!','lime'); smove(chss.lsmain1);
-        });
-        chs('"Leave it as is"',false).addEventListener('click',()=>{
-          smove(chss.lsmain1);
-        });
-      });
-    chs('"<= Return"',false).addEventListener('click',()=>{
-      smove(chss.lsmain1);
-    })}}});
-  if(global.stat.cat_c>=100){
-    chs('"???"',false).addEventListener('click',()=>{
-      chs('Cat wants to tag along',true);
-      chs('"Take it with you"',false).addEventListener('click',()=>{
-        let cat = giveFurniture(furniture.cat,true,false); cat.data.sex=rand(1);
-        cat.data.c=rand(global.text.cfc.length-1); cat.data.p=rand(global.text.cfp.length-1);cat.data.l1=rand(global.text.cln.length-1); let tg=rand(global.text.cln.length-1); do{tg=rand(global.text.cln.length-1)}while(tg===cat.data.l1); cat.data.l2=rand(global.text.cln.length-1);
-        global.flags.catget=true; msg('The cat decided to move into your house!','lime'); smove(chss.lsmain1);
-      });
-      chs('"Leave it as is"',false).addEventListener('click',()=>{
-        smove(chss.lsmain1);
-      });
+chss.cat1 = new Chs();
+chss.cat1.id = 107;
+addtosector(sector.vcent,chss.cat1);
+addtosector(sector.vmain1,chss.cat1)
+chss.cat1.sl = () => {
+    d_loc('Village Center, Cat');
+    let w = !global.stat.cat_c ? chs('There is a cat.', true) : chs('There is a cat. Pets: ' + global.stat.cat_c, true);
+    chs('"Pet the cat"', false).addEventListener('click', x => {
+        let a = addElement(document.body, 'span');
+        a.style.pointerEvents = 'none';
+        a.style.position = 'absolute';
+        a.style.color = 'lime';
+        a.innerHTML = select([':3', '\'w\'', '\'ω\'', '(=・∀・=)', '*ﾟヮﾟ']);
+        a.style.top = -55;
+        a.style.left = -55;
+        a.style.fontSize = '1.25em';
+        a.style.textShadow = '2px 2px 1px blue';
+        a.posx = x.clientX - 20;
+        a.posy = x.clientY - 20;
+        a.spos = randf(-1, 1);
+        
+        let t = 0;
+        let g = setInterval(() => {
+            t++;
+            a.style.top = a.posy - 2 * t;
+            a.style.left = a.posx + Math.sin(t / 5 + a.spos) * 15;
+            a.style.opacity = (110 - t) / 110;
+            if (t === 110) {
+                clearInterval(g);
+                document.body.removeChild(a);
+            }
+        }, 20);
+        global.stat.cat_c++;
+        if (global.stat.cat_c < 333) skl.pet.use();
+        w.innerHTML = 'There is a cat. Pets: ' + global.stat.cat_c;
+        if (global.stat.cat_c >= 100) {
+            if (!global.flags.cat_g) {
+                clr_chs(2);
+                global.flags.cat_g = true;
+                chs('"???"', false).addEventListener('click', () => {
+                    chs('Cat wants to tag along', true);
+                    chs('"Take it with you"', false).addEventListener('click', () => {
+                        __get_cat();
+                        msg('The cat decided to move into your house!', 'lime');
+                        smove(chss.lsmain1);
+                    });
+                    chs('"Leave it as is"', false).addEventListener('click', () => {
+                        smove(chss.lsmain1);
+                    });
+                });
+                chs('"<= Return"', false).addEventListener('click', () => {
+                    smove(chss.lsmain1);
+                })
+            }
+        }
     });
-  }
-  chs('"<= Return"',false).addEventListener('click',()=>{
-    smove(chss.lsmain1);
-  });
+    if (global.stat.cat_c >= 100) {
+        chs('"???"', false).addEventListener('click', () => {
+            chs('Cat wants to tag along', true);
+            chs('"Take it with you"', false).addEventListener('click', () => {
+                __get_cat();
+                msg('The cat decided to move into your house!', 'lime');
+                smove(chss.lsmain1);
+            });
+            chs('"Leave it as is"', false).addEventListener('click', () => {
+                smove(chss.lsmain1);
+            });
+        });
+    }
+    
+    chs('"<= Return"', false).addEventListener('click', () => {
+        smove(chss.lsmain1);
+    });
 }
 
 global.text.mbrdtt=['"If you do not work your hours daily, you will not get any dessert"','"Do your job well and you will be rewarded"','There is a report of a missing cat','There is a section of useless gossip','This is an  advertisement for fresh vegetables','This is an advertisement for dojo membership','This is an advertisement for wooden furniture','This is an advertisement for dried meat','This is an advertisement for joining the militia','"The Hunter Association offers you a large variety of boxes full of smoked meat and furs"','This is an advertisement for herbal medicine','This is an advertisement for wine kegs','This is an advertisement for farming equipment','This is an advertisement for carpentery supplies','"All the children must return home by 8PM!"','This is an advertisement for smithing orders','This is an advertisement for cooking courses','This is an advertisement for bottled water','This is an advertisement for knitting advices','This is an advertisement for cleaning services','This is a warning to stay away from fortune tellers','This is an advertisement for woven straw baskets','This is an advertisement for hemp clothing']
@@ -16223,41 +16299,41 @@ chss.hbed.onLeave=function(){
 }
 
 chss.ofrplc = new Chs(); chss.ofrplc.id = 117; addtosector(sector.home,chss.ofrplc)
-chss.ofrplc.sl=()=>{d_loc('Your Home, Fireplace'); let fire = findbyid(furn,furniture.frplc.id);  global.lst_loc = 117;  
-  //dom.d_lctt.innerHTML+='<span style="color:orange;font-size:1.2em">&nbspⓞ<span>'
-  let its = []
-  if(findbyid(inv,item.fwd1.id)) its.push([findbyid(inv,item.fwd1.id),'some firewood',30])
-  if(findbyid(inv,item.coal1.id)) its.push([findbyid(inv,item.coal1.id),'some coal',300])
-  if(findbyid(inv,item.coal2.id)) its.push([findbyid(inv,item.coal2.id),'some charcoal',300])
-  if(findbyid(inv,wpn.stk1.id)) its.push([findbyid(inv,wpn.stk1.id),'a stick',15])
-  if(!global.text.fplcextra)global.text.fplcextra=['You\'ll need fire if you want to get some cooking done','You can warm up here if you light it up'];
-  if(!global.text.frplcfrextra) global.text.frplcfrextra=["You notice the fire flickering slightly","Tiny fire is warming up the room","Comfy fire lights up the surroundings","Bright flame is roaring inside the Fireplace"];
-  let textra0; if(fire.data.fuel===0) textra0='';else if(fire.data.fuel<=60) textra0=global.text.frplcfrextra[0]
-  else if (fire.data.fuel>=130&&fire.data.fuel<=300) textra0=global.text.frplcfrextra[1];
-  else if (fire.data.fuel>=300&&fire.data.fuel<=540) textra0=global.text.frplcfrextra[2];
-  else if (fire.data.fuel>=540) textra0=global.text.frplcfrextra[3];
-  dom.frpls=chs('Comfy fireplace. '+(select(global.text.fplcextra)+'<br>'+textra0),true);
-  if(!global.flags.fplcgtwd) chs('"Retrieve spare firewood. You have a feeling you\'ll need it"',false).addEventListener('click',function(){
-   msg("You have some lying around nearby",'orange'); global.flags.fplcgtwd=true;
-   giveItem(item.fwd1,3); smove(chss.ofrplc,false);
-  });
-  for(let a in its){
-    chs('"'+(select(["Toss ","Throw "]))+its[a][1]+' into the fireplace"',false).addEventListener('click',function(){
-      its[a][0].amount--; fire.data.fuel=fire.data.fuel+its[a][2]>its[a][2]?its[a][2]:fire.data.fuel+its[a][2]; 
-      if(fire.data.fuel<=its[a][2]) dom.frpls.innerHTML=global.text.frplcfrextra[0]
-      else if (fire.data.fuel>=130&&fire.data.fuel<=300) dom.frpls.innerHTML=global.text.frplcfrextra[1];
-      else if (fire.data.fuel>=300&&fire.data.fuel<=540) dom.frpls.innerHTML=global.text.frplcfrextra[2];
-      else if (fire.data.fuel>=540) dom.frpls.innerHTML=global.text.frplcfrextra[3];
-      if (its[a][0].amount<=0) {removeItem(its[a][0]);dom.ctr_2.removeChild(this)} else if(global.sm===1) updateInv(inv.indexOf(its[a][0])); else if(global.sm===its[a][0]) updateInv(global.sinv.indexOf(its[a][0]));  
+    chss.ofrplc.sl=()=>{d_loc('Your Home, Fireplace'); let fire = findbyid(furn,furniture.frplc.id);  global.lst_loc = 117;  
+    //dom.d_lctt.innerHTML+='<span style="color:orange;font-size:1.2em">&nbspⓞ<span>'
+    let its = []
+    if(findbyid(inv,item.fwd1.id)) its.push([findbyid(inv,item.fwd1.id),'some firewood',30])
+    if(findbyid(inv,item.coal1.id)) its.push([findbyid(inv,item.coal1.id),'some coal',300])
+    if(findbyid(inv,item.coal2.id)) its.push([findbyid(inv,item.coal2.id),'some charcoal',300])
+    if(findbyid(inv,wpn.stk1.id)) its.push([findbyid(inv,wpn.stk1.id),'a stick',15])
+    if(!global.text.fplcextra)global.text.fplcextra=['You\'ll need fire if you want to get some cooking done','You can warm up here if you light it up'];
+    if(!global.text.frplcfrextra) global.text.frplcfrextra=["You notice the fire flickering slightly","Tiny fire is warming up the room","Comfy fire lights up the surroundings","Bright flame is roaring inside the Fireplace"];
+    let textra0; if(fire.data.fuel===0) textra0='';else if(fire.data.fuel<=60) textra0=global.text.frplcfrextra[0]
+    else if (fire.data.fuel>=130&&fire.data.fuel<=300) textra0=global.text.frplcfrextra[1];
+    else if (fire.data.fuel>=300&&fire.data.fuel<=540) textra0=global.text.frplcfrextra[2];
+    else if (fire.data.fuel>=540) textra0=global.text.frplcfrextra[3];
+    dom.frpls=chs('Comfy fireplace. '+(select(global.text.fplcextra)+'<br>'+textra0),true);
+    if(!global.flags.fplcgtwd) chs('"Retrieve spare firewood. You have a feeling you\'ll need it"',false).addEventListener('click',function(){
+    msg("You have some lying around nearby",'orange'); global.flags.fplcgtwd=true;
+    giveItem(item.fwd1,3); smove(chss.ofrplc,false);
     });
-  } ; 
-  let afire = findbyid(furn,furniture.fwdpile.id); if(afire&&afire.data.fuel>0){
-    chs('"Light a fire"',false,'orange').addEventListener('click',()=>{ 
-      if(effect.fplc.active) msg('Fire is already on','orange'); else {afire.data.fuel--; fire.data.fuel+=16}
-    });
-  }
-  chs('"<= Step away"',false).addEventListener('click',()=>{ 
-    smove(chss.home,false);
+    for(let a in its){
+        chs('"'+(select(["Toss ","Throw "]))+its[a][1]+' into the fireplace"',false).addEventListener('click',function(){
+        its[a][0].amount--; fire.data.fuel=fire.data.fuel+its[a][2]>its[a][2]?its[a][2]:fire.data.fuel+its[a][2]; 
+        if(fire.data.fuel<=its[a][2]) dom.frpls.innerHTML=global.text.frplcfrextra[0]
+        else if (fire.data.fuel>=130&&fire.data.fuel<=300) dom.frpls.innerHTML=global.text.frplcfrextra[1];
+        else if (fire.data.fuel>=300&&fire.data.fuel<=540) dom.frpls.innerHTML=global.text.frplcfrextra[2];
+        else if (fire.data.fuel>=540) dom.frpls.innerHTML=global.text.frplcfrextra[3];
+        if (its[a][0].amount<=0) {removeItem(its[a][0]);dom.ctr_2.removeChild(this)} else if(global.sm===1) updateInv(inv.indexOf(its[a][0])); else if(global.sm===its[a][0]) updateInv(global.sinv.indexOf(its[a][0]));  
+        });
+    } ; 
+    let afire = findbyid(furn,furniture.fwdpile.id); if(afire&&afire.data.fuel>0){
+        chs('"Light a fire"',false,'orange').addEventListener('click',()=>{ 
+        if(effect.fplc.active) msg('Fire is already on','orange'); else {afire.data.fuel--; fire.data.fuel+=16}
+        });
+    }
+    chs('"<= Step away"',false).addEventListener('click',()=>{ 
+        smove(chss.home,false);
   });
 }
 
@@ -16562,6 +16638,50 @@ chss.cata25.sl=()=>{ d_loc('Catacombs, The End Of Journey'); global.lst_loc = 15
     smove(chss.cata24);
   });
 }
+
+
+chss.__quickstart = new Chs();
+chss.__quickstart.id = 701;
+chss.__quickstart.sl = function () {
+    global.lst_loc = 701;
+    clr_chs();
+    
+    appear(dom.ctr_1);    // fade in all menus
+    appear(dom.d0);
+    appear(dom.inv_ctx);
+    appear(dom.d_lct);
+    appear(dom.gmsgs);
+    appear(dom.ct_ctrl);
+    appear(dom.d1m);
+
+    // unlock menu options
+    global.flags.aw_u  = true;
+    global.flags.dm1ap = true;
+    global.flags.asbu  = true;
+    global.flags.sklu  = true;
+    global.flags.actsu = true;
+    global.flags.jnlu  = true;
+
+    dom.ct_bt6.innerHTML = 'journal';
+    dom.ct_bt1.innerHTML = 'assemble';
+    dom.ct_bt3.innerHTML = 'actions';
+    dom.ct_bt2.innerHTML = 'skills';
+
+    global.flags.mkplc1u = true;
+    global.flags.dj1end = true;  // do not show any skillbook at the dojo
+    global.flags.hbgget = true;  // get the bag at home
+    global.flags.chbdfst = true; // hidden stash
+    global.flags.cat_g = true;
+    __get_cat();
+    global.stat.cat_c = 100;
+
+    dbg = [
+        giveItem(item.sp0a), // give tier 4 spirit pill
+        area.trn.size = 1000 // change 10k dummies to 1k
+    ];
+    
+    smove(chss.lsmain1); // move to courtyard
+};
 
 
 function wManager(){ let ses = getSeason()
@@ -18219,6 +18339,21 @@ function b64_to_utf8( str ) {
     } catch(err) {
         return '';
     }
+}
+
+
+function __get_cat() {
+    let cat = giveFurniture(furniture.cat, true, false);
+    cat.data.sex = rand(1);
+    cat.data.c = rand(global.text.cfc.length - 1);
+    cat.data.p = rand(global.text.cfp.length - 1);
+    cat.data.l1 = rand(global.text.cln.length - 1);
+    let tg = rand(global.text.cln.length - 1);
+    do {
+        tg = rand(global.text.cln.length - 1)
+    } while (tg === cat.data.l1);
+    cat.data.l2 = rand(global.text.cln.length - 1);
+    global.flags.catget = true;
 }
 
 </script>
