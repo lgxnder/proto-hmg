@@ -198,7 +198,10 @@ global.flags = {
     tmmode:    1,
     ssngaijin: true,
     rptbncgt:  false, //** these variable names are incredible
-    mountainstart: false
+    mountainstart: false,
+    rockpathfound: false,
+    shackunlocked: false,
+    houseunlocked: true,
 };
               
 global.spirits = 100;
@@ -4129,27 +4132,29 @@ skl.sleep.use = function(x,y) {
 };
 skl.sleep.mlstn = [
     {lv:2, f:()=>{
+        you.timescale_sleeping += 1;
         you.hpa += 2;
         you.stat_r();
         dom.d5_1_1.update()},
         g : false,
-        p : "HP +2"},
+        p : "HP +2, Better Sleep Quality"},
 
     {lv:4, f:()=>{
         you.hpa += 5;
+        giveTitle(ttl.slp1);
         you.stat_r();
         dom.d5_1_1.update()},
         g : false,
-        p : "HP +5"},
+        p : "HP +5, New Title"},
 
     {lv:5, f:()=>{
+        you.timescale_sleeping += 1;
         skl.ptnc.p += 0.05;
-        giveTitle(ttl.slp1);
         you.hpa += 10;
         you.stat_r();
         dom.d5_1_1.update()},
         g : false,
-        p : "HP +10, Patience EXP Gain +5%, New Title"},
+        p : "HP +10, Better Sleep Quality, Patience EXP Gain +5%"},
 
     {lv:6, f:()=>{
         you.hpa += 12;
@@ -4166,11 +4171,13 @@ skl.sleep.mlstn = [
         p : "HP +15"},
 
     {lv:8, f:()=>{
+        you.timescale_sleeping += 2;
+        giveTitle(ttl.slp2);
         you.hpa += 20;
         you.stat_r();
         dom.d5_1_1.update()},
         g : false,
-        p : "HP +20"},
+        p : "HP +20, Better Sleep Quality, New Title"},
 
     {lv:9, f:()=>{
         skl.ptnc.p += 0.1;
@@ -4181,13 +4188,13 @@ skl.sleep.mlstn = [
         p : "Patience EXP Gain +10%, HP +25"},
 
     {lv:10, f:()=>{
-        giveTitle(ttl.slp2);
+        you.timescale_sleeping += 3;
         skl.dth.p += 0.1;
         you.hpa += 30;
         you.stat_r();
         dom.d5_1_1.update()},
         g : false,
-        p : "HP +30, Death EXP Gain +10%, New Title"},
+        p : "HP +30, Better Sleep Quality, Death EXP Gain +10%"},
 
     {lv:11, f:()=>{
         you.hpa += 35;
@@ -4197,11 +4204,12 @@ skl.sleep.mlstn = [
         p : "HP +35"},
 
     {lv:12, f:()=>{
+        you.timescale_sleeping += 5; // zzz
         you.hpa += 50;
         you.stat_r();
         dom.d5_1_1.update()},
         g : false,
-        p : "HP +50"},
+        p : "HP +50, Better Sleep Quality"},
 ];
 
 skl.seye = new Skill();
@@ -4458,7 +4466,7 @@ skl.rtr.use=function(x,y){return this.lvl}
 skl.fmn = new Skill(); skl.fmn.id = 134; skl.fmn.type=4;
 skl.fmn.name = 'Famine';
 skl.fmn.desc = 'Ability to go by without any sustenance'+dom.dseparator+'<small style="color:darkorange">Increases lower energy effectiveness bonus</small>';
-skl.fmn.use=function(x,y){return this.lvl*.01}
+skl.fmn.use = function(x,y) { return this.lvl * 0.01 }
 skl.fmn.mlstn=[{lv:1,f:()=>{you.exp_t+=0.01},g:false,p:"EXP Gain +1%"},
                 {lv:3,f:()=>{you.sata+=5; you.hpa+=5; skl.glt.p+=.03;giveTitle(ttl.fmn1);dom.d5_3_1.update(); you.stat_r();},g:false,p:"SAT +5, HP +5, Gluttony EXP Gain +3%, New Title"},
                 {lv:5,f:()=>{you.stra++;skl.tghs.p+=.03;dom.d5_3_1.update(); you.stat_r();},g:false,p:"STR +1, Toughness EXP Gain +3%"},
@@ -9775,7 +9783,12 @@ function You(){
     this.exp = 0;
     this.expnext = function(){return this.lvl*((this.lvl*2)**2)+(this.lvl**2)}; this.expnext_t=this.expnext();
     this.exp_t = 1;
-    this.efficiency = function(){let g=skl.fmn.use();g=g>=.6?.6:g;let e=(.8-g)*this.sat/this.satmax+(.2+g)+you.mods.sbonus;return e<0?0:e}
+    this.efficiency = function() {
+        let g = skl.fmn.use();
+        g = g >= 0.6 ? 0.6 : g;
+        let e = (0.8 - g) * this.sat / this.satmax + (0.2 + g) + you.mods.sbonus;
+        return e < 0 ? 0 : e;
+    }
     this.mods={sbonus:0,sdrate:.1,infsrate:1,enmondren:0,enmondrts:1,ddgmod:0,rdgrt:1,cpwr:1,crflt:0,wthexrt:0,tstl:0,lkdbt:0,ckfre:0,rnprtk:0,light:0,undc:0,petxp:.005,stdstps:1,survinf:0,runerg:1};
     this.ki=new Object();
     this.sat=this.satmax=this.sat_r = 200;
@@ -9803,18 +9816,43 @@ function You(){
     this.skls = [];
     this.drop=[{item:item.death_b,chance:1}];
     this.onDeath = function(killer){ 
-        if(you.res.death<1&&random()>=you.res.death){msg('You avoid death...','lightgrey');you.hp=Math.ceil(you.hpmax*.1)} else{
-        callback.onDeath.fire(this,killer)
-        this.alive=false;this.hp=1; if(!killer) killer=creature.default;
-        if(global.current_a.id!==act.default.id)deactivateAct(global.current_a); global.flags.work=false
-        you.sat/you.satmax>.3?giveSkExp(skl.dth,killer.rnk*10+1):giveSkExp(skl.dth,killer.rnk+1);
-        if(this.sat>0)this.sat*=(.55*(1-skl.dth.use()));giveItem(item.death_b);
-        dom.d5_1_1.update(); global.s_l=0; global.stat.deadt++; 
-        for(let x in global.achchk[0]) global.achchk[0][x](killer);
-        clearInterval(timers.rdng);clearInterval(timers.rdngdots); global.flags.rdng=false; clearInterval(timers.job1t); clearInterval(timers.bstmonupdate)
-        for(let o in this.eff) removeEff(this.eff[o])
-        global.flags.btl=false;global.flags.civil=true; global.current_z.onDeath();if(sector.home.data.smkp>0){smove(chss.lsmain1,false);msg('You ran out of your smoked up house','grey')}else smove(chss.hbed,false);global.current_z=area.nwh;dom.hit_c();dom.d7m.update()}
+        if(you.res.death<1&&random()>=you.res.death){
+            msg('You avoid death...','lightgrey');you.hp=Math.ceil(you.hpmax*.1)
         }
+        else {
+            callback.onDeath.fire(this,killer)
+            this.alive=false;
+            this.hp=1;
+            if(!killer) killer=creature.default;
+            if(global.current_a.id!==act.default.id)deactivateAct(global.current_a);
+            global.flags.work=false
+            you.sat/you.satmax>.3?giveSkExp(skl.dth,killer.rnk*10+1):giveSkExp(skl.dth,killer.rnk+1);
+            if(this.sat>0)this.sat*=(.55*(1-skl.dth.use()));
+            giveItem(item.death_b);
+            dom.d5_1_1.update();
+            global.s_l=0;
+            global.stat.deadt++; 
+            for(let x in global.achchk[0]) global.achchk[0][x](killer);
+            clearInterval(timers.rdng);
+            clearInterval(timers.rdngdots);
+            global.flags.rdng=false;
+            clearInterval(timers.job1t);
+            clearInterval(timers.bstmonupdate);
+            for(let o in this.eff) removeEff(this.eff[o])
+            global.flags.btl=false;
+            global.flags.civil=true;
+            global.current_z.onDeath();
+            if(sector.home.data.smkp>0) {
+                smove(chss.lsmain1,false);
+                msg('You ran out of your smoked up house','grey')
+            } else {
+                if (global.home_loc == 111) smove(chss.hbed, false);
+                else smove(chss.__shackbed, false);  //703
+                global.current_z=area.nwh;dom.hit_c();
+                dom.d7m.update()
+            }
+        }
+    }
     this.onDeathE = function(){}
     this.ai = function(){}
     this.battle_ai = function(x,y,z){return attack(x,y)}
@@ -9836,7 +9874,8 @@ function You(){
         for(let idx in this.eff) {
         if(this.eff[idx].type===2) {this.eff[idx].un();this.eff[idx].use(this.eff[idx].y,this.eff[idx].z)};
         } dom.d6.update(); update_db(); if(you.hp>you.hpmax)you.hp=you.hpmax; dom.d5_1_1.update();
-    } 
+    }
+    this.timescale_sleeping = 5;
 }
 you = new You();
 you.eqp[0].ctype = 2;
@@ -11959,110 +11998,204 @@ dom.ct_bt1.addEventListener('click',()=>{ dom.nthngdsp.style.display='none';
 });
 
 dom.ct_bt3.addEventListener('click',()=>{ dom.nthngdsp.style.display='none';
-  if(global.lw_op===3) {dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='';global.lw_op=0;clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)}
-  else{dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='none';global.lw_op=3;empty(dom.ctrwin5);
-  if(acts.length>0){ 
-    this.acch = addElement(dom.ctrwin5,'div');this.acch.innerHTML='A c t i o n　　l i s t';
-    this.acch.style.padding='2px';
-    this.acch.style.textAlign='center';this.acch.style.backgroundColor='#050730';
-    this.acch_e = addElement(this.acch,'div');
-    this.acch_e.style.float='right';this.acch_e.style.display='flex';this.acch_e.style.position='relative';this.acch_e.style.top=-6;this.acch_e.style.right=-2;
-    this.acch_e.style.height=20;
-    dom.acccon = addElement(dom.ctrwin5,'div'); empty(dom.acccon);
-    for(let a in acts){
-      renderAct(acts[a]);
-    }
-  }else dom.nthngdsp.style.display=''}
+    if(global.lw_op===3) {dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='';global.lw_op=0;clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)}
+    else{dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='none';global.lw_op=3;empty(dom.ctrwin5);
+    if(acts.length>0){ 
+        this.acch = addElement(dom.ctrwin5,'div');this.acch.innerHTML='A c t i o n　　l i s t';
+        this.acch.style.padding='2px';
+        this.acch.style.textAlign='center';this.acch.style.backgroundColor='#050730';
+        this.acch_e = addElement(this.acch,'div');
+        this.acch_e.style.float='right';this.acch_e.style.display='flex';this.acch_e.style.position='relative';this.acch_e.style.top=-6;this.acch_e.style.right=-2;
+        this.acch_e.style.height=20;
+        dom.acccon = addElement(dom.ctrwin5,'div'); empty(dom.acccon);
+        for(let a in acts){
+        renderAct(acts[a]);
+        }
+    }else dom.nthngdsp.style.display=''}
 }); 
 
 function renderAct(a){
-  this.accm = addElement(dom.acccon,'div',null,'skwmmc'); a.t = this.accm;
-  addDesc(this.accm,null,2,a.name,a.desc());
-  this.accm.innerHTML = a.name; this.accm.style.textAlign='center'; this.accm.style.display='block'
-  if(acts.length-1===acts.indexOf(a))this.accm.style.borderBottom='1px solid #46a';
-  if(a.cond(false)!==true) this.accm.style.color='grey'; if(a.active===true) this.accm.style.color='lime';
-  this.accm.addEventListener('click',function(){
-  switch(a.type){
-    case 1:
-      if(a.cond()===true&&a.id!==global.current_a.id) {activateAct(a); this.style.color='lime'} else 
-      if(a.id===global.current_a.id) {deactivateAct(global.current_a); this.style.color='inherit'}
-    break;
-    case 2: if(a.cond()===true) a.use(); break;
-    case 3: break;
-  }
-    for(let a in acts)refreshAct(acts[a].t, acts[a])
-  })
+    this.accm = addElement(dom.acccon,'div',null,'skwmmc'); a.t = this.accm;
+    addDesc(this.accm,null,2,a.name,a.desc());
+    this.accm.innerHTML = a.name; this.accm.style.textAlign='center'; this.accm.style.display='block'
+    if(acts.length-1===acts.indexOf(a))this.accm.style.borderBottom='1px solid #46a';
+    if(a.cond(false)!==true) this.accm.style.color='grey'; if(a.active===true) this.accm.style.color='lime';
+    this.accm.addEventListener('click',function(){
+    switch(a.type){
+        case 1:
+        if(a.cond()===true&&a.id!==global.current_a.id) {activateAct(a); this.style.color='lime'} else 
+        if(a.id===global.current_a.id) {deactivateAct(global.current_a); this.style.color='inherit'}
+        break;
+        case 2: if(a.cond()===true) a.use(); break;
+        case 3: break;
+    }
+        for(let a in acts)refreshAct(acts[a].t, acts[a])
+    })
 }
-function refreshAct(e,a){e.style.color='inherit';if(a.cond(false)!==true) e.style.color='grey'; if(a.active===true) e.style.color='lime';}
+function refreshAct(e,a){
+    e.style.color='inherit';
+    if(a.cond(false)!==true) e.style.color='grey';
+    if(a.active===true) e.style.color='lime';
+}
 
 function activateAct(actn){
-  global.current_a.deactivate(); actn.activate(); global.current_a=actn; global.flags.busy=true; dom.ct_bt3.style.backgroundColor='darkslategray'
+    global.current_a.deactivate(); actn.activate(); global.current_a=actn; global.flags.busy=true; dom.ct_bt3.style.backgroundColor='darkslategray'
 }
 
 function deactivateAct(actn){
-  actn.deactivate(); global.current_a=act.default; global.flags.busy=false; dom.ct_bt3.style.backgroundColor='inherit'; for(let a in acts)refreshAct(acts[a].t, acts[a])
+    actn.deactivate(); global.current_a=act.default; global.flags.busy=false; dom.ct_bt3.style.backgroundColor='inherit'; for(let a in acts)refreshAct(acts[a].t, acts[a])
 }
 
-dom.ct_bt2.addEventListener('click',function(){ dom.nthngdsp.style.display='none';
-  if(global.lw_op===2) {dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='';global.lw_op=0;clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)}
-  else{dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='none';global.lw_op=2; if(you.skls.length>0){ dom.nthngdsp.style.display='none';
-  empty(dom.ctrwin3);this.skwm = addElement(dom.ctrwin3,'div');this.skwm.innerHTML='S k i l l　　l i s t';
-  this.skwm.style.padding='2px';
-  this.skwm.style.textAlign='center';this.skwm.style.backgroundColor='#050730';
-  this.skwm_e = addElement(this.skwm,'div');
-  this.skwm_e.style.float='right';this.skwm_e.style.display='flex';this.skwm_e.style.position='relative';this.skwm_e.style.top=-6;this.skwm_e.style.right=-2;
-  this.skwm_e.style.height=20;
-  this.skwm_e_btn_1_b = addElement(this.skwm_e,'div',null,'bts_b');this.skwm_e_btn_1_b.innerHTML='A-Z';this.skwm_e_btn_1_b.style.border='1px solid #46a';
-  this.skwm_e_btn_2_b = addElement(this.skwm_e,'div',null,'bts_b');this.skwm_e_btn_2_b.innerHTML='TPE';this.skwm_e_btn_2_b.style.border='1px solid #46a';
-  this.skwm_e_btn_3_b = addElement(this.skwm_e,'div',null,'bts_b');this.skwm_e_btn_3_b.innerHTML='LVL';this.skwm_e_btn_3_b.style.border='1px solid #46a';
-  this.skwm_e_btn_1_b.addEventListener('click',function(){
-    if(global.flags.ssort_a===true){
-      you.skls.sort(function(a,b){if(a.name<b.name) return-1; if(a.name>b.name) return 1;return 0});
-      global.flags.ssort_a = false;
+dom.ct_bt2.addEventListener('click', function() { // skill list menu
+    dom.nthngdsp.style.display = 'none';
+    if (global.lw_op === 2) {
+        dom.ctrwin6.style.display = 'none';
+        dom.ctrwin5.style.display = 'none';
+        dom.ctrwin4.style.display = 'none';
+        dom.ctrwin3.style.display = 'none';
+        dom.ctrwin2.style.display = 'none';
+        dom.ctrwin1.style.display = '';
+        global.lw_op = 0;
+        clearInterval(timers.sklupdate);
+        clearInterval(timers.bstmonupdate);
     } else {
-      you.skls.sort(function(a,b){if(a.name>b.name) return-1; if(a.name<b.name) return 1;return 0});
-      global.flags.ssort_a = true;
-    } empty(dom.skcon)
-    for(let m=0;m<you.skls.length;m++){renderSkl(you.skls[m]);if(m===you.skls.length-1) dom.skcon.children[m].style.borderBottom='1px solid #46a';}
-  });
-  this.skwm_e_btn_2_b.addEventListener('click',function(){
-    if(global.flags.ssort_b===true){
-      you.skls.sort(function(a,b){if(a.type<b.type) return-1; if(a.type>b.type) return 1;if(a.id<b.id) return-1;if(a.id>b.id) return 1;return 0});
-      global.flags.ssort_b = false;
-    } else {
-      you.skls.sort(function(a,b){if(a.type>b.type) return-1; if(a.type<b.type) return 1;if(a.id>b.id) return-1;if(a.id<b.id) return 1;return 0});
-      global.flags.ssort_b = true;
-    } empty(dom.skcon)
-    for(let m=0;m<you.skls.length;m++){renderSkl(you.skls[m]);if(m===you.skls.length-1) dom.skcon.children[m].style.borderBottom='1px solid #46a';}
-  });
-  this.skwm_e_btn_3_b.addEventListener('click',function(){
-    if(global.flags.ssort_b===true){
-      you.skls.sort(function(a,b){if(a.lvl<b.lvl) return-1; if(a.lvl>b.lvl) return 1;if(a.exp<b.exp) return-1;if(a.exp>b.exp) return 1;return 0});
-      global.flags.ssort_b = false;
-    } else {
-      you.skls.sort(function(a,b){if(a.lvl>b.lvl) return-1; if(a.lvl<b.lvl) return 1;if(a.exp>b.exp) return-1;if(a.exp<b.exp) return 1;return 0});
-      global.flags.ssort_b = true;
-    } empty(dom.skcon)
-    for(let m=0;m<you.skls.length;m++){renderSkl(you.skls[m]);if(m===you.skls.length-1) dom.skcon.children[m].style.borderBottom='1px solid #46a';}
-  });
-  addDesc(this.skwm_e_btn_1_b,null,2,'Filter','Alphabetically');
-  addDesc(this.skwm_e_btn_2_b,null,2,'Filter','by Type');
-  addDesc(this.skwm_e_btn_3_b,null,2,'Filter','by Levels');
-  dom.skcon=addElement(dom.ctrwin3,'div'); dom.skcon.style.overflow='auto'; dom.skcon.style.height = 335; dom.skcon.style.width='100%'
-  for(let m=0;m<you.skls.length;m++){renderSkl(you.skls[m]);if(m===you.skls.length-1) dom.skcon.children[m].style.borderBottom='1px solid #46a';}
-  let sklsize=you.skls.length; timers.sklupdate=setInterval(()=>{if(sklsize<you.skls.length){
-    empty(dom.skcon);
-    for(let m=0;m<you.skls.length;m++){renderSkl(you.skls[m]);if(m===you.skls.length-1) dom.skcon.children[m].style.borderBottom='1px solid #46a';}
-  }
-    for(let n=1;n<you.skls.length+1;n++){
-      dom.skcon.children[n-1].children[0].innerHTML=you.skls[n-1].name+' lvl: '+you.skls[n-1].lvl;
-      dom.skcon.children[n-1].children[0].style.fontSize=you.skls[n-1].sp;
-      dom.skcon.children[n-1].children[1].innerHTML='　exp: '+formatw(Math.floor(you.skls[n-1].exp))+'/'+formatw(you.skls[n-1].expnext_t);
-      dom.skcon.children[n-1].children[2].children[0].style.width=you.skls[n-1].exp/you.skls[n-1].expnext_t*100+'%';
-      //if(you.skls[n-1].lastupd&&you.skls[n-1].lastupd-time.minute>=1) dom.skcon.children[n-1].children[2].children[0].style.backgroundColor='limegreen'; else dom.skcon.children[n-1].children[2].children[0].style.backgroundColor='yellow';
+        dom.ctrwin6.style.display = 'none';
+        dom.ctrwin5.style.display = 'none';
+        dom.ctrwin4.style.display = 'none';
+        dom.ctrwin3.style.display = '';
+        dom.ctrwin2.style.display = 'none';
+        dom.ctrwin1.style.display = 'none';
+        global.lw_op = 2;
+        if (you.skls.length > 0) {
+            dom.nthngdsp.style.display = 'none';
+            empty(dom.ctrwin3);
+            this.skwm = addElement(dom.ctrwin3, 'div');
+            this.skwm.innerHTML = 'S k i l l　　l i s t';
+            this.skwm.style.padding = '2px';
+            this.skwm.style.textAlign = 'center';
+            this.skwm.style.backgroundColor = '#050730';
+            this.skwm_e = addElement(this.skwm, 'div');
+            this.skwm_e.style.float = 'right';
+            this.skwm_e.style.display = 'flex';
+            this.skwm_e.style.position = 'relative';
+            this.skwm_e.style.top = -6;
+            this.skwm_e.style.right = -2;
+            this.skwm_e.style.height = 20;
+            this.skwm_e_btn_1_b = addElement(this.skwm_e, 'div', null, 'bts_b');
+            this.skwm_e_btn_1_b.innerHTML = 'A-Z';
+            this.skwm_e_btn_1_b.style.border = '1px solid #46a';
+            this.skwm_e_btn_2_b = addElement(this.skwm_e, 'div', null, 'bts_b');
+            this.skwm_e_btn_2_b.innerHTML = 'TPE';
+            this.skwm_e_btn_2_b.style.border = '1px solid #46a';
+            this.skwm_e_btn_3_b = addElement(this.skwm_e, 'div', null, 'bts_b');
+            this.skwm_e_btn_3_b.innerHTML = 'LVL';
+            this.skwm_e_btn_3_b.style.border = '1px solid #46a';
+            this.skwm_e_btn_1_b.addEventListener('click', function() {
+                if (global.flags.ssort_a === true) {
+                    you.skls.sort(function(a, b) {
+                        if (a.name < b.name) return -1;
+                        if (a.name > b.name) return 1;
+                        return 0
+                    });
+                    global.flags.ssort_a = false;
+                } else {
+                    you.skls.sort(function(a, b) {
+                        if (a.name > b.name) return -1;
+                        if (a.name < b.name) return 1;
+                        return 0
+                    });
+                    global.flags.ssort_a = true;
+                }
+                empty(dom.skcon)
+                for (let m = 0; m < you.skls.length; m++) {
+                    renderSkl(you.skls[m]);
+                    if (m === you.skls.length - 1) dom.skcon.children[m].style.borderBottom = '1px solid #46a';
+                }
+            });
+            this.skwm_e_btn_2_b.addEventListener('click', function() {
+                if (global.flags.ssort_b === true) {
+                    you.skls.sort(function(a, b) {
+                        if (a.type < b.type) return -1;
+                        if (a.type > b.type) return 1;
+                        if (a.id < b.id) return -1;
+                        if (a.id > b.id) return 1;
+                        return 0
+                    });
+                    global.flags.ssort_b = false;
+                } else {
+                    you.skls.sort(function(a, b) {
+                        if (a.type > b.type) return -1;
+                        if (a.type < b.type) return 1;
+                        if (a.id > b.id) return -1;
+                        if (a.id < b.id) return 1;
+                        return 0
+                    });
+                    global.flags.ssort_b = true;
+                }
+                empty(dom.skcon)
+                for (let m = 0; m < you.skls.length; m++) {
+                    renderSkl(you.skls[m]);
+                    if (m === you.skls.length - 1) dom.skcon.children[m].style.borderBottom = '1px solid #46a';
+                }
+            });
+            this.skwm_e_btn_3_b.addEventListener('click', function() {
+                if (global.flags.ssort_b === true) {
+                    you.skls.sort(function(a, b) {
+                        if (a.lvl < b.lvl) return -1;
+                        if (a.lvl > b.lvl) return 1;
+                        if (a.exp < b.exp) return -1;
+                        if (a.exp > b.exp) return 1;
+                        return 0
+                    });
+                    global.flags.ssort_b = false;
+                } else {
+                    you.skls.sort(function(a, b) {
+                        if (a.lvl > b.lvl) return -1;
+                        if (a.lvl < b.lvl) return 1;
+                        if (a.exp > b.exp) return -1;
+                        if (a.exp < b.exp) return 1;
+                        return 0
+                    });
+                    global.flags.ssort_b = true;
+                }
+                empty(dom.skcon)
+                for (let m = 0; m < you.skls.length; m++) {
+                    renderSkl(you.skls[m]);
+                    if (m === you.skls.length - 1) dom.skcon.children[m].style.borderBottom = '1px solid #46a';
+                }
+            });
+            addDesc(this.skwm_e_btn_1_b, null, 2, 'Filter', 'Alphabetically');
+            addDesc(this.skwm_e_btn_2_b, null, 2, 'Filter', 'by Type');
+            addDesc(this.skwm_e_btn_3_b, null, 2, 'Filter', 'by Levels');
+            dom.skcon = addElement(dom.ctrwin3, 'div');
+            dom.skcon.style.overflow = 'auto';
+            dom.skcon.style.height = 335;
+            dom.skcon.style.width = '100%'
+            for (let m = 0; m < you.skls.length; m++) {
+                renderSkl(you.skls[m]);
+                if (m === you.skls.length - 1) dom.skcon.children[m].style.borderBottom = '1px solid #46a';
+            }
+            let sklsize = you.skls.length;
+            timers.sklupdate = setInterval(() => {
+                if (sklsize < you.skls.length) {
+                    empty(dom.skcon);
+                    for (let m = 0; m < you.skls.length; m++) {
+                        renderSkl(you.skls[m]);
+                        if (m === you.skls.length - 1) dom.skcon.children[m].style.borderBottom = '1px solid #46a';
+                    }
+                }
+                for (let n = 1; n < you.skls.length + 1; n++) {
+                    dom.skcon.children[n - 1].children[0].innerHTML = you.skls[n - 1].name + ' lvl: ' + you.skls[n - 1].lvl;
+                    dom.skcon.children[n - 1].children[0].style.fontSize = you.skls[n - 1].sp;
+                    dom.skcon.children[n - 1].children[1].innerHTML = '　exp: ' + formatw(Math.floor(you.skls[n - 1].exp)) + '/' + formatw(you.skls[n - 1].expnext_t);
+                    dom.skcon.children[n - 1].children[2].children[0].style.width = you.skls[n - 1].exp / you.skls[n - 1].expnext_t * 100 + '%';
+                    //if(you.skls[n-1].lastupd&&you.skls[n-1].lastupd-time.minute>=1) dom.skcon.children[n-1].children[2].children[0].style.backgroundColor='limegreen'; else dom.skcon.children[n-1].children[2].children[0].style.backgroundColor='yellow';
+                }
+            }, 1000)
+        } else dom.nthngdsp.style.display = '';
     }
-  },1000)}else dom.nthngdsp.style.display=''}
 });
+
 dom.ct_bt6.addEventListener('click',function(){if(!global.flags.jnlu)return;dom.nthngdsp.style.display='none';
   if(global.lw_op===6) {dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='';global.lw_op=0;clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)}
   else{dom.ctrwin6.style.display='';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='none';global.lw_op=6;
@@ -15667,36 +15800,26 @@ chss.lsmain1.sl = () => {
     //  chs('"=> Visit Pill Tower"',false).addEventListener('click',()=>{
     //    smove(chss.pltwr1);
     //  });
-    if(global.flags.mkplc1u===true) chs('"=> Visit Marketplace"',false).addEventListener('click',()=>{
-        smove(chss.mrktvg1); 
-    });
-    chs('"=> Go home"',false,'green').addEventListener('click',()=>{
-        smove(chss.home);
-    });
-    if(!global.flags.scrtgltt) chs('"=> Food stand"',false).addEventListener('click',()=>{
-        if(skl.trad.lvl>=2&&random()<.2) global.flags.scrtglti=true;
-        if(global.flags.scrtglti===true){
-        chs('...',true);
-        chs('?',false).addEventListener('click',()=>{
-            chs('"Passerby: Looking for the foodstand guy? He took his stuff and went South. That one supposedly travels from place to place to sell the food he makes, doubt we\'ll see him back any time soon"',true);
-            chs('Well then..',false).addEventListener('click',()=>{
-            global.flags.scrtgltt=true; smove(chss.lsmain1,false); 
-            });
+    if (global.flags.mkplc1u === true) {
+        chs('"=> Visit Marketplace"',false).addEventListener('click',()=>{
+            smove(chss.mrktvg1); 
         });
-        } else smove(chss.vndr1,false); 
-    });
-    if(random()<.15)chs('"=> Shady Kid"',false,'springgreen').addEventListener('click',()=>{
-        smove(chss.vndrkd1,false);
-    });
+    }
 
-    // chs('"test"',false,'red').addEventListener('click',()=>{
-    //   chss.tst.sl();
-    // });
-    if(!global.flags.catget)chs('"=> Approach the cat"',false).addEventListener('click',()=>{
-        smove(chss.cat1); if(!global.stat.cat_c)global.stat.cat_c=0;
-    });
+    if (global.flags.houseunlocked) {
+        chs('"=> Go home"',false,'green').addEventListener('click',()=>{
+            smove(chss.home);
+        });
+    }
+
+    if (global.flags.rockpathfound) {
+        chs('"<= Walk down rocky path"', false).addEventListener('click', () => {
+            smove(chss.__rockpath);
+        });
+    }
+
     if(!global.flags.mkplc1u){
-        if(global.flags.dj1end===true&&global.flags.pmfspmkm1!==true&&random()<.4){
+        if(global.flags.dj1end === true && global.flags.pmfspmkm1!==true&&random()<.4){
         chs('Paper Boy: Hey, this is for you!',true);
         chs('?',false).addEventListener('click',()=>{giveItem(item.shppmf);smove(chss.lsmain1,false)});
         }
@@ -15704,62 +15827,123 @@ chss.lsmain1.sl = () => {
 }
 
 chss.mrktvg1 = new Chs(); chss.mrktvg1.id = 127; addtosector(sector.vmain1,chss.mrktvg1)
-chss.mrktvg1.sl=()=>{global.flags.inside=false;  d_loc('Village Center, Marketplace'); global.lst_loc = 127; 
-  chs('The marketplace feels busy',true);
-  chs('"Grocery Shop =>"',false,'gold').addEventListener('click',()=>{
-    smove(chss.grc1);
-  });
-  chs('"General Store =>"',false,'gold').addEventListener('click',()=>{
-    smove(chss.gens1);
-  });
-  if(global.flags.phai1udt)chs('"Herbalist =>"',false,'gold').addEventListener('click',()=>{
-    smove(chss.pha1);
-  });
-  chs('"Nervous Guy =>"',false).addEventListener('click',()=>{
-    smove(chss.fdwrg1qt);
-  });
-  
-  if(global.flags.grddtjb) chs('"Checkpoint"',false,'hotpink').addEventListener('click',()=>{
-    if(getHour()>=7&&getHour()<=10) {chs('Lookout Guard: Here for work? You won\'t have to do much, just stand there near the gate and look intimidating. You\'re not doing any fighting if someone dangerous comes around, that would be dealth by Us, your militia. Your shift ends at 8PM, sign up now and go',true);
-      chs('"Alright..."',false).addEventListener('click',()=>{
-        if(getHour()>=7&&getHour()<=10){
-           giveQst(quest.grds1); smove(chss.jbgd1);
-          } else {
-          chs('Lookout Guard: Too damn late, next time don\'t stand there like a decoration wasting everyone\'s time',true);
-          chs('"Ah..."',false).addEventListener('click',()=>{smove(chss.lsmain1)});
+chss.mrktvg1.sl=()=>{
+    global.flags.inside=false; 
+    d_loc('Village Center, Marketplace');
+    global.lst_loc = 127; 
+    chs('The marketplace feels busy',true);
+    chs('"Grocery Shop =>"', false, 'gold').addEventListener('click',()=>{
+        smove(chss.grc1);
+    });
+    chs('"General Store =>"', false, 'gold').addEventListener('click',()=>{
+        smove(chss.gens1);
+    });
+    if (!global.flags.scrtgltt) chs('"Food stand =>"',false).addEventListener('click',()=>{
+        if (skl.trad.lvl >= 2 && random() < 0.2) global.flags.scrtglti=true;
+        if (global.flags.scrtglti===true){
+            chs('...',true);
+            chs('?',false).addEventListener('click',()=>{
+                chs('"Passerby: Looking for the foodstand guy? He took his stuff and went South. That one supposedly travels from place to place to sell the food he makes, doubt we\'ll see him back any time soon"',true);
+                chs('Well then..',false).addEventListener('click',()=>{
+                    global.flags.scrtgltt=true; smove(chss.lsmain1,false);
+                });
+            });
+        } else {
+            smove(chss.vndr1,false);
         }
-      });
-      chs('"<= Maybe not"',false).addEventListener('click',()=>{
-        smove(chss.mrktvg1);
-      });
-    } else {
-      chs('Lookout Guard: If you want work come at the time that\'s stated in the notice and not a minute late!',true);
-      chs('"<= Return"',false).addEventListener('click',()=>{
-        smove(chss.mrktvg1);
-      });
+    });
+    if(global.flags.phai1udt) chs('"Herbalist =>"', false, 'gold').addEventListener('click',()=>{
+            smove(chss.pha1);
+    });
+    chs('"Nervous Guy =>"', false).addEventListener('click',()=>{
+            smove(chss.fdwrg1qt);
+    });
+    
+    if(global.flags.grddtjb) chs('"Checkpoint"',false,'hotpink').addEventListener('click',()=>{
+        if (getHour()>=7&&getHour()<=10) {
+            chs('Lookout Guard: Here for work? You won\'t have to do much, just stand there near the gate and look intimidating. You\'re not doing any fighting if someone dangerous comes around, that would be dealth by Us, your militia. Your shift ends at 8PM, sign up now and go',true);
+            chs('"Alright..."',false).addEventListener('click',()=>{
+                if (getHour()>=7&&getHour()<=10) {
+                    giveQst(quest.grds1);
+                    smove(chss.jbgd1);
+                } else {
+                    chs('Lookout Guard: Too damn late, next time don\'t stand there like a decoration wasting everyone\'s time',true);
+                    chs('"Ah..."',false).addEventListener('click',()=>{
+                        smove(chss.lsmain1);
+                    });
+                }
+            });
+            chs('"<= Maybe not"',false).addEventListener('click',()=>{
+                smove(chss.mrktvg1);
+            });
+        } else {
+            chs('Lookout Guard: If you want work come at the time that\'s stated in the notice and not a minute late!',true);
+            chs('"<= Return"',false).addEventListener('click',()=>{
+                smove(chss.mrktvg1);
+            });
+        }
+    });
+
+    if (random() < 0.15) {
+        chs('"Shady Kid =>"', false, 'springgreen').addEventListener('click', () => {
+            smove(chss.vndrkd1, false);
+        });
     }
-  }); 
-  chs('"<= Return back to the village Center"',false).addEventListener('click',()=>{
-    smove(chss.lsmain1);
-  });
+    
+    chs('"<= Return back to the village Center"',false).addEventListener('click',()=>{
+            smove(chss.lsmain1);
+    });
 }
-chss.mrktvg1.onEnter=function(){ 
-  if(!timers.mktwawa1)timers.mktwawa1=setInterval(function(){
-    if(random()<.1) {if(!global.text.mktwawa1) global.text.mktwawa1=['<small>"...for that price? Are you cr..."</small>','<small>"...no, go by yourself..."</small>','<small>"...right, I\'ll take '+rand(15)+', put them in..."</small>','<small>"...is this really?..."</small>','<small>"...never seen this thing..."</small>','<small>"...is this real?..."</small>','<small>"...yeah, he said it\'s there..."</small>','<small>"...mama!!..."</small>','<small>"...right, coming next evening. You should probably p..."</small>','<small>"...stop pushing!..."</small>','<small>"...what a scam..."</small>','<small>"...this isn\'t even fresh!..."</small>','<small>"...why is this so expensive?..."</small>','<small>"...I won\'t lower it further!..."</small>','<small>"...I\'ll come back, just wait for a minute..."</small>','<small>"...break time!..."</small>','<small>"...who said so? Gotta be a lie..."</small>','<small>"...whatever, I\'m not buying..."</small>','<small>"...turn right and then..."</small>','<small>"...check for yourself then..."</small>','<small>"...she\'ll return shortly. As for you..."</small>','<small>"...deal!..."</small>','<small>"...try a different one..."</small>','<small>"...buy it! You won\'t regret it!..."</small>','<small>"Oh no! I dropped it in the forest!..."</small>'];msg(select(global.text.mktwawa1),'rgb('+rand(255)+','+rand(255)+','+rand(255)+')')}
-  },1000);
+chss.mrktvg1.onEnter=function(){  // on entering the marketplace, the player may overhear one of these messages
+    if(!timers.mktwawa1)timers.mktwawa1=setInterval(function(){
+        if(random()<.1) {
+            if (!global.text.mktwawa1) {
+                global.text.mktwawa1 = [
+                    '<small>"...for that price? Are you cr..."</small>',
+                    '<small>"...no, go by yourself..."</small>',
+                    '<small>"...right, I\'ll take '+rand(15)+
+                    ',put them in..."</small>',
+                    '<small>"...is this really?..."</small>',
+                    '<small>"...never seen this thing..."</small>',
+                    '<small>"...is this real?..."</small>',
+                    '<small>"...yeah, he said it\'s there..."</small>',
+                    '<small>"...mama!!..."</small>',
+                    '<small>"...right, coming next evening. You should probably p..."</small>',
+                    '<small>"...stop pushing!..."</small>',
+                    '<small>"...what a scam..."</small>',
+                    '<small>"...this isn\'t even fresh!..."</small>',
+                    '<small>"...why is this so expensive?..."</small>',
+                    '<small>"...I won\'t lower it further!..."</small>',
+                    '<small>"...I\'ll come back, just wait for a minute..."</small>',
+                    '<small>"...break time!..."</small>',
+                    '<small>"...who said so? Gotta be a lie..."</small>',
+                    '<small>"...whatever, I\'m not buying..."</small>',
+                    '<small>"...turn right and then..."</small>',
+                    '<small>"...check for yourself then..."</small>',
+                    '<small>"...she\'ll return shortly. As for you..."</small>',
+                    '<small>"...deal!..."</small>',
+                    '<small>"...try a different one..."</small>',
+                    '<small>"...buy it! You won\'t regret it!..."</small>',
+                    '<small>"Oh no! I dropped it in the forest!..."</small>'
+                ];
+            }
+            msg(select(global.text.mktwawa1),'rgb('+rand(255)+','+rand(255)+','+rand(255)+')')
+        }
+    },1000);
 }
 chss.mrktvg1.onLeave=function(){
-  clearInterval(timers.mktwawa1); delete timers.mktwawa1
+    clearInterval(timers.mktwawa1);
+    delete timers.mktwawa1;
 }
 
 chss.jbgd1 = new Chs(); chss.jbgd1.id = 159;
 chss.jbgd1.sl=()=>{global.flags.inside=false;  d_loc('Village Center, Marketplace Entry Gate'); global.lst_loc = 159; 
-  let c=chs('You are standing on guard duty. This isn\'t very fun',true); global.flags.work=true;
-  dom.trddots = addElement(c,'span'); dom.trddots.frames=['','.','..','...']; dom.trddots.frame=0; dom.trddots.style.position='absolute'; clearInterval(timers.rdngdots);
-  timers.rdngdots = setInterval(()=>{dom.trddots.innerHTML=dom.trddots.frames[(dom.trddots.frame=dom.trddots.frame>2?0:++dom.trddots.frame)]},333)
-  chs('"Be bored"',false).addEventListener('click',()=>{
-    msg(select(['Right...','This is boring','*whistle*','Ah...','...','Yeah...','Mhm...','Yawn..']),'lightgrey')
-  });
+    let c=chs('You are standing on guard duty. This isn\'t very fun',true); global.flags.work=true;
+    dom.trddots = addElement(c,'span'); dom.trddots.frames=['','.','..','...']; dom.trddots.frame=0; dom.trddots.style.position='absolute'; clearInterval(timers.rdngdots);
+    timers.rdngdots = setInterval(()=>{dom.trddots.innerHTML=dom.trddots.frames[(dom.trddots.frame=dom.trddots.frame>2?0:++dom.trddots.frame)]},333)
+    chs('"Be bored"',false).addEventListener('click',()=>{
+        msg(select(['Right...','This is boring','*whistle*','Ah...','...','Yeah...','Mhm...','Yawn..']),'lightgrey')
+    });
 }
 chss.jbgd1.onEnter=function(){
   timers.job1t=setInterval(()=>{
@@ -15776,7 +15960,8 @@ chss.jbgd1.onEnter=function(){
   },1000)
 }
 chss.jbgd1.onLeave=function(){
-  clearInterval(timers.job1t); global.flags.work=false;
+    clearInterval(timers.job1t);
+    global.flags.work=false;
 }
 
 chss.fdwrg1qt = new Chs(); chss.fdwrg1qt.id = 165; 
@@ -15886,23 +16071,42 @@ chss.pha1.data={scoutm:200,scout:0,scoutf:false,gets:[false],gotmod:0}
 chss.pha1.scout=[
   {c:.01,f:()=>{msg(select(['You notice a coin on the ground!','You pick a coin from under the counter','You snatch a coin while no one is looking']),'lime');giveItem(select([item.cp,item.cn,item.cq,item.cd]));chss.pha1.data.gets[0]=true},exp:5},
 ]
-chss.pha1.onScout=function(){scoutGeneric(this)}
+chss.pha1.onScout = function() {
+    scoutGeneric(this);
+}
 
 
-chss.vndr1 = new Chs(); chss.vndr1.id = 116; chss.vndr1.effectors=[{e:effector.shop}]; addtosector(sector.vcent,chss.vndr1); addtosector(sector.vmain1,chss.vndr1)
-chss.vndr1.sl=()=>{ d_loc('Village Center, Street Food Stand'); global.lst_loc = 116;
-  vendor.stvr1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.stvr1.restocked===true){clearInterval(timers.vndrstkchk);vendor.stvr1.restocked=false;msg('We\'re restocking, step out for a minute');smove(chss.lsmain1,false);}});
-  let hi = 'Street Merchant Ran: Welcome! What would you like?'; dom.vndr1 = chs(hi,true);
-  for(let ost=0;ost<vendor.stvr1.stock.length;ost++){ let itm = vendor.stvr1.stock[ost];
-  dom.vndrs = chs(itm[0].name+' <small style="color:rgb(255, 116, 63)">'+itm[2]+'●</small> x'+itm[1],false);
-  dom.vndrs.addEventListener('click',function(){
-    if(you.wealth-itm[2]>=0){spend(itm[2]);mf(-itm[2],1);m_update();giveItem(itm[0]);global.stat.buyt++;if(--itm[1]===0){clr_chs(vendor.stvr1.stock.indexOf(itm)+1);vendor.stvr1.stock.splice(vendor.stvr1.stock.indexOf(itm),1); empty(global.dscr);global.dscr.style.display='none'}else this.innerHTML=itm[0].name+' <small style="color:rgb(255, 116, 63)">'+itm[2]+'●</small> x'+itm[1];}else{clearTimeout(timers.shopcant);dom.vndr1.innerHTML='Sorry you can\'t afford that!';timers.shopcant=setTimeout(()=>{dom.vndr1.innerHTML=hi},1000)}
-  });
-  addDesc(dom.vndrs,itm[0]);
-  }
-  chs('"<= Go back"',false).addEventListener('click',()=>{
-    smove(chss.lsmain1,false); clearInterval(timers.vndrstkchk);
-  });    
+chss.vndr1 = new Chs();
+chss.vndr1.id = 116;
+chss.vndr1.effectors=[{e:effector.shop}];
+addtosector(sector.vcent,chss.vndr1);
+addtosector(sector.vmain1,chss.vndr1)
+chss.vndr1.sl=()=>{
+    d_loc('Village Center, Street Food Stand');
+    global.lst_loc = 116;
+    vendor.stvr1.restocked=false;
+    clearInterval(timers.vndrstkchk);
+    timers.vndrstkchk=setInterval(function() {
+        if(vendor.stvr1.restocked===true) {
+            clearInterval(timers.vndrstkchk);
+            vendor.stvr1.restocked=false;
+            msg('We\'re restocking, step out for a minute');
+            smove(chss.lsmain1,false);
+        }
+    });
+    let hi = 'Street Merchant Ran: Welcome! What would you like?';
+    dom.vndr1 = chs(hi,true);
+    for (let ost=0;ost<vendor.stvr1.stock.length;ost++) {
+    let itm = vendor.stvr1.stock[ost];
+    dom.vndrs = chs(itm[0].name+' <small style="color:rgb(255, 116, 63)">'+itm[2]+'●</small> x'+itm[1],false);
+    dom.vndrs.addEventListener('click',function() {
+        if(you.wealth-itm[2]>=0){spend(itm[2]);mf(-itm[2],1);m_update();giveItem(itm[0]);global.stat.buyt++;if(--itm[1]===0){clr_chs(vendor.stvr1.stock.indexOf(itm)+1);vendor.stvr1.stock.splice(vendor.stvr1.stock.indexOf(itm),1); empty(global.dscr);global.dscr.style.display='none'}else this.innerHTML=itm[0].name+' <small style="color:rgb(255, 116, 63)">'+itm[2]+'●</small> x'+itm[1];}else{clearTimeout(timers.shopcant);dom.vndr1.innerHTML='Sorry you can\'t afford that!';timers.shopcant=setTimeout(()=>{dom.vndr1.innerHTML=hi},1000)}
+    });
+    addDesc(dom.vndrs,itm[0]);
+    }
+    chs('"<= Go back"',false).addEventListener('click',()=>{
+        smove(chss.lsmain1,false); clearInterval(timers.vndrstkchk);
+    });    
 }
 
 chss.vndrkd1 = new Chs(); chss.vndrkd1.id = 123; chss.vndrkd1.shop=true; addtosector(sector.vcent,chss.vndrkd1); addtosector(sector.vmain1,chss.vndrkd1)
@@ -15995,7 +16199,7 @@ chss.cat1.id = 107;
 addtosector(sector.vcent,chss.cat1);
 addtosector(sector.vmain1,chss.cat1)
 chss.cat1.sl = () => {
-    d_loc('Village Center, Cat');
+    d_loc('Rock Path, Cat');
     let w = !global.stat.cat_c ? chs('There is a cat.', true) : chs('There is a cat. Pets: ' + global.stat.cat_c, true);
     chs('"Pet the cat"', false).addEventListener('click', x => {
         let a = addElement(document.body, 'span');
@@ -16033,14 +16237,14 @@ chss.cat1.sl = () => {
                     chs('"Take it with you"', false).addEventListener('click', () => {
                         __get_cat();
                         msg('The cat decided to move into your house!', 'lime');
-                        smove(chss.lsmain1);
+                        smove(chss.__rockpath);
                     });
                     chs('"Leave it as is"', false).addEventListener('click', () => {
-                        smove(chss.lsmain1);
+                        smove(chss.__rockpath);
                     });
                 });
                 chs('"<= Return"', false).addEventListener('click', () => {
-                    smove(chss.lsmain1);
+                    smove(chss.__rockpath);
                 })
             }
         }
@@ -16051,16 +16255,16 @@ chss.cat1.sl = () => {
             chs('"Take it with you"', false).addEventListener('click', () => {
                 __get_cat();
                 msg('The cat decided to move into your house!', 'lime');
-                smove(chss.lsmain1);
+                smove(chss.__rockpath);
             });
             chs('"Leave it as is"', false).addEventListener('click', () => {
-                smove(chss.lsmain1);
+                smove(chss.__rockpath);
             });
         });
     }
     
     chs('"<= Return"', false).addEventListener('click', () => {
-        smove(chss.lsmain1);
+        smove(chss.__rockpath);
     });
 }
 
@@ -16187,92 +16391,167 @@ chss.trd.sl=function(b,x){ global.flags.rdng=true; let rd = skl.rdg.use(); b.dat
   });
 }
 
-chss.home = new Chs(); chss.home.id = 111; addtosector(sector.home,chss.home); 
-chss.home.sl=()=>{d_loc('Your Home'); global.lst_loc = 111;
-  if(!global.flags.catget||sector.home.data.smkp>0) chs('Your humble abode. You can rest here. ',true);
-  else {if(!global.text.hmcttt) global.text.hmcttt=['Your cat comes out to greet you!','','You hear rustling','Meow'];chs('You feel safe. You can rest here. '+select(global.text.hmcttt),true);}
-  if(!global.flags.hbgget) chs('"Examine your bag"',false).addEventListener('click',()=>{
-    chs('Something you\'ve forgotten to grab before. There\'s a pack of food and some junk idea paper.',true)
-    chs('Better take this with you',false).addEventListener('click',()=>{
-      global.flags.hbgget = true; giveItem(eqp.bnd); giveItem(item.ip1); giveItem(item.watr,10);giveItem(wpn.wsrd1); giveItem(item.eggn,3); giveItem(item.mlkn,2); giveItem(item.rice,5); giveItem(item.brd,50);  smove(chss.home,false); 
-    });    
-  });
-  chs('"Crash down and take a nap"',false).addEventListener('click',()=>{if(sector.home.data.smkp>0){ msg('This isn\'t time for sleep','red');return}
-      smove(chss.hbed,false);
-  });
-  if(!global.flags.chbdfst)chs('"Examine your hidden stash"',false).addEventListener('click',()=>{
-    chs('You reach for a small red box which you keep your valuables in, it is time to take it out',true)
-    chs('Grab the contents',false).addEventListener('click',()=>{
-      giveItem(item.ywlt); giveItem(item.pdeedhs); global.flags.chbdfst=true;
-      smove(chss.home,false); 
-    });
-  });
-  chs(global.flags.hbs1===true?'"Enter the basement"':'"Examine basement door"',false).addEventListener('click',()=>{
-    if(!global.flags.hbs1) {
-      if(item.key0.have) {msg('*click...* ','lightgrey');msg_add('The door has opened','lime');global.flags.hbs1=true; smove(chss.home,false)} else msg("It's locked"); 
-    } else smove(chss.bsmnthm1,false)
-  });
-  if(global.flags.hsedchk)chs(' "Furniture list"',false,'orange','',1,8).addEventListener('click',()=>{
-      chs_spec(2); global.wdwidx=1;
-      chs('"<= Return"',false).addEventListener('click',()=>{
-        smove(chss.home,false); 
-      });    
-  });
-  if(scanbyid(furn,furniture.frplc.id)){
-    chs('"Examine Fireplace"',false).addEventListener('click',()=>{
-       smove(chss.ofrplc,false); 
-      });    
-  }
-  if(scanbyid(furn,furniture.strgbx.id)){
-    chs('"Access Storagebox"',false).addEventListener('click',()=>{
-       smove(chss.sboxhm,false); 
-      });    
-  }
-  if(global.flags.catget){
-    tcat = findbyid(furn,furniture.cat.id); tcat.data.mood=tcat.data.mood||1;
-    chs('"Check on Cat"',false).addEventListener('click',()=>{ if(sector.home.data.smkp>0){ msg('Your cat went outside','yellow');return}
-      chs_spec(1);
-      if(tcat.data.named===false) chs('"Rename"',false).addEventListener('click',()=>{
-        chs('Give your cat a name!<br><small>(can\'t rename later!)</small>',true);
-        let inp = addElement(dom.ctr_2,'input','chs');
-        inp.style.textAlign='center'; inp.style.color='white'; inp.style.fontFamily='MS Gothic';
-      chs('"Accept"',false,'lime').addEventListener('click',()=>{
-        if(inp.value==''||inp.value.search(/ *$/)===0) msg('Actually give it a name, maybe?','springgreen'); else if(inp.value.search(/[Kk][Ii][Rr][Ii]/)===0) {msg('Hey now! o:<','crimson');dom.gmsgs.children[1].lastChild.style.fontSize='2em'} else {tcat.data.name=inp.value; tcat.data.named=true;} smove(chss.home,false);
-      });    
-      chs('"Decline"',false,'red').addEventListener('click',()=>{
-        smove(chss.home,false);
-      });    
-      });    
-      dom.ctspcl = chs('"Pet '+tcat.data.name+'"',false);
-        dom.ctspcl.addEventListener('click',x=>{
-        let a = addElement(document.body,'span'); global.stat.cat_c++; for(let x in global.cptchk) global.cptchk[x]()
-        a.style.pointerEvents='none';
-        a.style.position='absolute'; a.style.color='lime';
-        a.innerHTML = tcat.data.mood>.2?select([':3','\'w\'','\'ω\'','(=・∀・=)','*ﾟヮﾟ']):select(['¦3','ーωー','( ˘ω˘)','(´-ω-`)','(。-∀-)']);
-        a.style.top=-55; a.style.left=-55;
-        a.style.fontSize = '1.25em'; a.style.textShadow='2px 2px 1px blue';
-        a.posx = x.clientX-20; a.posy = x.clientY-20; a.spos = randf(-1,1);
-        let t = 0;
-        let g = setInterval(()=>{
-          t++;
-          a.style.top = a.posy-2*t;
-          a.style.left = a.posx+Math.sin(t/5+a.spos)*15;    
-          a.style.opacity = (110-t)/110;
-          if(t===110) {
-            clearInterval(g);
-            document.body.removeChild(a);
-          }
-        },20);
-        tcat.data.mood=tcat.data.mood-.01<=0?0:tcat.data.mood-.01; if(tcat.data.mood>=0.01)skl.pet.use();});    
-          chs('"<= Return"',false).addEventListener('click',()=>{
-            smove(chss.home,false); clearInterval(timers.caupd); 
-          });
+chss.home = new Chs();
+chss.home.id = 111;
+addtosector(sector.home,chss.home); 
+chss.home.sl = () => {
+    d_loc('Your Home');
+    global.lst_loc = 111;
+
+    if (!global.flags.catget || sector.home.data.smkp > 0) {
+        chs('Your humble abode. You can rest here. ', true);
+    } else {
+        if (!global.text.hmcttt) {
+            global.text.hmcttt = ['Your cat comes out to greet you!', '', 'You hear rustling', 'Meow'];
+        }
+        chs('You feel safe. You can rest here. ' + select(global.text.hmcttt), true);
+    }
+
+    if (!global.flags.hbgget) {
+        chs('"Examine your bag"', false).addEventListener('click', () => {
+            chs('Something you\'ve forgotten to grab before. There\'s a pack of food and some junk idea paper.', true)
+            chs('Better take this with you', false).addEventListener('click', () => {
+                global.flags.hbgget = true;
+                giveItem(eqp.bnd);
+                giveItem(item.ip1);
+                giveItem(item.watr, 10);
+                giveItem(wpn.wsrd1);
+                giveItem(item.eggn, 3);
+                giveItem(item.mlkn, 2);
+                giveItem(item.rice, 5);
+                giveItem(item.brd, 50);
+                smove(chss.home, false);
+            });
         });
-      }
-  chs('"<= Go outside"',false).addEventListener('click',()=>{
-    smove(chss.lsmain1); 
-  });    
-}
+    }
+
+    chs('"Crash down and take a nap"', false).addEventListener('click', () => {
+        if (sector.home.data.smkp > 0) {
+            msg('This isn\'t time for sleep', 'red');
+            return;
+        }
+        smove(chss.hbed, false);
+    });
+
+    if (!global.flags.chbdfst) chs('"Examine your hidden stash"', false).addEventListener('click', () => {
+        chs('You reach for a small red box which you keep your valuables in, it is time to take it out', true)
+        chs('Grab the contents', false).addEventListener('click', () => {
+            giveItem(item.ywlt);
+            giveItem(item.pdeedhs);
+            global.flags.chbdfst = true;
+            smove(chss.home, false);
+        });
+    });
+
+    chs(global.flags.hbs1 === true ? '"Enter the basement"' : '"Examine basement door"', false).addEventListener('click', () => {
+        if (!global.flags.hbs1) {
+            if (item.key0.have) {
+                msg('*click...*', 'lightgrey');
+                msg_add('The door has opened', 'lime');
+                global.flags.hbs1 = true;
+                smove(chss.home, false)
+            } else msg("It's locked");
+        } else smove(chss.bsmnthm1, false)
+    });
+
+    if (global.flags.hsedchk) chs(' "Furniture list"', false, 'orange', '', 1, 8).addEventListener('click', () => {
+        chs_spec(2);
+        global.wdwidx = 1;
+        chs('"<= Return"', false).addEventListener('click', () => {
+            smove(chss.home, false);
+        });
+    });
+
+    if (scanbyid(furn, furniture.frplc.id)) {
+        chs('"Examine Fireplace"', false).addEventListener('click', () => {
+            smove(chss.ofrplc, false);
+        });
+    }
+
+    if (scanbyid(furn, furniture.strgbx.id)) {
+        chs('"Access Storagebox"', false).addEventListener('click', () => {
+            smove(chss.sboxhm, false);
+        });
+    }
+
+    if (global.flags.catget) {
+        tcat = findbyid(furn, furniture.cat.id);
+        tcat.data.mood = tcat.data.mood || 1;
+        chs('"Check on Cat"', false).addEventListener('click', () => {
+            if (sector.home.data.smkp > 0) {
+                msg('Your cat went outside', 'yellow');
+                return
+            }
+            chs_spec(1);
+            if (tcat.data.named === false) chs('"Rename"', false).addEventListener('click', () => {
+                chs('Give your cat a name!<br><small>(can\'t rename later!)</small>', true);
+                let inp = addElement(dom.ctr_2, 'input', 'chs');
+                inp.style.textAlign = 'center';
+                inp.style.color = 'white';
+                inp.style.fontFamily = 'MS Gothic';
+
+                chs('"Accept"', false, 'lime').addEventListener('click', () => {
+                    if (inp.value == '' || inp.value.search(/ *$/) === 0) msg('Actually give it a name, maybe?', 'springgreen');
+                    else if (inp.value.search(/[Kk][Ii][Rr][Ii]/) === 0) {
+                        msg('Hey now! o:<', 'crimson');
+                        dom.gmsgs.children[1].lastChild.style.fontSize = '2em'
+                    } else {
+                        tcat.data.name = inp.value;
+                        tcat.data.named = true;
+                    }
+                    smove(chss.home, false);
+                });
+
+                chs('"Decline"', false, 'red').addEventListener('click', () => {
+                    smove(chss.home, false);
+                });
+            });
+
+            dom.ctspcl = chs('"Pet ' + tcat.data.name + '"', false);
+            dom.ctspcl.addEventListener('click', x => {
+                let a = addElement(document.body, 'span');
+                global.stat.cat_c++;
+                for (let x in global.cptchk) global.cptchk[x]();
+
+                a.style.pointerEvents = 'none';
+                a.style.position = 'absolute';
+                a.style.color = 'lime';
+                a.innerHTML = tcat.data.mood > .2 ? select([':3', '\'w\'', '\'ω\'', '(=・∀・=)', '*ﾟヮﾟ']) : select(['¦3', 'ーωー', '( ˘ω˘)', '(´-ω-`)', '(。-∀-)']);
+                a.style.top = -55;
+                a.style.left = -55;
+                a.style.fontSize = '1.25em';
+                a.style.textShadow = '2px 2px 1px blue';
+
+                a.posx = x.clientX - 20;
+                a.posy = x.clientY - 20;
+                a.spos = randf(-1, 1);
+                let t = 0;
+                let g = setInterval(() => {
+                    t++;
+                    a.style.top = a.posy - 2 * t;
+                    a.style.left = a.posx + Math.sin(t / 5 + a.spos) * 15;
+                    a.style.opacity = (110 - t) / 110;
+                    if (t === 110) {
+                        clearInterval(g);
+                        document.body.removeChild(a);
+                    }
+                }, 20);
+
+                tcat.data.mood = tcat.data.mood - .01 <= 0 ? 0 : tcat.data.mood - .01;
+                if (tcat.data.mood >= 0.01) skl.pet.use();
+            });
+
+            chs('"<= Return"', false).addEventListener('click', () => {
+                smove(chss.home, false);
+                clearInterval(timers.caupd);
+            });
+        });
+    }
+
+    chs('"<= Go outside"', false).addEventListener('click', () => {
+        smove(chss.lsmain1);
+    });
+};
 
 chss.home.data={scoutm:1200,scout:0,scoutf:false,gets:[false,false],gotmod:0}
 chss.home.scout=[
@@ -16333,30 +16612,42 @@ chss.bsmnthm1.scout=[
 ]; 
 chss.bsmnthm1.onScout=function(){scoutGeneric(this)}
 
-chss.hbed = new Chs(); chss.hbed.id = 112; addtosector(sector.home,chss.hbed)
-chss.hbed.sl=()=>{d_loc('Your Home, Bed'); global.lst_loc = 112;    let extra='';
-  if(you.alive===false) {chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']),true);you.alive=true}
-  else{if(global.flags.catget) extra=select(['. Your cat is resting next to you', '. You feel warm']);chs('Great way to pass time'+extra,true);}
-  chs('"<= Get up"',false).addEventListener('click',()=>{ 
-     for(let i in chss) if(chss[i].id===global.home_loc) smove(chss[i]); 
-  });
+chss.hbed = new Chs();
+chss.hbed.id = 112;
+addtosector(sector.home,chss.hbed)
+chss.hbed.sl=()=>{
+    d_loc('Your Home, Bed');
+    global.lst_loc = 112;
+    let extra='';
+    if(you.alive===false) {
+        chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']),true);
+        you.alive=true}
+    else {
+        if(global.flags.catget) extra=select(['. Your cat is resting next to you', '. You feel warm']);
+        chs('Great way to pass time'+extra,true);
+    }
+    chs('"<= Get up"',false).addEventListener('click',()=>{ 
+        for(let i in chss) if(chss[i].id===global.home_loc) smove(chss[i]); 
+    });
 }
 chss.hbed.onStay=function(){ 
-  let hpr=(skl.sleep.use(home.bed)+(global.flags.catget?5:1)+1)<<0;  
-  if(!effect.fei1.active&&you.hp<you.hpmax) {you.hp+hpr<=you.hpmax?you.hp+=hpr:you.hp=you.hpmax;dom.d5_1_1.update()}
- // if(global.current_z.id!==-666&&random()<.00001){
- //   let ta = new Area(); ta.id=-666;
- //   ta.name = 'Nightmare';
- //   ta.pop = [{crt:creature.ngtmr1,lvlmin:you.lvl,lvlmax:you.lvl,c:1}]; ta.protected=true;
- //   ta.onEnd=function(){area_init(area.nwh);global.flags.civil=true; global.flags.btl=false;}; global.flags.civil=false; global.flags.btl=true;
- //   ta.size = 1; z_bake(ta); area_init(ta); dom.d7m.update(); msg('Your sins are crawling up on you','red')
- //}
+    let hpr=(skl.sleep.use(home.bed)+(global.flags.catget?5:1)+1)<<0;  
+    if(!effect.fei1.active&&you.hp<you.hpmax) {you.hp+hpr<=you.hpmax?you.hp+=hpr:you.hp=you.hpmax;dom.d5_1_1.update()}
+    // if(global.current_z.id!==-666&&random()<.00001){
+    //   let ta = new Area(); ta.id=-666;
+    //   ta.name = 'Nightmare';
+    //   ta.pop = [{crt:creature.ngtmr1,lvlmin:you.lvl,lvlmax:you.lvl,c:1}]; ta.protected=true;
+    //   ta.onEnd=function(){area_init(area.nwh);global.flags.civil=true; global.flags.btl=false;}; global.flags.civil=false; global.flags.btl=true;
+    //   ta.size = 1; z_bake(ta); area_init(ta); dom.d7m.update(); msg('Your sins are crawling up on you','red')
+    //}
 }
 chss.hbed.onEnter=function(){
-  global.flags.sleepmode=true; if(effect.slep.active===false)giveEff(you,effect.slep); global.timescale=5;
+    global.flags.sleepmode=true;
+    if(effect.slep.active===false) giveEff(you,effect.slep);
+    global.timescale = you.timescale_sleeping;;
 }
 chss.hbed.onLeave=function(){
-  global.flags.sleepmode=false; global.timescale=1; removeEff(effect.slep); 
+    global.flags.sleepmode=false; global.timescale=1; removeEff(effect.slep); 
 }
 
 chss.ofrplc = new Chs(); chss.ofrplc.id = 117; addtosector(sector.home,chss.ofrplc)
@@ -16700,10 +16991,9 @@ chss.cata25.sl=()=>{ d_loc('Catacombs, The End Of Journey'); global.lst_loc = 15
   });
 }
 
-
 chss.__quickstart = new Chs();
 chss.__quickstart.id = 701;
-chss.__quickstart.sl = function () {
+chss.__quickstart.sl = function() {
     global.lst_loc = 701;
     clr_chs();
     
@@ -16716,6 +17006,12 @@ chss.__quickstart.sl = function () {
     appear(dom.d1m);
 
     global.flags.mountainstart = true;
+    global.flags.rockpathfound = true;
+    global.flags.houseunlocked = false;
+    global.flags.shackunlocked = true;
+
+    global.home_loc = 703 // chss__home2 
+    
     global.flags.aw_u  = true; // unlock menu options
     global.flags.dm1ap = true;
     global.flags.asbu  = true;
@@ -16735,12 +17031,14 @@ chss.__quickstart.sl = function () {
 
     global.flags.mkplc1u = true;
     global.flags.dj1end = true;  // do not show any skillbook at the dojo
+    global.flags.dj1rw1 = true;  // obtain lvl5-10 dojo rewards
+    global.flags.dj1rw2 = true;        // fine for now, the player *should* be level 11 ... 
     global.flags.hbgget = true;  // get the bag at home
     global.flags.chbdfst = true; // hidden stash
     //global.flags.frst1u = true;  // can enter south forest
     //global.flags.frst1um = true; // give permission to enter south forest
     global.flags.frstn1b1g1 = true;  // show guard notice,
-                                     // show dangerous beasts message
+                                     // show dangerous beasts message in message board
     
     //__get_cat();
     //global.stat.cat_c = 100;
@@ -16754,10 +17052,113 @@ chss.__quickstart.sl = function () {
     //give unarmed mastery
     giveSkExp(skl.unc, 853, showLevelUp=false);
 
-    //area.trn.size = 1000 // change 10k dummies to 1k
+    //area.trn.size = 1000 // change 10k dummies to 1k also need to change chss.djinf
     
     smove(chss.lsmain1); // move to courtyard
 };
+
+chss.__rockpath = new Chs();
+chss.__rockpath.id = 702;
+chss.__rockpath.sl = function() {
+    global.lst_loc = 702;
+    clr_chs();
+    d_loc('Village, Rock Path');
+    
+    // insert weather conditions here
+    
+    if (!global.flags.shackunlocked) {
+        chs('"=> Enter shack"', false).addEventListener('click', () => {
+            msg('The shack won\'t budge.', 'yellow');
+        });
+    }
+    else {
+        chs('"=> Enter shack"', false, 'green').addEventListener('click', () => {
+            smove(chss.__home2);
+        });
+    }
+
+    if (!global.flags.catget) chs('"Approach the cat"',false).addEventListener('click',()=>{
+        smove(chss.cat1);
+        if (!global.stat.cat_c) global.stat.cat_c=0;
+    });
+
+    chs('"<= Return to Village Center"', false).addEventListener('click', () => {
+        smove(chss.lsmain1);
+    });
+};
+
+chss.__home2 = new Chs(); // secluded shack, home for mountain child
+chss.__home2.id = 703;
+//addtosector(sector.home, chss.__home2);
+chss.__home2.sl = () => {
+    d_loc('Your Home');
+    global.lst_loc = 703;
+
+    if (!global.flags.catget || sector.home.data.smkp > 0) {
+        chs('Your humble abode. You can rest here. ', true);
+    }
+    else {
+        if (!global.text.hmcttt) {
+            global.text.hmcttt = ['Your cat comes out to greet you!', '', 'You hear rustling', 'Meow'];
+        }
+        chs('You feel safe. You can rest here. ' + select(global.text.hmcttt), true);
+    }
+
+    // some item to get here ?
+
+    chs('"Take a nap"', false).addEventListener('click', () => {
+        if (sector.home.data.smkp > 0) {
+            msg('This isn\'t time for sleep', 'red');
+            return;
+        }
+        smove(chss.__shackbed, false);
+    });
+
+    // furniture?
+
+    // fireplace?
+
+    chs('"<= Leave the shack"', false).addEventListener('click', () => {
+        smove(chss.__rockpath);
+    });
+}
+
+chss.__shackbed = new Chs();
+chss.__shackbed.id = 704;
+addtosector(sector.home,chss.__shackbed);
+chss.__shackbed.sl = () => {
+    d_loc('Your Home, Bed');
+    global.lst_loc = 704;
+    let extra='';
+    if(you.alive===false) {
+        chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']),true);
+        you.alive=true}
+    else {
+        if(global.flags.catget) extra=select(['. Your cat is resting next to you', '. You feel warm']);
+        chs('Great way to pass time'+extra,true);
+    }
+    chs('"<= Get up"',false).addEventListener('click',()=>{ 
+        for(let i in chss) if(chss[i].id===global.home_loc) smove(chss[i]); 
+    });
+}
+chss.__shackbed.onStay=function(){ 
+    let hpr=(skl.sleep.use(home.bed)+(global.flags.catget?5:1)+1)<<0;  
+    if (!effect.fei1.active&&you.hp<you.hpmax) {
+        you.hp+hpr<=you.hpmax?you.hp+=hpr:you.hp=you.hpmax;
+        dom.d5_1_1.update();
+    }
+}
+chss.__shackbed.onEnter=function(){
+    global.flags.sleepmode=true;
+    if (effect.slep.active===false) giveEff(you, effect.slep);
+    global.timescale = you.timescale_sleeping;
+}
+chss.__shackbed.onLeave=function(){
+    global.flags.sleepmode=false;
+    global.timescale=1;
+    removeEff(effect.slep); 
+}
+
 
 
 function wManager(){ let ses = getSeason()
@@ -17651,22 +18052,6 @@ function giveall(what) { //**
   }*/
 }
 
-function __dbggiveeverything() { //** debug
-    for(let a in item) giveItem(item[a], 99);
-    for(let a in wpn) giveItem(wpn[a]);
-    for(let a in eqp) giveItem(eqp[a]);
-    for(let a in sld) giveItem(sld[a]);
-    for(let a in acc) giveItem(acc[a]);
-    for(let a in ttl) giveTitle(ttl[a]);
-    for(let a in rcp) giveRcp(rcp[a]);
-    return "All items attempted to be given to the player.";
-}
-
-function __dbggivewpn() {
-    giveItem(wpn.scspt2);
-    return "Blue Hand given to player.";
-}
-
 function scan(arr, val, am){
     if(am) {for (let obj in arr) if (arr[obj].id === val.id&&arr[obj].amount>=am) return true}
     else for (let obj in arr) if (arr[obj] === val) return true;
@@ -18452,6 +18837,28 @@ function b64_to_utf8( str ) {
     }
 }
 
+
+function __dbggiveeverything() { //** debug
+    for(let a in item) giveItem(item[a], 99);
+    for(let a in wpn) giveItem(wpn[a]);
+    for(let a in eqp) giveItem(eqp[a]);
+    for(let a in sld) giveItem(sld[a]);
+    for(let a in acc) giveItem(acc[a]);
+    for(let a in ttl) giveTitle(ttl[a]);
+    for(let a in rcp) giveRcp(rcp[a]);
+    return "All items attempted to be given to the player.";
+}
+
+function __dbggivewpn() {
+    giveItem(wpn.scspt2);
+    return "Blue Hand given to player.";
+}
+
+function __dbggiveeveryskill() {
+    for(let a in skl) giveSkExp(skl[a], 51); // 51 is the cut-off for displaying skills
+    dom.d5_1_1.update();
+    return "All skills attempted to be given to the player.";
+}
 
 function __get_cat() {
     global.flags.cat_g = true;

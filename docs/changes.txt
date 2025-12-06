@@ -12,8 +12,15 @@ ADDITIONS
     - item.__sp4
     - item.__leatherwallet
     - chss.__quickstart
+    - chss.__rockpath
+
+CHANGES
+
+    - moved the food stand to the marketplace menu
+    - moved the cat to the rockpath (subject to change?)
+    - higher sleep skill now means you can pass time quicker while sleeping
 
 MOUNTAIN START
 
     a new game path centered around sole usage of unarmed combat. Weapons are forbidden but,
-        martial styles are able to be used in their place.
+        martial styles are able to be used in their place. New house + area.
