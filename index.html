@@ -14954,7 +14954,7 @@ chss.t1.sl = function() {
     chs('Remember your training', false).addEventListener('click', function () {
         global.time += DAY;
         chs('???: You alright?', true);
-        chs('"I came down from a mountain..."', false).addEventListener('click', function() {
+        chs('"I came down from a dojo in the mountains..."', false).addEventListener('click', function() {
             smove(chss.__quickstart, false);
         });
     });
@@ -16066,78 +16066,108 @@ chss.cat1.sl = () => {
 
 global.text.mbrdtt=['"If you do not work your hours daily, you will not get any dessert"','"Do your job well and you will be rewarded"','There is a report of a missing cat','There is a section of useless gossip','This is an  advertisement for fresh vegetables','This is an advertisement for dojo membership','This is an advertisement for wooden furniture','This is an advertisement for dried meat','This is an advertisement for joining the militia','"The Hunter Association offers you a large variety of boxes full of smoked meat and furs"','This is an advertisement for herbal medicine','This is an advertisement for wine kegs','This is an advertisement for farming equipment','This is an advertisement for carpentery supplies','"All the children must return home by 8PM!"','This is an advertisement for smithing orders','This is an advertisement for cooking courses','This is an advertisement for bottled water','This is an advertisement for knitting advices','This is an advertisement for cleaning services','This is a warning to stay away from fortune tellers','This is an advertisement for woven straw baskets','This is an advertisement for hemp clothing']
 
-chss.mbrd = new Chs(); chss.mbrd.id = 108; addtosector(sector.vcent,chss.mbrd); addtosector(sector.vmain1,chss.mbrd)
-chss.mbrd.sl=()=>{ d_loc('Village Center, Message Board'); global.lst_loc = 108;
-  for(let a in inv) if(inv[a].id===acc.wdl1.id||inv[a].id===acc.sdl1.id||inv[a].id===acc.bdl1.id||inv[a].id===acc.gdl1.id){
-  if(!global.flags.glqtdltn&&(getHour()<20&&getHour()>8)&&random()<.15){
-     {
-    chs('You notice a little girl with emerald green hair approach you',true);
-    chs('"?"',false).addEventListener('click',()=>{
-      chs('<span style="color:lime">Xiao Xiao</span>: "Hey, hey, what are those dolls you carry? Make one for me!!"',true);
-      chs('"Alright..."',false).addEventListener('click',()=>{
-        global.flags.glqtdltn=true;smove(chss.mbrd,false)
-      });
-    });
-   }
-  return}break}
-  chs('Message Board<br>You can find jobs or other stuff here',true);
-  chs('"Explore the posts"',false).addEventListener('click',()=>{
-    chs(select(global.text.mbrdtt),true);
-    chs('"<= Return"',false).addEventListener('click',()=>{
-      smove(chss.mbrd,false);
+chss.mbrd = new Chs();
+chss.mbrd.id = 108;
+addtosector(sector.vcent,chss.mbrd);
+addtosector(sector.vmain1,chss.mbrd)
+chss.mbrd.sl=()=>{
+    d_loc('Village Center, Message Board');
+    global.lst_loc = 108;
+    for(let a in inv) if(inv[a].id===acc.wdl1.id||inv[a].id===acc.sdl1.id||inv[a].id===acc.bdl1.id||inv[a].id===acc.gdl1.id){
+    if(!global.flags.glqtdltn&&(getHour()<20&&getHour()>8)&&random()<.15){
+        {
+        chs('You notice a little girl with emerald green hair approach you',true);
+        chs('"?"',false).addEventListener('click',()=>{
+        chs('<span style="color:lime">Xiao Xiao</span>: "Hey, hey, what are those dolls you carry? Make one for me!!"',true);
+        chs('"Alright..."',false).addEventListener('click',()=>{
+            global.flags.glqtdltn=true;smove(chss.mbrd,false)
+        });
+        });
+    }
+    return}break}
+    chs('Message Board<br>You can find jobs or other stuff here',true);
+    chs('"Explore the posts"',false).addEventListener('click',()=>{
+        chs(select(global.text.mbrdtt),true);
+        chs('"<= Return"',false).addEventListener('click',()=>{
+            smove(chss.mbrd,false);
+        });    
     });    
-  });    
-  if(global.flags.frstn1b1g1){
-    chs('"Notice #4"',false).addEventListener('click',()=>{
-      chs('It says here:<br><span style="color:orange">Looking for a anyone with free time to assist local militia with guarding duty. Apply at the checkpoint near marketplace area between 7AM and 10AM"</span>',true);
-      chs('"Huh.."',false).addEventListener('click',()=>{
-        global.flags.grddtjb=true;smove(chss.mbrd);
-      });    
+    if(global.flags.frstn1b1g1){
+        chs('"Notice #4"',false).addEventListener('click',()=>{
+            chs('It says here:<br><span style="color:orange">Looking for a anyone with free time to assist local militia with guarding duty. Apply at the checkpoint near marketplace area between 7AM and 10AM"</span>',true);
+            chs('"Huh.."',false).addEventListener('click',()=>{
+                global.flags.grddtjb=true;smove(chss.mbrd);
+            });    
+        });    
+        chs('"Warning!"',false).addEventListener('click',()=>{
+            chs('Dangerous beasts were sighted in vicinity of the Southern Forest. These reports are likely linked to the cause of livestock and locals getting injured, therefore, to avoid further casualties, entry into the forest is prohibited to those without permit or high enough self-defence ability until the situation is resolved<br><br><div style="text-align:right">一Head of The Guard, Hitoshi</div>',true);
+            chs('"I see"',false).addEventListener('click',()=>{
+                smove(chss.mbrd);
+            });    
+        });    
+    }
+    if(global.flags.glqtdltn&&!global.flags.glqtdldn&&(getHour()<20&&getHour()>8)){
+        chs('"Xiao Xiao =>"',false).addEventListener('click',()=>{
+            smove(chss.xpgdqt1,false);
+        });
+    }
+    chs('"<= Go back"',false).addEventListener('click',()=>{
+        smove(chss.lsmain1,false);
     });    
-    chs('"Warning!"',false).addEventListener('click',()=>{
-      chs('Dangerous beasts were sighted in vicinity of the Southern Forest. These reports are likely linked to the cause of livestock and locals getting injured, therefore, to avoid further casualties, entry into the forest is prohibited to those without permit or high enough self-defence ability until the situation is resolved<br><br><div style="text-align:right">一Head of The Guard, Hitoshi</div>',true);
-      chs('"I see"',false).addEventListener('click',()=>{smove(chss.mbrd);});    
-    });    
-  }
-  if(global.flags.glqtdltn&&!global.flags.glqtdldn&&(getHour()<20&&getHour()>8)){
-    chs('"Xiao Xiao =>"',false).addEventListener('click',()=>{smove(chss.xpgdqt1,false)});
-  }
-  chs('"<= Go back"',false).addEventListener('click',()=>{
-    smove(chss.lsmain1,false);
-  });    
 }
 
-chss.xpgdqt1 = new Chs(); chss.xpgdqt1.id = 167; addtosector(sector.vcent,chss.xpgdqt1); addtosector(sector.vmain1,chss.xpgdqt1)
-chss.xpgdqt1.sl=()=>{ d_loc('Village Center, Message Board'); global.lst_loc = 166;
-  chs('<span style="color:lime">Xiao Xiao</span>: "What is it what is it?"',true);
-  let dl1=findbyid(inv,acc.wdl1.id);let dl2=findbyid(inv,acc.sdl1.id);let dl3=findbyid(inv,acc.bdl1.id);let dl4=findbyid(inv,acc.gdl1.id);
-  if(dl1){
-    chs('"Show Xiao Xiao a wooden doll"',false).addEventListener('click',()=>{
-      chs('<span style="color:lime">Xiao Xiao</span>: "Nooooo it\'s ugly!!"',true);
-      chs('"<= Take it back"',false).addEventListener('click',()=>{smove(chss.xpgdqt1,false)})
-    });
-  }
-  if(dl2){
-    chs('"Show Xiao Xiao a straw doll"',false).addEventListener('click',()=>{
-      chs('<span style="color:lime">Xiao Xiao</span>: "Nooooo it\'s creepy!!"',true);
-      chs('"<= Take it back"',false).addEventListener('click',()=>{smove(chss.xpgdqt1,false)})
-    });
-  }
-  if(dl3){
-    chs('"Show Xiao Xiao a bone doll"',false).addEventListener('click',()=>{
-      chs('<span style="color:lime">Xiao Xiao</span>: "Nooooo it\'s scary!!"',true);
-      chs('"<= Take it back"',false).addEventListener('click',()=>{smove(chss.xpgdqt1,false)})
-    });
-  }
-  if(dl4){
-    chs('"Show Xiao Xiao a soul doll"',false).addEventListener('click',()=>{
-      chs('<span style="color:lime">Xiao Xiao</span>: "Waai thank you! I love it! I\'ll give you this! Here, take!"<br><br><span style="color:lightgrey">The girl happily runs away with her new toy</span>',true);
-      chs('"Claim your hardearned reward"',false).addEventListener('click',()=>{removeItem(dl4);global.flags.glqtdldn=true;global.offline_evil_index-=.002;msg('You feel more peaceful','gold');giveItem(acc.ubrlc);smove(chss.mbrd,false)})
-    });
-  }
-  chs('"<= Return"',false).addEventListener('click',()=>{
-    smove(chss.mbrd,false)
-  });    
+chss.xpgdqt1 = new Chs();
+chss.xpgdqt1.id = 167;
+addtosector(sector.vcent,chss.xpgdqt1);
+addtosector(sector.vmain1,chss.xpgdqt1)
+chss.xpgdqt1.sl=()=>{ 
+    d_loc('Village Center, Message Board');
+    global.lst_loc = 166;
+    chs('<span style="color:lime">Xiao Xiao</span>: "What is it what is it?"',true);
+    let dl1=findbyid(inv,acc.wdl1.id);
+    let dl2=findbyid(inv,acc.sdl1.id);
+    let dl3=findbyid(inv,acc.bdl1.id);
+    let dl4=findbyid(inv,acc.gdl1.id);
+    if(dl1){
+        chs('"Show Xiao Xiao a wooden doll"',false).addEventListener('click',()=>{
+            chs('<span style="color:lime">Xiao Xiao</span>: "Nooooo it\'s ugly!!"',true);
+            chs('"<= Take it back"',false).addEventListener('click',()=>{
+                smove(chss.xpgdqt1,false);
+            });
+        });
+    }
+    if(dl2){
+        chs('"Show Xiao Xiao a straw doll"',false).addEventListener('click',()=>{
+            chs('<span style="color:lime">Xiao Xiao</span>: "Nooooo it\'s creepy!!"',true);
+            chs('"<= Take it back"',false).addEventListener('click',()=>{
+                smove(chss.xpgdqt1,false);
+            });
+        });
+    }
+    if(dl3){
+        chs('"Show Xiao Xiao a bone doll"',false).addEventListener('click',()=>{
+            chs('<span style="color:lime">Xiao Xiao</span>: "Nooooo it\'s scary!!"',true);
+            chs('"<= Take it back"',false).addEventListener('click',()=>{
+                smove(chss.xpgdqt1,false);
+            });
+        });
+    }
+    if(dl4){
+        chs('"Show Xiao Xiao a soul doll"',false).addEventListener('click',()=>{
+            chs('<span style="color:lime">Xiao Xiao</span>: "Waai thank you! I love it! I\'ll give you this! Here, take!"<br><br><span style="color:lightgrey">The girl happily runs away with her new toy</span>',true);
+            chs('"Claim your hardearned reward"',false).addEventListener('click',()=>{
+                removeItem(dl4);
+                global.flags.glqtdldn=true;
+                global.offline_evil_index-=.002;
+                msg('You feel more peaceful','gold');
+                giveItem(acc.ubrlc);
+                smove(chss.mbrd,false);
+            });
+        });
+    }
+    chs('"<= Return"',false).addEventListener('click',()=>{
+        smove(chss.mbrd,false);
+    });    
 }
 
 chss.trd = new Chs(); chss.trd.id = 109;
@@ -16707,8 +16737,10 @@ chss.__quickstart.sl = function () {
     global.flags.dj1end = true;  // do not show any skillbook at the dojo
     global.flags.hbgget = true;  // get the bag at home
     global.flags.chbdfst = true; // hidden stash
-    global.flags.frst1u = true;
-    global.flags.frst1um = true; // give permission to enter south forest
+    //global.flags.frst1u = true;  // can enter south forest
+    //global.flags.frst1um = true; // give permission to enter south forest
+    global.flags.frstn1b1g1 = true;  // show guard notice,
+                                     // show dangerous beasts message
     
     //__get_cat();
     //global.stat.cat_c = 100;
@@ -17628,6 +17660,11 @@ function __dbggiveeverything() { //** debug
     for(let a in ttl) giveTitle(ttl[a]);
     for(let a in rcp) giveRcp(rcp[a]);
     return "All items attempted to be given to the player.";
+}
+
+function __dbggivewpn() {
+    giveItem(wpn.scspt2);
+    return "Blue Hand given to player.";
 }
 
 function scan(arr, val, am){
