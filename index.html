@@ -46,7 +46,7 @@ var checksd = [];
 var inv = [];
 var furn = [];
 var qsts = [];
-var dar = [[],[],[],[],[],[],[],[]];
+var dar = [[],[],[],[],[],[],[],[],[]];
 you = new Object();
 var home = new Object();
 eqp.dummy = {};
@@ -202,7 +202,10 @@ global.flags = {
     shackunlocked: false,
     houseunlocked: true,
     hiddengroundsunlocked: false,
-    mountainpillstaken: false
+    mountainpillstaken: false,
+    drunkfromriver: false,
+    riverguytalkedto: false,
+    rivercharmtaken: false,
 };
               
 global.spirits = 100;
@@ -8072,6 +8075,23 @@ item.__leatherwallet.use = function() {
     this.amount--;
 }
 
+acc.__rivercharm = new Chs();
+acc.__rivercharm.id = 80001;
+acc.__rivercharm.name = "Water Charm";
+acc.__rivercharm.desc = "blablablbal";
+acc.__rivercharm.slot = 8;
+acc.__rivercharm.stype = 3;
+acc.__rivercharm.rar = 2;
+acc.__rivercharm.oneq = function() {
+    you.cmaff[6]+=15;
+}
+acc.__rivercharm.onuneq = function() {
+    you.cmaff[6]-=15;
+}
+acc.__rivercharm.onGet = function() {}
+
+
+
 ///////////////////////////////////////////
 //EQP
 ///////////////////////////////////////////
@@ -8468,7 +8488,8 @@ wpn.scspt2.name = 'Blue Hand';
 wpn.scspt2.desc = 'Freezing sword that looks like a scissors blade. Its edge can calm the fieriest fire'+dom.dseparator+'<span style="color:cyan;text-shadow:blue 0px 0px 5px,blue 0px 0px 5px">Water Affinity +25</span><br>';
 wpn.scspt2.slot = 1;
 wpn.scspt2.str = 52;
-wpn.scspt2.cls=[11,8,5];  wpn.scspt2.aff=[0,0,0,-35,25,0,0];
+wpn.scspt2.cls=[11,8,5]; 
+wpn.scspt2.aff=[0,0,0,-35,25,0,0];
 wpn.scspt2.dp=wpn.scspt2.dpmax = 65;
 wpn.scspt2.wtype = 1; 
 wpn.scspt2.atype = 4; 
@@ -8477,9 +8498,11 @@ wpn.scspt2.rar=3;
 wpn.scspt3 = new Eqp();  wpn.scspt3.id = 10055; 
 wpn.scspt3.name = 'Fate Cutters';
 wpn.scspt3.desc = 'Two swords combined together, forming a scissors-shaped weapon. It is said a mad blacksmith created this blade to hunt demigods'+dom.dseparator+'<span style="color:mediumorchid;text-shadow:darkblue 0px 0px 5px,darkblue 0px 0px 5px">Dark Affinity +30</span><br>';
-wpn.scspt3.slot = 1; wpn.scspt3.twoh = true;
+wpn.scspt3.slot = 1;
+wpn.scspt3.twoh = true;
 wpn.scspt3.str = 108;
-wpn.scspt3.cls=[15,12,6]; wpn.scspt3.aff=[0,0,0,15,15,-5,30];
+wpn.scspt3.cls=[15,12,6];
+wpn.scspt3.aff=[0,0,0,15,15,-5,30];
 wpn.scspt3.dp=wpn.scspt3.dpmax = 99;
 wpn.scspt3.wtype = 1; 
 wpn.scspt3.atype = 6; 
@@ -9819,7 +9842,15 @@ function You(){
     this.res={poison:1,burn:1,frost:1,paralyze:1,blind:1,sleep:1,curse:1,death:1,bleed:1,ph:1,venom:1,fpoison:1};
     this.cls=[0,0,0];
     this.ccls=[0,0,0];
-    this.aff=[0,0,0,0,0,0,0];
+    this.aff = [
+        0, // physical
+        0, // air
+        0, // earth
+        0, // fire
+        0, // water 
+        0, // light
+        0  // dark
+    ];    
     this.maff=[0,0,0,0,0,0,0];  
     this.caff=[0,0,0,0,0,0,0];
     this.cmaff=[0,0,0,0,0,0,0];  
@@ -17366,6 +17397,10 @@ chss.__rockpath.sl = function() {
         });
     }
 
+    __achs('"Approach the river"', () => {
+        smove(chss.__river);
+    })
+
     __achs('"<= Return to Village Center"', () => {
         smove(chss.lsmain1);
     });
@@ -17514,6 +17549,155 @@ chss.__hiddengrounds.sl = () => {
     })
 }
 
+chss.__river = new Chs();
+chss.__river.id = 801;
+chss.__river.sl = () => {
+    d_loc('Village, River');
+    __ulst(this);
+
+    chs("There is a quaint body of flowing water at the end of the path, behind some trees. The water seems to glisten underneath the world's light.", true);
+
+    if (global.flags.riverguytalkedto) {
+        __achs('"=> Speak to the old man"', () => {
+            smove(chss.__riverman);
+        })
+    }
+
+    if (!global.flags.drunkfromriver) {
+        __achs('"=> Take a closer look"', () => {
+            smove(chss.__rivercloser);
+        })
+    }
+
+    __achs('"<= Go back to the Rock Path"', () => {
+        smove(chss.__rockpath);
+    });
+}
+
+chss.__rivercloser = new Chs();
+chss.__rivercloser.id = 802;
+chss.__rivercloser.sl = () => {
+    d_loc('Village, River');
+    __ulst(this);
+
+    chs("As you get closer, the rushing of the stream begins to sound like a low whisper. The surface of the water seems to twinkle in an odd manner, as if both possessing and reflecting some sort of internal light.", true);
+
+    if (!global.flags.drunkfromriver) {
+        __achs('"Take a sip"', () => {
+            global.flags.drunkfromriver = true;
+            smove(chss.__riverdrink);
+        });
+    }
+
+    __achs('"<= Back away"', () => {
+        smove(chss.__river);
+    });
+}
+
+chss.__riverdrink = new Chs();
+chss.__riverdrink.id = 803;
+chss.__riverdrink.sl = () => {
+    d_loc('Village, River');
+    __ulst(this);
+
+    if (you.hp >= 7) {
+        you.hp -= 5;
+    } else {
+        you.hp -= 1;
+    }
+    giveSkExp(skl.painr, 5);
+    giveSkExp(skl.poisr, 5);
+
+    dom.d5_1_1.update()
+
+    chs('You crouch down by the water and reach underneath it with cupped hands. You take a sip of it, almost immediately puking. This was a bad idea. After some coughing and hacking, you wipe your mouth and stand upright.', true);
+    __achs('"Upsy-daisy"', () => {
+        if (global.flags.riverguytalkedto) {
+            smove(chss.__river);
+        } else {
+            smove(chss.__rivermanintro);
+        }
+    });
+}
+
+chss.__rivermanintro = new Chs();
+chss.__rivermanintro.id = 804;
+chss.__rivermanintro.sl = () => {
+    d_loc('Village, River');
+    __ulst(this);
+
+    chs('Old Man: Hey! You didn\'t drink the water, did you!?', true);
+    
+    __achs('"I have... Just a sip."', () => {
+        chs('Old Man: Are you serious? Don\'t you know you have to watch out for rivers like this!?', true);
+        __achs('"No... why?"', () => {
+            chs('Old Man: *Sigh* ...it\'s the Qi in it. Bodies of water like rivers possess quite a lot of it... it\'s not good for the body.', true);
+            __achs('"Not good for the body?"', () => {
+                chs('Old Man: No... not with your familiarity of it, anyway. It can mess you up, make you forget things, throw you off-balance from your goals. Of course, there are specialists all over that know how to properly purify the water for drinking.', true);
+                __achs('Since when did this start happening?', () => {
+                    chs('Old Man: Heh... I remember it being like this for a little while when I was young, too. The energy present in all things in nature runs its course and finds its cycle disrupted. Nature mutates and evolves on its own, and sometimes it gives rise to something like this contamination. There are different things that can spur it on... its effects started getting stronger a couple months ago.', true);
+                    __achs('Is there any way to stop it?', () => {
+                        chs('Old Man: Why yes but, an endeavour like that might take the peace of living out of a young person with potential like yourself. Nature will run its course, and it\'ll all dissipate eventually, I\'m sure. For now, focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water.', true);
+                        __achs('I\'m not going to die, am I?', () => {
+                            chs('Old Man: No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on a rest day.', true);
+                            __achs('"Thank you." *Take the charm*', () => {
+                                giveItem(acc.__rivercharm);
+                                global.flags.rivercharmtaken = true;
+                                smove(chss.__river);
+                            })
+                        });
+                    })
+                })
+            });
+        });
+    });
+    
+    __achs('"No... I was only looking."', () => {
+        chs('Old Man: Thank goodness. You have to watch out for rivers like this..!', true);
+        __achs('"Why is that?"', () => {
+            chs('Old Man: *Sigh* you don\'t know?...it\'s the Qi in it. Bodies of water like rivers possess quite a lot of it... it\'s not good for the body.', true);
+            __achs('"Not good for the body?"', () => {
+                chs('Old Man: No... not with your familiarity of it, anyway. It can mess you up, make you forget things, throw you off-balance from your goals. Of course, there are specialists all over that know how to properly purify the water for drinking.', true);
+                __achs('Since when did this start happening?', () => {
+                    chs('Old Man: Heh... I remember it being like this for a little while when I was young, too. The energy present in all things in nature runs its course and finds its cycle disrupted. Nature mutates and evolves on its own, and sometimes it gives rise to something like this contamination. There are different things that can spur it on... its effects started getting stronger a couple months ago.', true);
+                    __achs('Is there any way to stop it?', () => {
+                        chs('Old Man: Why yes but, an endeavour like that might take the peace of living out of a young person with potential like yourself. Nature will run its course, and it\'ll all dissipate eventually, I\'m sure. For now, focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water.', true);
+                        __achs('"Thank you for the advice."', () => {
+                            smove(chss.__river);
+                        });
+                    })
+                })
+            });
+        });
+    });
+}
+
+chss.__riverman = new Chs();
+chss.__riverman.id = 805;
+chss.__riverman.sl = () => {
+    d_loc('Village, River');
+    __ulst(this);
+
+    chs('Old Man: You can never be too careful out there.', true)
+
+    if (!global.flags.rivercharmtaken) {
+        __achs('"I drank some of the water."', () => {
+            chs('Old Man: Ugh, you\'re killing me!.. Why are so many youngsters trying to get themselves killed these days... For now, please just focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water.', true);
+            __achs('I\'m not going to die, am I?', () => {
+                chs('Old Man: No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on your worst day.', true);
+                __achs('"Thank you." *Take the charm*', () => {
+                    giveItem(acc.__rivercharm);
+                    global.flags.rivercharmtaken = true;
+                    smove(chss.__river);
+                })
+            });
+        })
+    }
+
+    __achs('"<= Leave the man"', () => {
+        smove(chss.__river);
+    });
+}
 
 
 function wManager(){
