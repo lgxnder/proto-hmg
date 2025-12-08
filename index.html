@@ -172,9 +172,9 @@ global.keytarget;
 global.offline_evil_index = 1;
 
 global.flags = {
-    btl:       false, //** is the player currently in a battle?
-    civil:     true,  //** is the player currently out-of-battle / in down-time?
-    to_pause:  false, //** has the next battle been queued to pause?
+    btl:       false,
+    civil:     true,
+    to_pause:  false,
     inside:    true,
     israin:    false,
     issnow:    false,
@@ -196,11 +196,12 @@ global.flags = {
     gameone:   false,
     tmmode:    1,
     ssngaijin: true,
-    rptbncgt:  false, //** these variable names are incredible
+    rptbncgt:  false,
     mountainstart: false,
-    rockpathfound: false,
+    rockpathfound: true, 
     shackunlocked: false,
     houseunlocked: true,
+    hiddengroundsunlocked: false,
 };
               
 global.spirits = 100;
@@ -458,8 +459,9 @@ function save(lvr) {
                 toeq : true,
                 data : inv[obj].data
             });
-        if (!scanbyuid(you.eqp,inv[obj].data.uid)) {
-            a3[expectedIndex][a3[expectedIndex].length - 1].toeq = false } //** what the hell is this bracket here for?
+            if (!scanbyuid(you.eqp,inv[obj].data.uid)) {
+                a3[expectedIndex][a3[expectedIndex].length - 1].toeq = false ;
+            }
         }
     }
     
@@ -2048,11 +2050,12 @@ ttl.__mountainchild = new Title(701);
 ttl.__mountainchild.name = 'Mountain Child';
 ttl.__mountainchild.rar = 1;
 ttl.__mountainchild.rars = true;
-ttl.__mountainchild.desc = 'You descended from the peak of a harsh mountain, leaving you with a great proficiency in unarmed combat.';
+ttl.__mountainchild.desc = 'You\'ve descended from the peak of a harsh mountain. Your past experience leaves you with a great proficiency in unarmed combat.';
 ttl.__mountainchild.talent = function() {
     you.mods.undc += 5;
 };
 ttl.__mountainchild.tdesc = 'Improves your unarmed combat skill by a considerable amount.';
+
 
 function Weather(id){
     this.name = '?';
@@ -4867,8 +4870,24 @@ item.smbpll.name='Slumber Pill';
 item.smbpll.desc='Pill with a strong sedative effect. Normally used by sick and old people to treat insomnia, if they can afford it. Has other uses if you are creative enough'+dom.dseparator+'<span style=\'color:lightgrey\'>Makes you sleep through 18 hours in an instant</span>';
 item.smbpll.stype=4;
 item.smbpll.use=function(x){  
-  if(global.flags.btl||global.flags.rdng||global.flags.isshop||global.flags.busy||global.flags.work) {msg('You can\'t sleep now!','red');return}else{let b=.1; let s = HOUR*18; if(!global.flags.sleepmode) giveEff(you,effect.slep); else if(global.current_l.id===112) b+=home.bed.sq; global.stat.plst++
-  for(let a=0;a<s;a++){giveSkExp(skl.sleep,.1); ontick()}if(!global.flags.sleepmode) removeEff(effect.slep);}
+    if (global.flags.btl||global.flags.rdng||global.flags.isshop||global.flags.busy||global.flags.work) {
+        msg('You can\'t sleep now!','red');
+        return;
+    } else {
+        let b = 0.1;
+        let s = HOUR * 18;
+        
+        if (!global.flags.sleepmode) giveEff(you,effect.slep);
+        else if (global.current_l.id===112) b+=home.bed.sq;
+        global.stat.plst++
+        
+        for (let a=0;a<s;a++) {
+            giveSkExp(skl.sleep,.1);
+            ontick();
+        }
+    
+    if (!global.flags.sleepmode) removeEff(effect.slep);
+    }
   this.amount-- ;
 }
 
@@ -10560,7 +10579,8 @@ abl.bash.f = function(x,y){
 ///////////////////////////////////////////
 function Effector() {
   this.id = 0;
-  this.x = '@'; this.c = 'white';
+  this.x = '@';
+  this.c = 'white';
   this.active = false;
   this.activate = function(){}
   this.deactivate = function(){}
@@ -10603,10 +10623,13 @@ function Area(){
     this.onDeath=function(){};
 }
 
-area.nwh = new Area(); area.nwh.id = 101;
+area.nwh = new Area();
+area.nwh.id = 101;
 area.nwh.name = 'Somewhere';
 area.nwh.pop = [{crt:creature.default,lvlmin:1,lvlmax:1,c:1}];
-area.nwh.size = 1; z_bake(area.nwh); global.current_z=area.nwh;
+area.nwh.size = 1;
+z_bake(area.nwh);
+global.current_z=area.nwh;
 
 area.trn = new Area(); area.trn.id = 102;
 area.trn.name = 'Training Grounds';
@@ -10740,14 +10763,28 @@ area.frstn9a1.onEnd = function(){
 
 
 function z_bake(area){
-  let c=0; let d=0; let b=[]; let e=[]; let s=0;
-  for(let i=0;i<area.pop.length;i++) c+=area.pop[i].c; d=1-c;
+  let c=0;
+  let d=0;
+  let b=[];
+  let e=[];
+  let s=0;
+  for(let i=0;i<area.pop.length;i++) c+=area.pop[i].c
+  d=1-c;
+  
   for(let i=0;i<area.pop.length;i++) b[i]=(d/c)*area.pop[i].c+area.pop[i].c;
-  for(let i=0;i<b.length;i++){
-    if(i===0) {e[i]=[0,b[i]];s=b[i];}
-    else if(i===b.length-1) e[i]=[s,1];
-    else {e[i]=[s,b[i]+s];s+=b[i]}
-  } area.popc=e;
+  
+  for(let i=0;i<b.length;i++) {
+    if(i===0) {
+        e[i]=[0,b[i]];
+        s=b[i];
+    }
+    else if (i===b.length-1) e[i]=[s,1];
+    else {
+        e[i]=[s,b[i]+s];
+        s+=b[i]
+    }
+  }
+  area.popc=e;
 }
 
 ///////////////////////////////////////////
@@ -11493,9 +11530,33 @@ vendor.grc1.extra = function(){
 
 vendor.gens1 = new Vendor();
 vendor.gens1.name = 'General Store';
-vendor.gens1.time=vendor.gens1.timeorig=3; vendor.gens1.infl = 1.2; vendor.gens1.dfl = .2;
-vendor.gens1.data.rep=5; vendor.gens1.repsc=4
-vendor.gens1.items=[{item:item.fwd1,p:25,c:1,min:8,max:20},{item:item.coal2,p:80,c:.5,min:2,max:5},{item:item.amrthsck,p:360,c:.2,min:1,max:1},{item:item.dmkbk,p:390,c:.15,min:1,max:1},{item:item.wsb,p:16,c:.7,min:5,max:11},{item:wpn.wsrd1,p:35,c:.6,min:1,max:3},{item:eqp.rncp,p:60,c:.3,min:1,max:3},{item:eqp.rnss,p:70,c:.3,min:1,max:3},{item:eqp.tnc,p:56,c:.3,min:1,max:3},{item:eqp.sndl,p:32,c:.3,min:1,max:6},{item:wpn.bsrd,p:100,c:.3,min:1,max:2},{item:wpn.sprw,p:130,c:.3,min:1,max:3},{item:item.wine1,p:116,c:.2,min:1,max:7},{item:item.rope,p:100,c:.65,min:1,max:6},{item:item.msc1,p:110,c:.25,min:1,max:4},{item:item.tbwr1,p:130,c:.65,min:1,max:4},{item:item.bed2,p:500,c:.45,min:1,max:1},{item:item.cndl,p:200,c:.55,min:1,max:2},{item:item.cclth,p:7,c:.85,min:15,max:50},{item:item.thrdnl,p:2,c:.85,min:3,max:70},{item:acc.ndlb,p:50,c:.73,min:1,max:15}];
+vendor.gens1.time=vendor.gens1.timeorig=3;
+vendor.gens1.infl = 1.2;
+vendor.gens1.dfl = .2;
+vendor.gens1.data.rep=5;
+vendor.gens1.repsc=4
+vendor.gens1.items= [
+    {item:item.fwd1,p:25,c:1,min:8,max:20},
+    {item:item.coal2,p:80,c:.5,min:2,max:5},
+    {item:item.amrthsck,p:360,c:.2,min:1,max:1},
+    {item:item.dmkbk,p:390,c:.15,min:1,max:1},
+    {item:item.wsb,p:16,c:.7,min:5,max:11},
+    {item:wpn.wsrd1,p:35,c:.6,min:1,max:3},
+    {item:eqp.rncp,p:60,c:.3,min:1,max:3},
+    {item:eqp.rnss,p:70,c:.3,min:1,max:3},
+    {item:eqp.tnc,p:56,c:.3,min:1,max:3},
+    {item:eqp.sndl,p:32,c:.3,min:1,max:6},
+    {item:wpn.bsrd,p:100,c:.3,min:1,max:2},
+    {item:wpn.sprw,p:130,c:.3,min:1,max:3},
+    {item:item.wine1,p:116,c:.2,min:1,max:7},
+    {item:item.rope,p:100,c:.65,min:1,max:6},
+    {item:item.msc1,p:110,c:.25,min:1,max:4},
+    {item:item.tbwr1,p:130,c:.65,min:1,max:4},
+    {item:item.bed2,p:500,c:.45,min:1,max:1},
+    {item:item.cndl,p:200,c:.55,min:1,max:2},
+    {item:item.cclth,p:7,c:.85,min:15,max:50},
+    {item:item.thrdnl,p:2,c:.85,min:3,max:70},
+    {item:acc.ndlb,p:50,c:.73,min:1,max:15}];
 vendor.gens1.extra = function(){
   if(random()<.2)chss.gens1.data.gets[0]=false;
 }
@@ -11855,7 +11916,21 @@ dom.d8m2.style.right='0px';dom.d8m2.style.position='absolute';
 dom.d8m2.addEventListener('click',function(){if(!global.flags.civil)global.flags.btl=true;});
 dom.d7m_c = addElement(dom.d1m,'div','ainfo'); 
 dom.d7m = addElement(dom.d7m_c,'small'); 
-dom.d7m.update=function(){global.current_z.size>=0?this.innerHTML = 'Area: '+global.current_z.name+' / '+global.current_z.size:this.innerHTML = 'Area: '+global.current_z.name+' / '+'∞';}; dom.d7m.update();
+dom.d7m.update = function () {
+    if (global.current_z.name == "Somewhere") { 
+        this.innerHTML = 'Area: Somewhere';
+    } else {
+        global.current_z.size >= 0 ?
+        
+        this.innerHTML = 'Area: '+
+        global.current_z.name+' / '+
+        global.current_z.size : 
+        
+        this.innerHTML = 'Area: '+
+        global.current_z.name+' / '+'∞';
+    }
+};
+dom.d7m.update();
 
 dom.inv_ctx = addElement(document.body,'div','inv');
 if (!global.flags.aw_u) dom.inv_ctx.style.display='none'; 
@@ -12953,12 +13028,27 @@ dom.sl_h.addEventListener('click',()=>{
   });
 });
 
-dom.vrs = addElement(dom.sl,'div',null,'sl'); dom.vrs.style.position='fixed';dom.vrs.style.width='auto';dom.vrs.innerHTML='v'+global.ver;
-dom.vrs.style.right='105px';dom.vrs.style.bottom='1px'; dom.vrs.style.color='black';dom.vrs.style.textDecoration='underline'
-dom.vrs.addEventListener('click',function(){window.open('/changelog/changelog.html','_blank')}); dom.vrs.href='changelog'; 
-dom.sl_kill = addElement(dom.sl,'span',null,'sl'); dom.sl_kill.style.position='fixed';dom.sl_kill.style.width='auto';dom.sl_kill.innerHTML='delete the save';
+dom.vrs = addElement(dom.sl,'div',null,'sl');
+dom.vrs.style.position='fixed';
+dom.vrs.style.width='auto';
+dom.vrs.innerHTML = 'v470';
+dom.vrs.style.right='105px';
+dom.vrs.style.bottom='1px';
+dom.vrs.style.color='black';
+dom.vrs.style.textDecoration='underline';
+dom.vrs.addEventListener('click',function(){
+    window.alert('This is a mod of Proto23, based on version 470. This is not the official, updated game.')
+});
+
+dom.sl_kill = addElement(dom.sl,'span',null,'sl');
+dom.sl_kill.style.position='fixed';
+dom.sl_kill.style.width='auto';
+dom.sl_kill.innerHTML='delete the save';
 dom.sl_kill.style.right='5px';dom.sl_kill.style.bottom='1px';
-dom.sl_kill.addEventListener('click', ()=>{localStorage.clear();msg('Save deleted','')});
+dom.sl_kill.addEventListener('click', ()=>{
+    localStorage.clear();
+    msg('Save deleted','');
+});
 
 function update_db(){
   dom.d4_1.innerHTML = 'STR: '+Math.round(you.str_d); dom.d4_2.innerHTML = 'AGL: '+Math.round(you.agl_d);
@@ -15057,22 +15147,23 @@ function Chs() {
 chss.t1 = new Chs();
 chss.t1.id = 101; 
 chss.t1.sl = function() {
-    global.lst_loc = 101;
     global.flags.inside = true;
+    __ulst(this);
+    
     d_loc('Dojo, training area');
     chs('???: Kid...',true); 
-    chs('"..."',false).addEventListener('click', function() {
+    __achs('"..."', () => {
         global.time += DAY; 
         appear(dom.ctr_1);  
         chs('???: Quit daydreaming!', true);
-        chs('"?"',false).addEventListener('click', function() {
+        __achs('"?"', () => {
             appear(dom.d0);
             chs('???: You have training to complete.',true);
-            chs('"!"',false).addEventListener('click', function() {
+            __achs('"!"', () => {
                 appear(dom.inv_ctx);
                 appear(dom.d_lct);
                 chs('???: Grab your stuff and get to it!',true); 
-                chs('"..."',false).addEventListener('click', function() {
+                __achs('"..."', () => {
                     appear(dom.ct_ctrl);
                     smove(chss.tdf, false);
                     giveItem(wpn.stk1);
@@ -15082,13 +15173,54 @@ chss.t1.sl = function() {
             });
         });
     });
+    
     //** quickstart the game
-    chs('Remember your training', false).addEventListener('click', function () {
+    __achs('Remember your training', () => {
         global.time += DAY;
         chs('???: You alright?', true);
-        chs('"I came down from a dojo in the mountains..."', false).addEventListener('click', function() {
+        __achs('"I came down from a dojo in the mountains..."', () => {
             smove(chss.__quickstart, false);
         });
+    });
+
+    __achs('DEBUG: Skip first dummies', () => {
+        appear(dom.ctr_1);    // fade in all menus
+        appear(dom.d0);
+        appear(dom.inv_ctx);
+        appear(dom.d_lct);
+        appear(dom.gmsgs);
+        appear(dom.ct_ctrl);
+        appear(dom.d1m);
+
+        global.flags.mountainstart = true;
+        global.flags.rockpathfound = true;
+        global.flags.houseunlocked = true;
+        global.flags.shackunlocked = true;
+        global.flags.hiddengroundsunlocked = true;
+
+        global.home_loc = 703 // chss__home2 
+        
+        global.flags.aw_u  = true; // unlock menu options
+        global.flags.dm1ap = true;
+        global.flags.asbu  = true;
+        global.flags.sklu  = true;
+        global.flags.actsu = true;
+        global.flags.jnlu  = true;
+
+        dom.ct_bt6.innerHTML = 'journal';
+        dom.ct_bt1.innerHTML = 'assemble';
+        dom.ct_bt3.innerHTML = 'actions';
+        dom.ct_bt2.innerHTML = 'skills';
+
+        appear(dom.mn_2); // make wealth appear
+        appear(dom.mn_3);
+        appear(dom.mn_4);
+        m_update();
+
+        global.flags.mkplc1u = true;
+        global.flags.dj1end = true;
+        
+        smove(chss.lsmain1);
     });
 };
 
@@ -15395,13 +15527,23 @@ chss.trne4e1.sl=()=>{global.flags.inside=true; d_loc('Dojo, training area'); glo
   });
 }
 
-chss.return1 = new Chs(); chss.return1.id = 105;
-chss.return1.sl=()=>{global.flags.inside=true; d_loc('Dojo, training area'); global.lst_loc = 105; 
-  chs('Punch as many as you want',true);
-  if(!global.flags.trnex2) area_init(area.trn); else area_init(area.trnf);
-  chs('"<= Return back into lobby"',false).addEventListener('click',()=>{
-    smove(chss.t3);
-  });
+chss.return1 = new Chs();
+chss.return1.id = 105;
+chss.return1.sl = () => {
+    global.flags.inside = true;
+    d_loc('Dojo, training area');
+    __ulst(this);
+    
+    chs('Punch as many as you want', true);
+    
+    if(!global.flags.trnex2) {
+        area_init(area.trn);
+    }
+    else area_init(area.trnf);
+    
+    __achs('"<= Return back into lobby"', ()=>{
+        smove(chss.t3);
+    });
 }
 
 chss.frstn1main = new Chs(); chss.frstn1main.id = 113;
@@ -15697,7 +15839,7 @@ chss.frstn1b1j.sl=()=>{  global.flags.inside=true;
 
 chss.frstn1a1 = new Chs(); chss.frstn1a1.id = 114; addtosector(sector.forest1,chss.frstn1a1)
 chss.frstn1a1.sl=()=>{global.flags.inside=false; d_loc('Western Woods, The Yellow Path');  
-  chs('The woods are silent',true);
+  chs('The woods are silent.',true);
   chs('"<= Return back"',false).addEventListener('click',()=>{
     smove(chss.frstn1main);
   });
@@ -15708,7 +15850,7 @@ chss.frstn1a1.onEnter=function(){
 
 chss.frstn1a2 = new Chs(); chss.frstn1a2.id = 115; addtosector(sector.forest1,chss.frstn1a2)
 chss.frstn1a2.sl=()=>{ global.lst_loc = 115; global.flags.inside=false; d_loc('Western Woods, The Underbushes'); 
-  chs('You scavenged some goods from this forest area',true);
+  chs('You scavenged some goods from this forest area.',true);
   chs('"=> Go further into the forest"',false).addEventListener('click',()=>{
     smove(chss.frstn2a1);
   });
@@ -15728,7 +15870,7 @@ chss.frstn1a2.onScout=function(){scoutGeneric(this)}
 
 chss.frstn2a1 = new Chs(); chss.frstn2a1.id = 120;  addtosector(sector.forest1,chss.frstn2a1)
 chss.frstn2a1.sl=()=>{global.flags.inside=false; d_loc('Western Woods, The Shaded Path');  
-  chs('The woods are silent',true);
+  chs('The woods are .',true);
   chs('"<= Return back"',false).addEventListener('click',()=>{
     smove(chss.frstn1main);
   });
@@ -15739,7 +15881,7 @@ chss.frstn2a1.onEnter=function(){
 
 chss.frstn3main = new Chs(); chss.frstn3main.id = 168;
 chss.frstn3main.sl=()=>{global.flags.inside=false; d_loc('Southern Forest, The Oaken Gate'); global.lst_loc = 168; 
-  chs('The air here feels intimidating',true);
+  chs('The air here feels intimidating.',true);
   chs('"=> Explore the depths"',false).addEventListener('click',()=>{
     smove(chss.frstn9a1m);
   });
@@ -15750,7 +15892,7 @@ chss.frstn3main.sl=()=>{global.flags.inside=false; d_loc('Southern Forest, The O
 
 chss.frstn9a1m = new Chs(); chss.frstn9a1m.id = 169;
 chss.frstn9a1m.sl=()=>{global.flags.inside=false; d_loc('Southern Forest, The Foliage'); global.lst_loc = 169; 
-  chs('This place looks dark',true);
+  chs('This place looks dark.',true);
   chs('"<= Return back"',false).addEventListener('click',()=>{
     smove(chss.frstn3main);
   });
@@ -15760,59 +15902,67 @@ chss.frstn9a1m.onEnter=function(){
 }
 
 
-chss.lsmain1 = new Chs(); chss.lsmain1.id = 106; addtosector(sector.vcent,chss.lsmain1); addtosector(sector.vmain1,chss.lsmain1)
+chss.lsmain1 = new Chs();
+chss.lsmain1.id = 106;
+addtosector(sector.vcent,chss.lsmain1);
+addtosector(sector.vmain1,chss.lsmain1)
 chss.lsmain1.sl = () => {
-    global.flags.inside=false;
+    global.flags.inside = false;
     d_loc('Village Center');
-    global.lst_loc = 106; 
+    __ulst(this);
     
     if (isWeather(weather.sunny) || isWeather(weather.clear)) {
-        chs('The surroundings are flourishing with life, nothing bad can happen',true);
+        chs('The surroundings are flourishing with life, nothing bad can happen.',true);
     }
     else if (isWeather(weather.cloudy) || isWeather(weather.overcast) || isWeather(weather.stormy)) {
-        chs('You have a feeling it might rain soon',true);
+        chs('You have a feeling it might rain soon.',true);
     }
     else if (isWeather(weather.storm) || isWeather(weather.rain)||isWeather(weather.drizzle)) {
-        chs('The rain feels surprisingly refreshing',true);
+        chs('The rain feels surprisingly refreshing.',true);
     }
     else if (isWeather(weather.heavyrain) || isWeather(weather.thunder)) {
-        chs('It\'s pouring so hard the streets are completely flooded. There\'s noone around '+(getHour()>6&&getHour()<21?'except for a few kids':''),true);
+        chs('It\'s pouring so hard the streets are completely flooded. There\'s no one around '+(getHour()>6&&getHour()<21?'except for a few kids.':''),true);
     }
     else if (isWeather(weather.misty) || isWeather(weather.foggy)) {
-        chs('Can\'t see a meter in front of you with all this fog',true);
+        chs('Can\'t see a meter in front of you with all this fog.',true);
     }
     
-    chs('"=> Check the Message Board"',false).addEventListener('click',()=>{
+    __achs('"=> Check the Message Board"', ()=>{
         smove(chss.mbrd,false);
     });
-    chs('"=> Enter Dojo"',false).addEventListener('click',()=>{
-        smove(chss.t3);
+
+    if (!global.flags.dojolocked) {
+        __achs('"=> Enter Dojo"', () => {
+            smove(chss.t3);
+        });
+    } else {
+        __achs('"=> Enter Dojo"', () => {
+            msg('The entrance to the dojo is locked.');
+        });
+    }
+
+    __achs('"=> Walk to Village Outskirts"',  () => {
+        smove(chss.__villageoutskirts);
     });
-    chs('"=> Enter Southern forest"',false).addEventListener('click',()=>{
-        if(!global.flags.frst1u) msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow'); else{
-        if(!global.flags.frst1um){msg('Gate Guard: "You were given permission to proceed. Go on"','yellow');global.flags.frst1um=true} smove(chss.frstn3main)
-        } 
-    })
-    chs('"=> Enter Western Woods"',false).addEventListener('click',()=>{
-        if(you.lvl>=6) smove(chss.frstn1main); else msg('Gate Guard: "It is too dangerous for you to leave at this moment. Come back when you train a bit"','yellow');
-    })
+    
     //  chs('"=> Visit Pill Tower"',false).addEventListener('click',()=>{
     //    smove(chss.pltwr1);
     //  });
+    
     if (global.flags.mkplc1u === true) {
-        chs('"=> Visit Marketplace"',false).addEventListener('click',()=>{
+        __achs('"=> Visit Marketplace"', ()=>{
             smove(chss.mrktvg1); 
         });
     }
 
     if (global.flags.houseunlocked) {
-        chs('"=> Go home"',false,'green').addEventListener('click',()=>{
+        __achs('"=> Go home"', ()=>{
             smove(chss.home);
-        });
+        }, 'green');
     }
 
     if (global.flags.rockpathfound) {
-        chs('"<= Walk down rocky path"', false).addEventListener('click', () => {
+        __achs('"<= Walk down Rock Path"', () => {
             smove(chss.__rockpath);
         });
     }
@@ -15820,20 +15970,25 @@ chss.lsmain1.sl = () => {
     if(!global.flags.mkplc1u){
         if(global.flags.dj1end === true && global.flags.pmfspmkm1!==true&&random()<.4){
         chs('Paper Boy: Hey, this is for you!',true);
-        chs('?',false).addEventListener('click',()=>{giveItem(item.shppmf);smove(chss.lsmain1,false)});
+        __achs('?', () => {
+            giveItem(item.shppmf);
+            smove(chss.lsmain1,false);
+        });
         }
     }
 }
 
-chss.mrktvg1 = new Chs(); chss.mrktvg1.id = 127; addtosector(sector.vmain1,chss.mrktvg1)
-chss.mrktvg1.sl=()=>{
+chss.mrktvg1 = new Chs();
+chss.mrktvg1.id = 127;
+addtosector(sector.vmain1,chss.mrktvg1);
+chss.mrktvg1.sl = () => {
     global.flags.inside=false; 
     d_loc('Village Center, Marketplace');
     global.lst_loc = 127; 
     chs('The marketplace feels busy',true);
-    chs('"Grocery Shop =>"', false, 'gold').addEventListener('click',()=>{
+    __achs('"Grocery Shop =>"', () => {
         smove(chss.grc1);
-    });
+    }, 'gold');
     chs('"General Store =>"', false, 'gold').addEventListener('click',()=>{
         smove(chss.gens1);
     });
@@ -15994,37 +16149,73 @@ chss.grc1.scout=[
 chss.grc1.onScout=function(){scoutGeneric(this)}
 
 
-chss.gens1 = new Chs(); chss.gens1.id = 129; chss.gens1.effectors=[{e:effector.shop}];
-chss.gens1.sl=()=>{global.flags.inside=true;  d_loc('Marketplace, Shabby General Store'); global.lst_loc = 129; 
-  chs('Sleeping Old Man: '+(select(['...Welcome','...','zzz...','A customer? Pick what you want','Take your time'])),true);
-  chs('"Purchase"',false,'orange').addEventListener('click',()=>{
-    chs_spec(4,vendor.gens1)
-    vendor.gens1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.gens1.restocked===true){clearInterval(timers.vndrstkchk);vendor.gens1.restocked=false;msg('We\'re restocking, step out for a minute');smove(chss.mrktvg1,false);}});  
-    chs('"<= Return"',false,'','',null,null,null,true).addEventListener('click',()=>{
-      smove(chss.gens1,false); clearInterval(timers.vndrstkchk);
+chss.gens1 = new Chs();
+chss.gens1.id = 129;
+chss.gens1.effectors=[{e:effector.shop}];
+chss.gens1.sl=()=>{
+    global.flags.inside=true;
+    d_loc('Marketplace, Shabby General Store');
+    __ulst(this);
+    chs('Sleeping Old Man: '+(select(['...Welcome','...','zzz...','A customer? Pick what you want','Take your time'])),true);
+    __achs('"Purchase"', () => {
+        chs_spec(4,vendor.gens1)
+        vendor.gens1.restocked=false;
+        clearInterval(timers.vndrstkchk);
+        timers.vndrstkchk=setInterval(function(){
+            if(vendor.gens1.restocked===true){
+                clearInterval(timers.vndrstkchk);
+                vendor.gens1.restocked=false;
+                msg('We\'re restocking, step out for a minute');
+                smove(chss.mrktvg1,false);
+            }
+        });  
+        chs('"<= Return"',false,'','',null,null,null,true).addEventListener('click',()=>{
+            smove(chss.gens1,false);
+            clearInterval(timers.vndrstkchk);
+        });
+    }, 'orange');
+    
+    if(item.wvbkt.have) {
+        __achs('"Sell straw baskets '+dom.coincopper+'"', () => {
+            chs('Sleeping Old Man: You made these, kid? Hahaha, alright, i\'ll take them off your hands. 15 '+dom.coincopper+' each!',true);
+            __achs('"Sell your goods"', () => {
+                if(item.wvbkt.amount>0){
+                    giveWealth(item.wvbkt.amount*15);
+                    item.wvbkt.amount=0;
+                    removeItem(item.wvbkt);
+                    smove(chss.gens1,false);
+                } else {
+                    smove(chss.gens1,false);
+                    msg('?')
+                }
+            }, 'lime');
+            __achs('"<= Maybe next time"', ()=>{
+                smove(chss.gens1,false); 
+            });
+        });
+    }
+    if(area.hmbsmnt.size>=1000&&global.flags.hbs1&&!global.flags.bmntsmkgt) {
+        chs('Infestation problem', () => {
+            chs('Sleeping Old Man: Your basement is in bad shape? Same been happening to the other folks lately, it\'s not just you. Something is drilling through the underground right into people\'s homes! And then you get a cellar full of rats. A complete travesty! Some speculate there\'s a monster cave nearby, but nothing was found yet. But don\'t fret, there is a solution for you - you smoke the pests out. Light this bag and toss it in, the deeper the better. Your entire place will be filled with smog, so you will have to leave and stay out for a few hours, then you\'ll have a clean and monster free basement at your disposal. 5 '+dom.coinsilver+' silver the price',true);
+            if (you.wealth >= SILVER*5) {
+                __achs('"Sounds good"', () => {
+                    if(you.wealth<SILVER*5) {
+                        return;
+                    }
+                    spend(SILVER*5);
+                    giveItem(item.bmsmktt);
+                    global.flags.bmntsmkgt=true;
+                    smove(chss.gens1,false);
+                }, 'lime');
+            }
+            __achs('"<= Too expensive"', () => {
+            smove(chss.gens1,false); 
+            });
+        }, 'grey');
+    }
+    __achs('"<= Return back"', () => {
+        smove(chss.mrktvg1); 
     });
-  });
-  if(item.wvbkt.have) chs('"Sell straw baskets '+dom.coincopper+'"',false).addEventListener('click',()=>{
-    chs('Sleeping Old Man: You made these, kid? Hahaha, alright, i\'ll take them off your hands. 15 '+dom.coincopper+' each!',true);
-    chs('"Sell your goods"',false,'lime').addEventListener('click',()=>{if(item.wvbkt.amount>0){
-      giveWealth(item.wvbkt.amount*15);item.wvbkt.amount=0;removeItem(item.wvbkt);smove(chss.gens1,false);}else{smove(chss.gens1,false);msg('?')}
-    });
-    chs('"<= Maybe next time"',false).addEventListener('click',()=>{
-      smove(chss.gens1,false); 
-    });
-  });
-  if(area.hmbsmnt.size>=1000&&global.flags.hbs1&&!global.flags.bmntsmkgt) chs('Infestation problem',false,'grey').addEventListener('click',()=>{
-    chs('Sleeping Old Man: Your basement is in bad shape? Same been happening to the other folks lately, it\'s not just you. Something is drilling through the underground right into people\'s homes! And then you get a cellar full of rats. A complete travesty! Some speculate there\'s a monster cave nearby, but nothing was found yet. But don\'t fret, there is a solution for you - you smoke the pests out. Light this bag and toss it in, the deeper the better. Your entire place will be filled with smog, so you will have to leave and stay out for a few hours, then you\'ll have a clean and monster free basement at your disposal. 5 '+dom.coinsilver+' silver the price',true);
-    if(you.wealth>=SILVER*5) chs('"Sounds good"',false,'lime').addEventListener('click',()=>{if(you.wealth<SILVER*5) return;
-      spend(SILVER*5);giveItem(item.bmsmktt);global.flags.bmntsmkgt=true;smove(chss.gens1,false)
-    });
-    chs('"<= Too expensive"',false).addEventListener('click',()=>{
-      smove(chss.gens1,false); 
-    });
-  });
-  chs('"<= Return back"',false).addEventListener('click',()=>{
-    smove(chss.mrktvg1); 
-  });
 }
 chss.gens1.data={scoutm:200,scout:0,scoutf:false,gets:[false],gotmod:0}
 chss.gens1.scout=[
@@ -16424,7 +16615,7 @@ chss.home.sl = () => {
         });
     }
 
-    chs('"Crash down and take a nap"', false).addEventListener('click', () => {
+    __achs('"Crash down and take a nap"', () => {
         if (sector.home.data.smkp > 0) {
             msg('This isn\'t time for sleep', 'red');
             return;
@@ -16625,13 +16816,16 @@ chss.hbed.sl=()=>{
         if(global.flags.catget) extra=select(['. Your cat is resting next to you', '. You feel warm']);
         chs('Great way to pass time'+extra,true);
     }
-    chs('"<= Get up"',false).addEventListener('click',()=>{ 
-        for(let i in chss) if(chss[i].id===global.home_loc) smove(chss[i]); 
+    __achs('"<= Get up"', ()=>{ 
+        smove(chss.home); 
     });
 }
-chss.hbed.onStay=function(){ 
-    let hpr=(skl.sleep.use(home.bed)+(global.flags.catget?5:1)+1)<<0;  
-    if(!effect.fei1.active&&you.hp<you.hpmax) {you.hp+hpr<=you.hpmax?you.hp+=hpr:you.hp=you.hpmax;dom.d5_1_1.update()}
+chss.hbed.onStay = function(){ 
+    let hpr = (skl.sleep.use(home.bed)+(global.flags.catget ? 5 : 1)+1) << 0;  
+    if (!effect.fei1.active && you.hp < you.hpmax) {
+        you.hp + hpr <= you.hpmax ? you.hp += hpr : you.hp = you.hpmax;
+        dom.d5_1_1.update();
+    }
     // if(global.current_z.id!==-666&&random()<.00001){
     //   let ta = new Area(); ta.id=-666;
     //   ta.name = 'Nightmare';
@@ -16642,11 +16836,13 @@ chss.hbed.onStay=function(){
 }
 chss.hbed.onEnter=function(){
     global.flags.sleepmode=true;
-    if(effect.slep.active===false) giveEff(you,effect.slep);
+    if (effect.slep.active===false) giveEff(you,effect.slep);
     global.timescale = you.timescale_sleeping;;
 }
 chss.hbed.onLeave=function(){
-    global.flags.sleepmode=false; global.timescale=1; removeEff(effect.slep); 
+    global.flags.sleepmode=false;
+    global.timescale=1;
+    removeEff(effect.slep); 
 }
 
 chss.ofrplc = new Chs(); chss.ofrplc.id = 117; addtosector(sector.home,chss.ofrplc)
@@ -16993,7 +17189,7 @@ chss.cata25.sl=()=>{ d_loc('Catacombs, The End Of Journey'); global.lst_loc = 15
 chss.__quickstart = new Chs();
 chss.__quickstart.id = 701;
 chss.__quickstart.sl = function() {
-    global.lst_loc = 701;
+    __ulst(this);
     clr_chs();
     
     appear(dom.ctr_1);    // fade in all menus
@@ -17008,6 +17204,8 @@ chss.__quickstart.sl = function() {
     global.flags.rockpathfound = true;
     global.flags.houseunlocked = false;
     global.flags.shackunlocked = true;
+    global.flags.hiddengroundsunlocked = true;
+    global.flags.dojolocked = true;
 
     global.home_loc = 703 // chss__home2 
     
@@ -17048,8 +17246,9 @@ chss.__quickstart.sl = function() {
 
     giveTitle(ttl.__mountainchild, false);
     you.title = ttl.__mountainchild;
-    //give unarmed mastery
-    giveSkExp(skl.unc, 853, showLevelUp=false);
+    
+    giveSkExp(skl.unc, 853, showLevelUp=false); //give unarmed mastery
+    giveSkExp(skl.fgt, 335, showLevelUp=false);
 
     //area.trn.size = 1000 // change 10k dummies to 1k also need to change chss.djinf
     
@@ -17059,29 +17258,36 @@ chss.__quickstart.sl = function() {
 chss.__rockpath = new Chs();
 chss.__rockpath.id = 702;
 chss.__rockpath.sl = function() {
-    global.lst_loc = 702;
+    __ulst(this);
     clr_chs();
     d_loc('Village, Rock Path');
     
     // insert weather conditions here
     
     if (!global.flags.shackunlocked) {
-        chs('"=> Enter shack"', false).addEventListener('click', () => {
+        __achs('"=> Enter shack"', () => {
             msg('The shack won\'t budge.', 'yellow');
         });
-    }
-    else {
-        chs('"=> Enter shack"', false, 'green').addEventListener('click', () => {
+    } else {
+        __achs('"=> Enter shack"', () => {
             smove(chss.__home2);
+        }, 'green');
+    }
+
+    if (global.flags.hiddengroundsunlocked) {
+        __achs('"=> Enter Hidden Grounds"', () => {
+            smove(chss.__hiddengrounds);
+        }, 'yellow');
+    }
+
+    if (!global.flags.catget) {
+        __achs('"Approach the cat"', () => {
+            smove(chss.cat1);
+            if (!global.stat.cat_c) global.stat.cat_c = 0;
         });
     }
 
-    if (!global.flags.catget) chs('"Approach the cat"',false).addEventListener('click',()=>{
-        smove(chss.cat1);
-        if (!global.stat.cat_c) global.stat.cat_c=0;
-    });
-
-    chs('"<= Return to Village Center"', false).addEventListener('click', () => {
+    __achs('"<= Return to Village Center"', () => {
         smove(chss.lsmain1);
     });
 };
@@ -17091,7 +17297,7 @@ chss.__home2.id = 703;
 //addtosector(sector.home, chss.__home2);
 chss.__home2.sl = () => {
     d_loc('Your Home');
-    global.lst_loc = 703;
+    __ulst(this);
 
     if (!global.flags.catget || sector.home.data.smkp > 0) {
         chs('Your humble abode. You can rest here. ', true);
@@ -17105,7 +17311,7 @@ chss.__home2.sl = () => {
 
     // some item to get here ?
 
-    chs('"Take a nap"', false).addEventListener('click', () => {
+    __achs('"Take a nap"', () => {
         if (sector.home.data.smkp > 0) {
             msg('This isn\'t time for sleep', 'red');
             return;
@@ -17117,7 +17323,7 @@ chss.__home2.sl = () => {
 
     // fireplace?
 
-    chs('"<= Leave the shack"', false).addEventListener('click', () => {
+    __achs('"<= Leave the shack"', () => {
         smove(chss.__rockpath);
     });
 }
@@ -17127,7 +17333,8 @@ chss.__shackbed.id = 704;
 addtosector(sector.home,chss.__shackbed);
 chss.__shackbed.sl = () => {
     d_loc('Your Home, Bed');
-    global.lst_loc = 704;
+    __ulst(this);
+    
     let extra='';
     if(you.alive===false) {
         chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']),true);
@@ -17137,7 +17344,7 @@ chss.__shackbed.sl = () => {
         chs('Great way to pass time'+extra,true);
     }
     chs('"<= Get up"',false).addEventListener('click',()=>{ 
-        for(let i in chss) if(chss[i].id===global.home_loc) smove(chss[i]); 
+        smove(chss.__home2);
     });
 }
 chss.__shackbed.onStay=function(){ 
@@ -17158,9 +17365,53 @@ chss.__shackbed.onLeave=function(){
     removeEff(effect.slep); 
 }
 
+chss.__villageoutskirts = new Chs();
+chss.__villageoutskirts.id = 707;
+chss.__villageoutskirts.sl = () => {
+    d_loc('Village Outskirts');
+    __ulst(this);
+
+    chs('There is a guard posted at the gate. He finds you shifty.', true);
+    
+    __achs('"=> Enter Southern Forest"', () => {
+        if(!global.flags.frst1u) {
+            msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow');
+        } else {
+            if (!global.flags.frst1um) {
+                msg('Gate Guard: "You were given permission to proceed. Go on"','yellow');
+                global.flags.frst1um = true;
+            }
+            smove(chss.frstn3main);
+        } 
+    })
+    ;
+    __achs('"=> Enter Western Woods"', ()=>{
+        if(you.lvl>=6) smove(chss.frstn1main); else msg('Gate Guard: "It is too dangerous for you to leave at this moment. Come back when you train a bit"','yellow');
+    });
+
+    __achs('"<= Walk to Village Center"', () => {
+        smove(chss.lsmain1);
+    });
+};
+
+chss.__hiddengrounds = new Chs();
+chss.__hiddengrounds.id = 706;
+chss.__hiddengrounds.sl = () => {
+    d_loc('Hidden Training Grounds');
+    __ulst(this);
 
 
-function wManager(){ let ses = getSeason()
+    chs("There are disciples meditating nearby. Their eyes are closed and they seem to be intently focusing.", true);
+
+    __achs('"<= Return to rock path"', () => {
+        smove(chss.__rockpath);
+    })
+}
+
+
+
+function wManager(){
+    let ses = getSeason();
   if (w_manager.duration>0) w_manager.duration-=global.timescale; 
   else{
     let chance = rand(1, 100);
@@ -17511,7 +17762,11 @@ function wManager(){ let ses = getSeason()
     dom.d_weathert.style.color=w_manager.curr.c?w_manager.curr.c:'inherit'; dom.d_weathert.style.backgroundColor=w_manager.curr.bc?w_manager.curr.bc:'inherit';
     switch (w_manager.curr.id){
       case weather.sunny.id: 
-        if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML='Sunrise';dom.d_weathert.style.color='#ffef33';dom.d_weathert.style.backgroundColor='#bf495f'} 
+        if ((getHour()>4&&getMinute()>=30)&&getHour()<=6) {
+            dom.d_weathert.innerHTML='Sunrise';
+            dom.d_weathert.style.color='#ffef33';
+            dom.d_weathert.style.backgroundColor='#bf495f'
+        } 
         else if(getHour()>=20&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
         else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Bright Night';dom.d_weathert.style.color='cornflowerblue';dom.d_weathert.style.backgroundColor='#1d4677'}
       break;
@@ -17650,7 +17905,8 @@ function formatw(a){
     if(b>3){let n = a/1000**((b-1)/3<<0)*10; return ((n-~~n>=0.5?1:0)+~~n)/10+global.text.nt[((b-4)/3<<0)]} return a;
 }
 
-function d_loc(text){
+// display current location in menu 
+function d_loc(text) {
     let txt;
     if(global.flags.inside===true) {
         txt = '|'+text+'|';
@@ -17834,38 +18090,82 @@ function wdrseason(flag){
 }
 
 function ontick(){
-  global.stat.tick++;
-  time.minute+=global.timescale; wManager(); 
-  for(let a in plans[0]) plans[0][a].f();
-  dom.d_time.innerHTML = '<small>'+getDay(global.flags.tmmode||2)+'</small> '+timeDisp(time); //global.stat.seed1=(random()*7e+7<<7)%7&7
-  global.current_l.onStay(); runEffectors(global.current_l.effectors)
-  for(let a in sectors) {sectors[a].onStay(); runEffectors(sectors[a].effectors)}
-  giveSkExp(skl.aba,.004);
-  let timeh = (time.minute/DAY)<<0; if(global.timehold!==timeh) {global.timehold=timeh; //proc when day passes
-    for(let a in plans[1]) plans[1][a].f();
-    for(let vnd in vendor) vendor[vnd].onDayPass();
-    empty(dom.d_moon); dom.d_moon.innerHTML=global.text.lunarp[getLunarPhase()][0]; addDesc(dom.d_moon,null,2,'Lunar Phase',global.text.lunarp[getLunarPhase()][1])
-    wdrseason(global.flags.ssngaijin); if(getSeason()===4) global.flags.iscold=true; else global.flags.iscold=false; global.offline_evil_index+=.00008
-    ///////////////////////////////// 
-    let timew = (time.minute/WEEK)<<0; if(global.timewold!==timew) {global.timewold=timew; //proc when week passes
-      for(let a in plans[2]) plans[2][a].f();
-    }  
-  }
-  let h = getHour();
-  if(h>5&&h<22){global.flags.isday=true;dom.d_moon.style.display='none'}else{if(global.flags.inside===false&&random()<.00002*you.mods.stdstps){msg('A star particle landed on you!','gold',null,null,'darkblue');giveItem(item.stdst)}global.flags.isday=false;dom.d_moon.style.display=''}
-  for(let g=0;g<you.eff.length;g++) if(you.eff[g].type===3||you.eff[g].type===5||you.eff[g].type===6) you.eff[g].use(you.eff[g].y,you.eff[g].z);
-  for(let g=0;g<global.current_m.eff.length;g++) if(global.current_m.eff[g].type===3||global.current_m.eff[g].type===5||global.current_m.eff[g].type===6) global.current_m.eff[g].use(global.current_m.eff[g].y,global.current_m.eff[g].z);
-  if(global.flags.btl===true) timers.btl=setTimeout(fght(you,global.current_m),1000/global.fps); else giveSkExp(skl.mdt,.0065*(1+skl.ptnc.lvl*.15)*(effect.incsk.active===true?2:1))
-  for(let obj in furn) furn[obj].use();
-  //for(let q in qsts) qsts[q].tracker();
-  if(you.sat>0) { let lose = you.mods.sdrate
-    if(global.flags.iswet===true) lose*=(3/(1+(skl.abw.lvl*.03)))
-    if(global.flags.iscold===true) lose+=effect.cold.duration/1000/(1+skl.coldr.lvl*.05); 
-    you.sat-=lose
-  } else giveSkExp(skl.fmn,.1);
-  if(global.flags.sleepmode) global.stat.timeslp+=global.timescale;
-  if(random()<.00000001) {let au = new Audio("laugh6.wav");au.play()}
-  dom.d5_3_1.update();
+    global.stat.tick++;
+    time.minute += global.timescale;
+    wManager(); 
+    
+    for (let a in plans[0]) plans[0][a].f();
+    
+    dom.d_time.innerHTML = '<small>'+
+    getDay(global.flags.tmmode||2)+
+    '</small> '+
+    timeDisp(time); //global.stat.seed1=(random()*7e+7<<7)%7&7
+    
+    global.current_l.onStay();
+    runEffectors(global.current_l.effectors);
+  
+    for (let a in sectors) {
+        sectors[a].onStay();
+        runEffectors(sectors[a].effectors);
+    }
+    giveSkExp(skl.aba,.004);
+    let timeh = (time.minute/DAY)<<0;
+    if(global.timehold!==timeh) {
+        global.timehold=timeh; //proc when day passes
+        for(let a in plans[1]) plans[1][a].f();
+        for(let vnd in vendor) vendor[vnd].onDayPass();
+        empty(dom.d_moon);
+        dom.d_moon.innerHTML=global.text.lunarp[getLunarPhase()][0];
+        addDesc(dom.d_moon,null,2,'Lunar Phase',global.text.lunarp[getLunarPhase()][1]);
+        wdrseason(global.flags.ssngaijin);
+        if(getSeason()===4) global.flags.iscold=true;
+        else global.flags.iscold=false;
+        global.offline_evil_index+=.00008;
+        ///////////////////////////////// 
+        let timew = (time.minute/WEEK)<<0;
+        if(global.timewold!==timew) {
+            global.timewold=timew; //proc when week passes
+            for(let a in plans[2]) plans[2][a].f();
+        }  
+    }
+    let h = getHour();
+    if (h>5&&h<22) {
+        global.flags.isday=true;
+        dom.d_moon.style.display='none'
+    } else {
+        if(global.flags.inside===false&&random()<.00002*you.mods.stdstps) {
+            msg('A star particle landed on you!','gold',null,null,'darkblue');
+            giveItem(item.stdst)
+        }
+        global.flags.isday=false;
+        dom.d_moon.style.display='';
+    }
+    for(let g=0;g<you.eff.length;g++) if(you.eff[g].type===3||you.eff[g].type===5||you.eff[g].type===6) you.eff[g].use(you.eff[g].y,you.eff[g].z);
+    for(let g=0;g<global.current_m.eff.length;g++) if(global.current_m.eff[g].type===3||global.current_m.eff[g].type===5||global.current_m.eff[g].type===6) global.current_m.eff[g].use(global.current_m.eff[g].y,global.current_m.eff[g].z);
+    
+    if(global.flags.btl===true) timers.btl=setTimeout(fght(you,global.current_m),1000/global.fps);
+    else giveSkExp(skl.mdt,.0065*(1+skl.ptnc.lvl*.15)*(effect.incsk.active===true?2:1));
+    
+    for(let obj in furn) furn[obj].use();
+    //for(let q in qsts) qsts[q].tracker();
+    if(you.sat>0) {
+        let lose = you.mods.sdrate
+        if (global.flags.iswet  === true) lose*=(3/(1+(skl.abw.lvl*.03)))
+        if (global.flags.iscold === true) lose+=effect.cold.duration/1000/(1+skl.coldr.lvl*.05); 
+        you.sat -= lose;
+    } else {
+        giveSkExp(skl.fmn,.1);
+    }
+    if(global.flags.sleepmode) global.stat.timeslp+=global.timescale;
+    
+    /* sorry ;<
+    if(random()<.00000001) {
+        let au = new Audio("laugh6.wav");
+        au.play();
+    }
+    */
+    
+    dom.d5_3_1.update();
 }
 
 (function update(){
@@ -18845,6 +19145,7 @@ function __dbggiveeverything() { //** debug
     for(let a in acc) giveItem(acc[a]);
     for(let a in ttl) giveTitle(ttl[a]);
     for(let a in rcp) giveRcp(rcp[a]);
+    
     return "All items attempted to be given to the player.";
 }
 
@@ -18877,6 +19178,20 @@ function __get_cat() {
 function __heal() {
     you.hp = you.hpmax;
     dom.d5_1_1.update();
+}
+
+// update global last location using an area's id
+function __ulst(chss) {
+    global.lst_loc = chss.id;
+}
+
+// create a new choice and add an event listener to it that triggers an action
+function __achs(txt, action, color=null) {
+    chs_elem = chs(txt, false, color);
+    chs_elem.addEventListener('click', () => {
+        action();
+    });
+    return chs_elem;
 }
 
 </script>
