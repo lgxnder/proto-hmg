@@ -202,6 +202,7 @@ global.flags = {
     shackunlocked: false,
     houseunlocked: true,
     hiddengroundsunlocked: false,
+    mountainpillstaken: false
 };
               
 global.spirits = 100;
@@ -11693,23 +11694,25 @@ if (!global.flags.aw_u) {
 }
 dom.d1 = addElement(dom.d0,'div');
 dom.d101 = addElement(dom.d0,'div','se_i'); 
+dom.d2c = addElement(dom.d1,'div',null,'d2'); 
 
-dom.d2c = addElement(dom.d1,'div',null,'d2');
+// player stats container
 dom.d2 = addElement(dom.d2c,'div');
 dom.d2.innerHTML = you.name; 
 dom.d2_a = addElement(dom.d2c,'input','nch'); 
 dom.d2_a.addEventListener('focusin',function() {
     dom.d2_a.value = you.name;
     you.name = '';
-    dom.d2.innerHTML = '　'
+    dom.d2.innerHTML = '　';
 });
 dom.d2_a.addEventListener('focusout',function() {
     you.name = dom.d2_a.value;
     dom.d2_a.value = '';
     dom.d2.innerHTML = you.name;
 });
-addDesc(dom.d2c,null,2,you.name,you.desc); 
+addDesc(dom.d2c,null,2,you.name,you.desc);
 
+// titles
 dom.d3 = addElement(dom.d1,'div',null,'d3');
 dom.d3.innerHTML = ' lvl:'+you.lvl+' \''+you.title.name+'\'';
 dom.d3.addEventListener('click',function() {
@@ -11902,6 +11905,7 @@ dom.d9m.update=function(){this.innerHTML='rank: '+global.text.eranks[global.curr
 dom.d9m.style.borderBottom='#545299 dotted 2px';
 dom.d9m.style.backgroundColor='#272744';
 
+// area
 dom.d8m_c = addElement(dom.d1m,'small','bbts');
 dom.d8m1 = addElement(dom.d8m_c,'div',null,'bbts');
 dom.d8m1.innerHTML = 'Pause next battle: <span style=\'color:green\'>&nbspOFF';
@@ -11932,6 +11936,7 @@ dom.d7m.update = function () {
 };
 dom.d7m.update();
 
+// inventory
 dom.inv_ctx = addElement(document.body,'div','inv');
 if (!global.flags.aw_u) dom.inv_ctx.style.display='none'; 
 dom.inventory = addElement(dom.inv_ctx,'div'); 
@@ -12920,38 +12925,56 @@ dom.m_b_2.innerHTML = '　stop combatlog　';
 dom.m_b_2.style.left='19px';
 dom.m_b_2_c = addElement(dom.m_b_2,'span',null,'bts_m_b'); 
 dom.m_b_2.addEventListener('click',()=>{
-  if(global.flags.m_blh===false) {global.flags.m_blh=true;dom.m_b_2_c.innerHTML='Ｘ'}
-  else{global.flags.m_blh=false;dom.m_b_2_c.innerHTML=''}
+  if (global.flags.m_blh === false) {
+      global.flags.m_blh = true;
+      dom.m_b_2_c.innerHTML = 'Ｘ';
+  }
+  else {
+      global.flags.m_blh = false;
+      dom.m_b_2_c.innerHTML = '';
+  }
 });
 dom.m_b_3 = addElement(dom.m_control,'small',null,'bts_m');
-dom.m_b_3.innerHTML = 'CLR'; dom.m_b_3.style.width='36px';
+dom.m_b_3.innerHTML = 'CLR';
+dom.m_b_3.style.width='36px';
 dom.m_b_3.style.borderRight='none';
-dom.m_b_3.style.left='38px';dom.m_b_3.style.textAlign='center';
+dom.m_b_3.style.left='38px';
+dom.m_b_3.style.textAlign='center';
 dom.m_b_3.addEventListener('click',()=>{empty(dom.mscont)});
 
-addDesc(dom.inv_btn_1,null,2,'Filter','All'); addDesc(dom.inv_btn_2,null,2,'Filter','Weapons');
-addDesc(dom.inv_btn_3,null,2,'Filter','Armor'); addDesc(dom.inv_btn_4,null,2,'Filter','Comestibles');
+addDesc(dom.inv_btn_1,null,2,'Filter','All');
+addDesc(dom.inv_btn_2,null,2,'Filter','Weapons');
+addDesc(dom.inv_btn_3,null,2,'Filter','Armor');
+addDesc(dom.inv_btn_4,null,2,'Filter','Comestibles');
 addDesc(dom.inv_btn_5,null,2,'Filter','Materials/Other');
 addDesc(dom.inv_btn_1_b,null,2,'Filter','Alphabetically');
 addDesc(dom.inv_btn_2_b,null,2,'Filter','by Amount');
 addDesc(dom.inv_btn_3_b,null,2,'Filter','by Type');
 
-global.dscr = addElement(document.body, 'div', 'dscr'); global.dscr.style.display='none';
+global.dscr = addElement(document.body, 'div', 'dscr');
+global.dscr.style.display='none';
 
 function invbtsrst(){
-dom.inv_btn_1.removeAttribute('style');dom.inv_btn_2.removeAttribute('style');dom.inv_btn_3.removeAttribute('style');
-dom.inv_btn_4.removeAttribute('style');dom.inv_btn_5.removeAttribute('style');
-  switch(global.sm){
-    case 1: dom.inv_btn_1.style.color='black'; dom.inv_btn_1.style.backgroundColor='yellow';break;
-    case 2: dom.inv_btn_2.style.color='black'; dom.inv_btn_2.style.backgroundColor='yellow';break;
-    case 3: dom.inv_btn_3.style.color='black'; dom.inv_btn_3.style.backgroundColor='yellow';break;
-    case 4: dom.inv_btn_4.style.color='black'; dom.inv_btn_4.style.backgroundColor='yellow';break;
-    case 5: dom.inv_btn_5.style.color='black'; dom.inv_btn_5.style.backgroundColor='yellow';break;
-  }
+  dom.inv_btn_1.removeAttribute('style');
+  dom.inv_btn_2.removeAttribute('style');
+  dom.inv_btn_3.removeAttribute('style');
+  dom.inv_btn_4.removeAttribute('style');
+  dom.inv_btn_5.removeAttribute('style');
+      switch(global.sm){
+          case 1: dom.inv_btn_1.style.color='black'; dom.inv_btn_1.style.backgroundColor='yellow';break;
+          case 2: dom.inv_btn_2.style.color='black'; dom.inv_btn_2.style.backgroundColor='yellow';break;
+          case 3: dom.inv_btn_3.style.color='black'; dom.inv_btn_3.style.backgroundColor='yellow';break;
+          case 4: dom.inv_btn_4.style.color='black'; dom.inv_btn_4.style.backgroundColor='yellow';break;
+          case 5: dom.inv_btn_5.style.color='black'; dom.inv_btn_5.style.backgroundColor='yellow';break;
+      }
 }
 
-dom.inv_btn_1.innerHTML = 'ALL'; dom.inv_btn_2.innerHTML = 'WPN'; dom.inv_btn_3.innerHTML = 'EQP';
-dom.inv_btn_4.innerHTML = 'USE'; dom.inv_btn_5.innerHTML = 'OTHER';
+// inventory filters 
+dom.inv_btn_1.innerHTML = 'ALL';
+dom.inv_btn_2.innerHTML = 'WPN';
+dom.inv_btn_3.innerHTML = 'EQP';
+dom.inv_btn_4.innerHTML = 'USE';
+dom.inv_btn_5.innerHTML = 'OTHER';
 dom.inv_btn_1_b.innerHTML = 'A-Z';
 dom.inv_btn_2_b.innerHTML = '1-9';
 dom.inv_btn_3_b.innerHTML = 'TPE';
@@ -12959,9 +12982,14 @@ dom.inv_con = addElement(dom.inv_ctx_b,'div','inv_con'); dom.inv_con.style.paddi
 /*dom.inv_con.addEventListener('scroll',function(){
   for(a in this.children) {if(this.children[a].offsetTop-this.scrollTop+19<0) this.children[a].style.display='none'; else dom.inv_con[a].style.display='';}
 });*/
-dom.inv_btn_1.addEventListener('click',function(){isort(1);invbtsrst()}); dom.inv_btn_2.addEventListener('click',function(){isort(2);invbtsrst()});
-dom.inv_btn_3.addEventListener('click',function(){isort(3);invbtsrst()}); dom.inv_btn_4.addEventListener('click',function(){isort(4);invbtsrst()});
+
+// sorting filters
+dom.inv_btn_1.addEventListener('click',function(){isort(1);invbtsrst()});
+dom.inv_btn_2.addEventListener('click',function(){isort(2);invbtsrst()});
+dom.inv_btn_3.addEventListener('click',function(){isort(3);invbtsrst()});
+dom.inv_btn_4.addEventListener('click',function(){isort(4);invbtsrst()});
 dom.inv_btn_5.addEventListener('click',function(){isort(5);invbtsrst()});
+
 dom.inv_btn_1_b.addEventListener('click',function(){
   if(global.flags.sort_a===true){
     inv.sort(function(a,b){if(a.name<b.name) return-1; if(a.name>b.name) return 1;return 0});
@@ -12971,6 +12999,7 @@ dom.inv_btn_1_b.addEventListener('click',function(){
     global.flags.sort_a = true;
   } iftrunkopenc(1);
 isort(global.sm)});
+
 dom.inv_btn_2_b.addEventListener('click',function(){
   if(global.flags.sort_b===true){
     inv.sort(function(a,b){if(a.amount<b.amount) return-1; if(a.amount>b.amount) return 1;if(a.name<b.name) return-1; if(a.name>b.name) return 1;return 0});
@@ -12980,6 +13009,7 @@ dom.inv_btn_2_b.addEventListener('click',function(){
     global.flags.sort_b = true;
   } iftrunkopenc(1);
 isort(global.sm)});
+
 dom.inv_btn_3_b.addEventListener('click',function(){
   if(global.flags.sort_c===true){
     inv.sort(function(a,b){if(a.id<b.id) return-1; if(a.id>b.id) return 1;if(a.name<b.name) return-1; if(a.name>b.name) return 1;return 0});
@@ -12989,6 +13019,7 @@ dom.inv_btn_3_b.addEventListener('click',function(){
     global.flags.sort_c = true;
   } iftrunkopenc(1);
 isort(global.sm)});
+
 dom.d3.update =function(){this.innerHTML=' lvl:'+you.lvl+' \''+you.title.name+'\'';}
 dom.d5_1_1.update=function(){this.innerHTML = 'hp: '+format3(you.hp.toString())+'/'+format3(you.hpmax.toString()); dom.d5_1.style.width = 100*you.hp/you.hpmax+'%'}; 
 dom.d5_2_1.update=function(){this.innerHTML = 'exp: '+format3(Math.round(you.exp).toString())+'/'+format3(you.expnext_t.toString()); dom.d5_2.style.width = 100*you.exp/you.expnext_t+'%'}; dom.d5_2_1.update();
@@ -13001,6 +13032,7 @@ dom.hit_c = function(){
     dom.d8.innerHTML = 'hit chance: <span style="color:'+(drk?'darkgrey':'')+'">'+Math.round(hit_a*(drk?(.3+skl.ntst.lvl*.07):1))+'%</span> / dodge chance: '+(100-Math.round(hit_b))+'%'+(you.mods.ddgmod!==0?('(<span style="color:orange">'+you.mods.ddgmod*100+'%</span>)'):'');
 }
 
+// save/load/version footer
 dom.sl = addElement(document.body,'div','sl','noselect');
 dom.sl.style.zIndex=10000;
 dom.sl_s = addElement(dom.sl,'span',null,'sl');
@@ -14368,22 +14400,66 @@ function renderItem(obj){
     case 2:var z= icon(inv_slot,4,1,18,18);z.style.paddingRight=2;break;
     case 3:var z= icon(inv_slot,3,1,18,18);z.style.paddingRight=2;break;
   }*/ 
-  let inv_name = addElement(inv_slot,'span');inv_name.innerHTML = obj.name;
+  let inv_name = addElement(inv_slot,'span');
+  inv_name.innerHTML = obj.name;
   if(!!obj.data.skey) inv_name.innerHTML+='<small> {'+String.fromCharCode(obj.data.skey)+'}</small>';
   if(obj.new===true) inv_name.innerHTML+='<small style="font-size:.65em;color: yellow;position:absolute" class="blinks">　new</small>';
+
   inv_slot_c.addEventListener('mouseenter',function(){ 
-    global.keyobj=obj; inv_slot.tabIndex=0; inv_slot.focus(); inv_slot.addEventListener('keydown',listen_k); global.flags.kfocus=true;
+    global.keyobj=obj;
+    inv_slot.tabIndex=0;
+    inv_slot.focus();
+    inv_slot.addEventListener('keydown',listen_k);
+    global.flags.kfocus=true;
     if(obj.important===false&&obj.slot){
-      dom.inv_del = addElement(inv_slot_c,'span',null,'del_b'); dom.inv_del.innerHTML = 'x';
+      dom.inv_del = addElement(inv_slot_c,'span',null,'del_b');
+      dom.inv_del.innerHTML = 'x';
       addDesc(dom.inv_del,null,2,'Throw away','Deletes <span style="color:cyan">\"'+obj.name+'\"</span> permanently');
       dom.inv_del.addEventListener('click',()=>{
         if(obj.data.uid===you.eqp[obj.slot-1].data.uid){
-          let prm = addElement(document.body,'div'); prm.style.backgroundColor='grey';prm.style.width=document.body.clientWidth;prm.style.height=document.body.clientHeight;prm.style.position='absolute';prm.style.left=0;prm.style.top=0;prm.style.opacity=.4;
-          let prm2 = addElement(document.body,'div'); prm2.style.position='absolute';prm2.style.top=document.body.clientHeight/2-40;prm2.style.left=1300/2-195;prm2.style.width=390;prm2.style.height=80;prm2.style.border='4px black solid';prm2.style.padding=5;prm2.style.backgroundColor='lightgrey';
-          let pin = addElement(prm2,'div'); pin.style.height=32; pin.innerHTML='Really destroy \"'+obj.name+'\"\?';pin.style.textAlign='center';pin.style.width='100%';pin.style.borderBottom='2px solid black';pin.style.paddingTop=10;
-          let pcon = addElement(prm2,'div'); pcon.style.display='flex';pcon.style.textAlign='center';pcon.style.backgroundColor='darkgrey';
-          let phai = addElement(pcon,'div'); phai.style.width='50%'; phai.innerHTML='YES';phai.style.paddingTop=9;phai.style.paddingBottom=9;
-          let piie = addElement(pcon,'div'); piie.style.width='50%'; piie.innerHTML='NO';piie.style.paddingTop=9;piie.style.paddingBottom=9;
+
+          let prm = addElement(document.body,'div');
+          prm.style.backgroundColor='grey';
+          prm.style.width=document.body.clientWidth;
+          prm.style.height=document.body.clientHeight;
+          prm.style.position='absolute';
+          prm.style.left=0;
+          prm.style.top=0;
+          prm.style.opacity=.4;
+
+          let prm2 = addElement(document.body,'div');
+          prm2.style.position='absolute';
+          prm2.style.top=document.body.clientHeight/2-40;
+          prm2.style.left=1300/2-195;
+          prm2.style.width=390;
+          prm2.style.height=80;prm2.style.border='4px black solid';
+          prm2.style.padding=5;prm2.style.backgroundColor='lightgrey';
+
+          let pin = addElement(prm2,'div');
+          pin.style.height=32;
+          pin.innerHTML='Really destroy \"'+obj.name+'\"\?';
+          pin.style.textAlign='center';
+          pin.style.width='100%';
+          pin.style.borderBottom='2px solid black';
+          pin.style.paddingTop=10;
+
+          let pcon = addElement(prm2,'div');
+          pcon.style.display='flex';
+          pcon.style.textAlign='center';
+          pcon.style.backgroundColor='darkgrey';
+
+          let phai = addElement(pcon,'div');
+          phai.style.width='50%';
+          phai.innerHTML='YES';
+          phai.style.paddingTop=9;
+          phai.style.paddingBottom=9;
+
+          let piie = addElement(pcon,'div');
+          piie.style.width='50%';
+          piie.innerHTML='NO';
+          piie.style.paddingTop=9;
+          piie.style.paddingBottom=9
+
           phai.addEventListener('mouseenter',function(){this.style.backgroundColor='#666'});piie.addEventListener('mouseenter',function(){this.style.backgroundColor='#666'});
           phai.addEventListener('mouseleave',function(){this.style.backgroundColor='darkgrey'});piie.addEventListener('mouseleave',function(){this.style.backgroundColor='darkgrey'});
           phai.addEventListener('click',()=>{giveSkExp(skl.rccln,(2**obj.rar)*5-9.5);giveSkExp(skl.thr,.5);global.stat.thrt++;removeItem(obj);document.body.removeChild(prm);document.body.removeChild(prm2)});
@@ -14436,7 +14512,8 @@ function renderItem(obj){
     dom.spc_a.innerHTML = 'E';
   }
   if(!obj.slot){
-    let s_am = addElement(inv_slot,'small',null,'s_am'); s_am.innerHTML=' x'+(obj.amount);
+    let s_am = addElement(inv_slot,'small',null,'s_am');
+    s_am.innerHTML=' x'+(obj.amount);
     inv_slot.addEventListener('mouseenter',function(){global.flags.kfocus=true;this.tabIndex=0; this.focus(); global.keyobj=obj; this.addEventListener('keydown',listen_k)})
     inv_slot.addEventListener('mouseleave',function(){global.flags.kfocus=false;this.tabIndex=-1; global.keyobj=0;this.removeEventListener('keydown',listen_k);})
   }
@@ -14472,7 +14549,9 @@ function removeItem(obj,flag){
     } else if(global.sm===obj.stype){idx=global.sinv.indexOf(obj); 
       dom.inv_con.removeChild(dom.inv_con.children[idx])
     global.sinv.splice(idx,1);} 
-  global.dscr.style.display='none'; inv.splice(inv.indexOf(obj),1); obj.have=false; 
+  global.dscr.style.display='none';
+  inv.splice(inv.indexOf(obj),1);
+  obj.have=false; 
   if(obj.rot) for(let a in planner.imorph.data.items) if(planner.imorph.data.items[a].id===obj.id){planner.imorph.data.items.splice(planner.imorph.data.items.indexOf(obj));}
   if(global.lw_op===1) rsort(global.rm)
   if(flag&&flag.fl) iftrunkopen(1); else iftrunkopenc(1); if(obj.slot) kill(obj)
@@ -15937,7 +16016,7 @@ chss.lsmain1.sl = () => {
         });
     } else {
         __achs('"=> Enter Dojo"', () => {
-            msg('The entrance to the dojo is locked.');
+            msg('The entrance to the dojo is locked.', 'lightyellow');
         });
     }
 
@@ -17374,19 +17453,46 @@ chss.__villageoutskirts.sl = () => {
     chs('There is a guard posted at the gate. He finds you shifty.', true);
     
     __achs('"=> Enter Southern Forest"', () => {
-        if(!global.flags.frst1u) {
+        if(!global.flags.frst1u && !global.flags.mountainstart) {
             msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow');
-        } else {
+        } else if (!global.flags.mountainstart) {
             if (!global.flags.frst1um) {
                 msg('Gate Guard: "You were given permission to proceed. Go on"','yellow');
                 global.flags.frst1um = true;
             }
             smove(chss.frstn3main);
-        } 
+        } else if (global.flags.mountainstart) {
+            console.log('placeholder');
+            //msg('...', 'lightyellow');
+        }
     })
     ;
     __achs('"=> Enter Western Woods"', ()=>{
-        if(you.lvl>=6) smove(chss.frstn1main); else msg('Gate Guard: "It is too dangerous for you to leave at this moment. Come back when you train a bit"','yellow');
+        if(you.lvl >= 6 && !global.flags.mountainstart) {
+            smove(chss.frstn1main);
+        } else if (!global.flags.mountainstart) {
+            msg('Gate Guard: "It is too dangerous for you to leave at this moment. Come back when you train a bit"','yellow');
+        } else if (global.flags.mountainstart) {
+            if (global.flags.mountainpillstaken) {
+                msg('I better watch myself in here.', 'lightyellow');
+            }
+            else {
+                for (let a in inv) {
+                    if (inv[a] === item.sp2) {
+                        amt = inv[a].amount;
+                        inv[a].amount = 0;
+
+                        for (let i = 0; i <= amt; i++) {
+                            inv[a].use();
+                        }
+                        removeItem(inv[a]);
+                    }
+                }
+                global.flags.mountainpillstaken = true;
+                msg('It\'s better to be safe than sorry.', 'lightyellow');
+                smove(chss.frstn1main);
+            }
+        }
     });
 
     __achs('"<= Walk to Village Center"', () => {
@@ -19193,6 +19299,7 @@ function __achs(txt, action, color=null) {
     });
     return chs_elem;
 }
+
 
 </script>
 </body>
