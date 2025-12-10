@@ -9815,12 +9815,15 @@ global.nethmchk=[
 ///////////////////////////////////////////
 
 function You(){
-    this.name='You';
-    this.title=ttl.new;
-    this.desc='This is you';
+    this.name = 'You';
+    this.title = ttl.new;
+    this.desc = 'This is you';
     this.id = -1;
-    this.type=0;
-    this.rank = function(){return Math.ceil(50000000000000*(1/(((this.agl+this.str+(you.eqp[0].str)+this.spd+this.int)**2)/Math.sqrt((this.agl+this.str+this.int+(this.spd/this.lvl))*512/(this.luck*.1+1)))))}; this.rnk=0;
+    this.type = 0;
+    this.rank = function(){
+        return Math.ceil(50000000000000*(1/(((this.agl+this.str+(you.eqp[0].str)+this.spd+this.int)**2) / Math.sqrt((this.agl+this.str+this.int+(this.spd/this.lvl))*512/(this.luck*.1+1)))))
+    };
+    this.rnk = 0;
     this.lvl = 1;
     this.exp = 0;
     this.expnext = function(){return this.lvl*((this.lvl*2)**2)+(this.lvl**2)}; this.expnext_t=this.expnext();
@@ -9941,16 +9944,18 @@ you.ai = function() {
 ///////////////////////////////////////////
 
 function Creature(){
+    // information about enemy type, stat_p, and cls comes from https://github.com/Skelly-Boi/proto23-clear-base .
+    // thank you for making a cleaner base, I wish I'd checked it out prior to starting this ha 
     this.name = 'Nothing';
     this.desc = 'Empty space';
-    this.type = 3; //h,b,u,e,p,d
+    this.type = 3; //human,beast,undead,enemy,phantom,dragon
     this.id = 0;
     this.lvl = 1;
-    this.exp = 1;
-    this.stat_p = [1,1,1,1]; //hp, str, agl, int
+    this.exp = 1;  // exp (dependent on level)
+    this.stat_p = [1,1,1,1];     // stats per level (hp, str, agl, int)
     this.eqp = [eqp.dummy, eqp.dummy];
-    this.cls = [0,0,0];
-    this.aff = [0,0,0,0,0,0,0]; //phy air eth fir wtr lgt drk
+    this.cls = [0,0,0];          // edge, pierce, blunt, defense
+    this.aff = [0,0,0,0,0,0,0];  //elemental defenses (phy air eth fir wtr lgt drk)
     this.res = {
         poison:1,
         burn:1,
@@ -9969,7 +9974,7 @@ function Creature(){
     this.ctype = 0;
     this.atkmode = 1;
     this.hp = this.hp_r = this.hpmax = 17;
-    this.str = this.str_r = 1;
+    this.str = this.str_r = 1;    // _r refers to the stats at level 1.
     this.agl = this.agl_r = 1;
     this.int = this.int_r = 1;
     this.spd = this.spd_r = 1;
@@ -9977,7 +9982,7 @@ function Creature(){
     this.strm = this.intm = this.spdm = this.aglm = this.hpm = 1;
     this.crt = 0.008;
     this.dmlt = 1;
-    this.rnk = 0;
+    this.rnk = 0;    // rank - (1, --G), (2, -G)
     this.pts = 1;
     this.eva = 0;
     this.data = { lstdmg : 0, oneshot : true };
@@ -11932,7 +11937,15 @@ dom.d4_3m = addElement(dom.d4m,'span',null,'dd');
 dom.d4_4m = addElement(dom.d4m,'span',null,'dd');
 
 dom.d9m = addElement(dom.d1m,'div');
-dom.d9m.update=function(){this.innerHTML='rank: '+global.text.eranks[global.current_m.rnk];if(global.current_m.rnk<=4)this.style.color='lightgrey'; else if(global.current_m.rnk>4&&global.current_m.rnk<=7)this.style.color='white';else if(global.current_m.rnk>7&&global.current_m.rnk<=10)this.style.color='lightblue';else if(global.current_m.rnk>10&&global.current_m.rnk<=13)this.style.color='lightgreen';else if(global.current_m.rnk>13&&global.current_m.rnk<=16)this.style.color='lime';else if(global.current_m.rnk>16&&global.current_m.rnk<=19)this.style.color='yellow'}
+dom.d9m.update=function(){ // displaying ranks, converting crt.rnk to text
+    this.innerHTML='rank: '+global.text.eranks[global.current_m.rnk];
+    if(global.current_m.rnk<=4) this.style.color='lightgrey';
+    else if(global.current_m.rnk>4&&global.current_m.rnk<=7) this.style.color='white';
+    else if(global.current_m.rnk>7&&global.current_m.rnk<=10)this.style.color='lightblue';
+    else if(global.current_m.rnk>10&&global.current_m.rnk<=13)this.style.color='lightgreen';
+    else if(global.current_m.rnk>13&&global.current_m.rnk<=16)this.style.color='lime';
+    else if(global.current_m.rnk>16&&global.current_m.rnk<=19)this.style.color='yellow';
+}
 dom.d9m.style.borderBottom='#545299 dotted 2px';
 dom.d9m.style.backgroundColor='#272744';
 
