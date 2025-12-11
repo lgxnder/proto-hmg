@@ -15271,7 +15271,7 @@ chss.t1 = new Chs();
 chss.t1.id = 101; 
 chss.t1.sl = function() {
     global.flags.inside = true;
-    __ulst(this);
+    ulst(this);
     
     d_loc('Dojo, training area');
     chs('???: Kid...',true); 
@@ -15655,7 +15655,7 @@ chss.return1.id = 105;
 chss.return1.sl = () => {
     global.flags.inside = true;
     d_loc('Dojo, training area');
-    __ulst(this);
+    ulst(this);
     
     chs('Punch as many as you want', true);
     
@@ -16032,7 +16032,7 @@ addtosector(sector.vmain1,chss.lsmain1)
 chss.lsmain1.sl = () => {
     global.flags.inside = false;
     d_loc('Village Center');
-    __ulst(this);
+    ulst(this);
     
     if (isWeather(weather.sunny) || isWeather(weather.clear)) {
         chs('The surroundings are flourishing with life, nothing bad can happen.',true);
@@ -16278,7 +16278,7 @@ chss.gens1.effectors=[{e:effector.shop}];
 chss.gens1.sl=()=>{
     global.flags.inside=true;
     d_loc('Marketplace, Shabby General Store');
-    __ulst(this);
+    ulst(this);
     chs('Sleeping Old Man: '+(select(['...Welcome','...','zzz...','A customer? Pick what you want','Take your time'])),true);
     __achs('"Purchase"', () => {
         chs_spec(4,vendor.gens1)
@@ -17312,7 +17312,7 @@ chss.cata25.sl=()=>{ d_loc('Catacombs, The End Of Journey'); global.lst_loc = 15
 chss.__quickstart = new Chs();
 chss.__quickstart.id = 701;
 chss.__quickstart.sl = function() {
-    __ulst(this);
+    ulst(this);
     clr_chs();
     
     appear(dom.ctr_1);    // fade in all menus
@@ -17381,7 +17381,7 @@ chss.__quickstart.sl = function() {
 chss.__rockpath = new Chs();
 chss.__rockpath.id = 702;
 chss.__rockpath.sl = function() {
-    __ulst(this);
+    ulst(this);
     clr_chs();
     d_loc('Village, Rock Path');
     
@@ -17424,7 +17424,7 @@ chss.__home2.id = 703;
 //addtosector(sector.home, chss.__home2);
 chss.__home2.sl = () => {
     d_loc('Your Home');
-    __ulst(this);
+    ulst(this);
 
     if (!global.flags.catget || sector.home.data.smkp > 0) {
         chs('Your humble abode. You can rest here. ', true);
@@ -17460,7 +17460,7 @@ chss.__shackbed.id = 704;
 addtosector(sector.home,chss.__shackbed);
 chss.__shackbed.sl = () => {
     d_loc('Your Home, Bed');
-    __ulst(this);
+    ulst(this);
     
     let extra='';
     if(you.alive===false) {
@@ -17496,7 +17496,7 @@ chss.__villageoutskirts = new Chs();
 chss.__villageoutskirts.id = 707;
 chss.__villageoutskirts.sl = () => {
     d_loc('Village Outskirts');
-    __ulst(this);
+    ulst(this);
 
     chs('There is a guard posted at the gate. He finds you shifty.', true);
     
@@ -17552,7 +17552,7 @@ chss.__hiddengrounds = new Chs();
 chss.__hiddengrounds.id = 706;
 chss.__hiddengrounds.sl = () => {
     d_loc('Hidden Training Grounds');
-    __ulst(this);
+    ulst(this);
 
 
     chs("There are disciples meditating nearby. Their eyes are closed and they seem to be intently focusing.", true);
@@ -17566,7 +17566,7 @@ chss.__river = new Chs();
 chss.__river.id = 801;
 chss.__river.sl = () => {
     d_loc('Village, River');
-    __ulst(this);
+    ulst(this);
 
     chs("There is a quaint body of flowing water at the end of the path, behind some trees. The water seems to glisten underneath the world's light.", true);
 
@@ -17591,7 +17591,7 @@ chss.__rivercloser = new Chs();
 chss.__rivercloser.id = 802;
 chss.__rivercloser.sl = () => {
     d_loc('Village, River');
-    __ulst(this);
+    ulst(this);
 
     chs("As you get closer, the rushing of the stream begins to sound like a low whisper. The surface of the water seems to twinkle in an odd manner, as if both possessing and reflecting some sort of internal light.", true);
 
@@ -17611,7 +17611,7 @@ chss.__riverdrink = new Chs();
 chss.__riverdrink.id = 803;
 chss.__riverdrink.sl = () => {
     d_loc('Village, River');
-    __ulst(this);
+    ulst(this);
 
     if (you.hp >= 7) {
         you.hp -= 5;
@@ -17637,7 +17637,7 @@ chss.__rivermanintro = new Chs();
 chss.__rivermanintro.id = 804;
 chss.__rivermanintro.sl = () => {
     d_loc('Village, River');
-    __ulst(this);
+    ulst(this);
 
     chs('Old Man: Hey! You didn\'t drink the water, did you!?', true);
     
@@ -17689,7 +17689,7 @@ chss.__riverman = new Chs();
 chss.__riverman.id = 805;
 chss.__riverman.sl = () => {
     d_loc('Village, River');
-    __ulst(this);
+    ulst(this);
 
     chs('Old Man: You can never be too careful out there.', true)
 
@@ -19484,7 +19484,7 @@ function __heal() {
 }
 
 // update global last location using an area's id
-function __ulst(chss) {
+function ulst(chss) {
     global.lst_loc = chss.id;
 }
 
