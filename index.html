@@ -197,16 +197,19 @@ global.flags = {
     tmmode:    1,
     ssngaijin: true,
     rptbncgt:  false,
-    mountainstart: false,
-    rockpathfound: true, 
-    shackunlocked: false,
-    houseunlocked: true,
-    hiddengroundsunlocked: false,
-    mountainpillstaken: false,
-    drunkfromriver: false,
-    riverguytalkedto: false,
-    rivercharmtaken: false,
-    rockpath_showcat: false,
+
+    start_mountain: false,
+    unl_rockpath: true, 
+    unl_shack: false,
+    unl_house: true,
+    unl_hiddengrounds: false,
+
+    mountain_pills_taken: false,
+    visited_woods: false, 
+    rock_path_show_cat: false,
+    drunk_from_river: false,
+    spoken_to_river_man: false,
+    gotten_river_charm: false,
 };
               
 global.spirits = 100;
@@ -15301,12 +15304,13 @@ chss.t1.sl = function() {
     //** quickstart the game
     achs('Remember your training', () => {
         global.time += DAY;
-        chs('???: You alright?', true);
+        chs('???: "You alright?"');
         achs('"I came down from a dojo in the mountains..."', () => {
             smove(chss.__quickstart, false);
         });
     });
 
+    /*
     achs('DEBUG: Skip first dummies', () => {
         appear(dom.ctr_1);    // fade in all menus
         appear(dom.d0);
@@ -15316,11 +15320,11 @@ chss.t1.sl = function() {
         appear(dom.ct_ctrl);
         appear(dom.d1m);
 
-        global.flags.mountainstart = true;
-        global.flags.rockpathfound = true;
-        global.flags.houseunlocked = true;
-        global.flags.shackunlocked = true;
-        global.flags.hiddengroundsunlocked = true;
+        global.flags.start_mountain = true;
+        global.flags.unl_rockpath = true;
+        global.flags.unl_house = true;
+        global.flags.unl_shack = true;
+        global.flags.unl_hiddengrounds = true;
 
         global.home_loc = 703 // chss__home2 
         
@@ -15346,6 +15350,7 @@ chss.t1.sl = function() {
         
         smove(chss.lsmain1);
     });
+    */
 };
 
 if (global.flags.gameone === false){
@@ -16036,7 +16041,7 @@ chss.lsmain1.sl = () => {
     ulst(this);
     
     if (isWeather(weather.sunny) || isWeather(weather.clear)) {
-        chs('The surroundings are flourishing with life, nothing bad can happen.');
+        chs('The surroundings are flourishing with life; nothing bad can happen.');
     }
     else if (isWeather(weather.cloudy) || isWeather(weather.overcast) || isWeather(weather.stormy)) {
         chs('You have a feeling it might rain soon.');
@@ -16079,13 +16084,13 @@ chss.lsmain1.sl = () => {
         });
     }
 
-    if (global.flags.houseunlocked) {
+    if (global.flags.unl_house) {
         achs('=> Go home', ()=>{
             smove(chss.home);
         }, 'green');
     }
 
-    if (global.flags.rockpathfound) {
+    if (global.flags.unl_rockpath) {
         achs('<= Walk down Rock Path', () => {
             smove(chss.__rockpath);
         });
@@ -16107,7 +16112,7 @@ chss.mrktvg1.id = 127;
 addtosector(sector.vmain1,chss.mrktvg1);
 chss.mrktvg1.sl = () => {
     global.flags.inside=false; 
-    d_loc('Village Center, Marketplace');
+d_loc('Village Center, Marketplace')    ;
     global.lst_loc = 127; 
     chs('The marketplace feels busy');
     achs('Grocery Shop =>', () => {
@@ -16582,54 +16587,84 @@ chss.cat1.sl = () => {
     });
 }
 
-global.text.mbrdtt=['"If you do not work your hours daily, you will not get any dessert"','"Do your job well and you will be rewarded"','There is a report of a missing cat','There is a section of useless gossip','This is an  advertisement for fresh vegetables','This is an advertisement for dojo membership','This is an advertisement for wooden furniture','This is an advertisement for dried meat','This is an advertisement for joining the militia','"The Hunter Association offers you a large variety of boxes full of smoked meat and furs"','This is an advertisement for herbal medicine','This is an advertisement for wine kegs','This is an advertisement for farming equipment','This is an advertisement for carpentery supplies','"All the children must return home by 8PM!"','This is an advertisement for smithing orders','This is an advertisement for cooking courses','This is an advertisement for bottled water','This is an advertisement for knitting advices','This is an advertisement for cleaning services','This is a warning to stay away from fortune tellers','This is an advertisement for woven straw baskets','This is an advertisement for hemp clothing']
+global.text.mbrdtt = [
+    '"If you do not work your hours daily, you will not get any dessert"',
+    '"Do your job well and you will be rewarded"',
+    'There is a report of a missing cat',
+    'There is a section of useless gossip',
+    'This is an advertisement for fresh vegetables',
+    'This is an advertisement for dojo membership',
+    'This is an advertisement for wooden furniture',
+    'This is an advertisement for dried meat',
+    'This is an advertisement for joining the militia',
+    '"The Hunter Association offers you a large variety of boxes full of smoked meat and furs"',
+    'This is an advertisement for herbal medicine',
+    'This is an advertisement for wine kegs',
+    'This is an advertisement for farming equipment',
+    'This is an advertisement for carpentery supplies',
+    '"All the children must return home by 8PM!"',
+    'This is an advertisement for smithing orders',
+    'This is an advertisement for cooking courses',
+    'This is an advertisement for bottled water',
+    'This is an advertisement for knitting advices',
+    'This is an advertisement for cleaning services',
+    'This is a warning to stay away from fortune tellers',
+    'This is an advertisement for woven straw baskets',
+    'This is an advertisement for hemp clothing'
+]
 
 chss.mbrd = new Chs();
 chss.mbrd.id = 108;
 addtosector(sector.vcent,chss.mbrd);
-addtosector(sector.vmain1,chss.mbrd)
+addtosector(sector.vmain1,chss.mbrd);
 chss.mbrd.sl=()=>{
     d_loc('Village Center, Message Board');
-    global.lst_loc = 108;
-    for(let a in inv) if(inv[a].id===acc.wdl1.id||inv[a].id===acc.sdl1.id||inv[a].id===acc.bdl1.id||inv[a].id===acc.gdl1.id){
+    ulst(this);
+
+    for(let a in inv) if(inv[a].id===acc.wdl1.id||inv[a].id===acc.sdl1.id||inv[a].id===acc.bdl1.id||inv[a].id===acc.gdl1.id) {
     if(!global.flags.glqtdltn&&(getHour()<20&&getHour()>8)&&random()<.15){
         {
-        chs('You notice a little girl with emerald green hair approach you',true);
-        chs('"?"',false).addEventListener('click',()=>{
-        chs('<span style="color:lime">Xiao Xiao</span>: "Hey, hey, what are those dolls you carry? Make one for me!!"',true);
-        chs('"Alright..."',false).addEventListener('click',()=>{
-            global.flags.glqtdltn=true;smove(chss.mbrd,false)
-        });
+        chs('You notice a little girl with emerald green hair approach you.');
+        achs('"?"', ()=>{
+          chs('<span style="color:lime">Xiao Xiao</span>: "Hey, hey, what are those dolls you carry? Make one for me!!"');
+          achs('"Alright..."', ()=>{
+              global.flags.glqtdltn=true;smove(chss.mbrd,false)
+          });
         });
     }
     return}break}
-    chs('Message Board<br>You can find jobs or other stuff here',true);
-    chs('"Explore the posts"',false).addEventListener('click',()=>{
-        chs(select(global.text.mbrdtt),true);
-        chs('"<= Return"',false).addEventListener('click',()=>{
+
+    chs('Message Board<br>You can find jobs or other stuff here');
+    achs('Explore the posts', ()=>{
+        chs(select(global.text.mbrdtt));
+        achs('<= Return', ()=>{
             smove(chss.mbrd,false);
         });    
-    });    
-    if(global.flags.frstn1b1g1){
-        chs('"Notice #4"',false).addEventListener('click',()=>{
-            chs('It says here:<br><span style="color:orange">Looking for a anyone with free time to assist local militia with guarding duty. Apply at the checkpoint near marketplace area between 7AM and 10AM"</span>',true);
-            chs('"Huh.."',false).addEventListener('click',()=>{
+    });  
+
+    if (global.flags.frstn1b1g1) {
+        achs('\'Notice #4\'', ()=>{
+            chs('It says here:<br><span style="color:orange">Looking for a anyone with free time to assist local militia with guarding duty. Apply at the checkpoint near marketplace area between 7AM and 10AM."</span>',true);
+            achs('"Huh..."', ()=>{
                 global.flags.grddtjb=true;smove(chss.mbrd);
             });    
-        });    
-        chs('"Warning!"',false).addEventListener('click',()=>{
-            chs('Dangerous beasts were sighted in vicinity of the Southern Forest. These reports are likely linked to the cause of livestock and locals getting injured, therefore, to avoid further casualties, entry into the forest is prohibited to those without permit or high enough self-defence ability until the situation is resolved<br><br><div style="text-align:right">一Head of The Guard, Hitoshi</div>',true);
-            chs('"I see"',false).addEventListener('click',()=>{
+        });
+
+        achs('\'Warning!\'', ()=> {
+            chs('"Dangerous beasts were sighted in vicinity of the Southern Forest. These reports are likely linked to the cause of livestock and locals getting injured, therefore, to avoid further casualties, entry into the forest is prohibited to those without permit or high enough self-defence ability until the situation is resolved."<br><br><div style="text-align:right">一Head of The Guard, Hitoshi</div>');
+            achs('"I see..."', ()=>{
                 smove(chss.mbrd);
-            });    
-        });    
+            });
+        });
     }
+
     if(global.flags.glqtdltn&&!global.flags.glqtdldn&&(getHour()<20&&getHour()>8)){
-        chs('"Xiao Xiao =>"',false).addEventListener('click',()=>{
+        achs('Xiao Xiao =>', ()=>{
             smove(chss.xpgdqt1,false);
         });
     }
-    chs('"<= Go back"',false).addEventListener('click',()=>{
+
+    achs('<= Go back', ()=>{
         smove(chss.lsmain1,false);
     });    
 }
@@ -17324,11 +17359,11 @@ chss.__quickstart.sl = function() {
     appear(dom.ct_ctrl);
     appear(dom.d1m);
 
-    global.flags.mountainstart = true;
-    global.flags.rockpathfound = true;
-    global.flags.houseunlocked = false;
-    global.flags.shackunlocked = true;
-    global.flags.hiddengroundsunlocked = true;
+    global.flags.start_mountain = true;
+    global.flags.unl_rockpath = true;
+    global.flags.unl_house = false;
+    global.flags.unl_shack = true;
+    global.flags.unl_hiddengrounds = true;
     global.flags.dojolocked = true;
 
     global.home_loc = 703 // chss__home2 
@@ -17388,7 +17423,7 @@ chss.__rockpath.sl = function() {
     
     // insert weather conditions here
     
-    if (!global.flags.shackunlocked) {
+    if (!global.flags.unl_shack) {
         achs('=> Enter shack', () => {
             msg('The shack won\'t budge.', 'yellow');
         });
@@ -17398,7 +17433,7 @@ chss.__rockpath.sl = function() {
         }, 'green');
     }
 
-    if (global.flags.hiddengroundsunlocked) {
+    if (global.flags.unl_hiddengrounds) {
         achs('=> Enter Hidden Grounds', () => {
             smove(chss.__hiddengrounds);
         }, 'yellow');
@@ -17502,27 +17537,27 @@ chss.__villageoutskirts.sl = () => {
     chs('There is a guard posted at the gate. He finds you shifty.');
     
     achs('=> Enter Southern Forest', () => {
-        if(!global.flags.frst1u && !global.flags.mountainstart) {
+        if(!global.flags.frst1u && !global.flags.start_mountain) {
             msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow');
-        } else if (!global.flags.mountainstart) {
+        } else if (!global.flags.start_mountain) {
             if (!global.flags.frst1um) {
                 msg('Gate Guard: "You were given permission to proceed. Go on"','yellow');
                 global.flags.frst1um = true;
             }
             smove(chss.frstn3main);
-        } else if (global.flags.mountainstart) {
+        } else if (global.flags.start_mountain) {
             console.log('placeholder');
             //msg('...', 'lightyellow');
         }
     })
     ;
     achs('=> Enter Western Woods', ()=>{
-        if(you.lvl >= 6 && !global.flags.mountainstart) {
+        if(you.lvl >= 6 && !global.flags.start_mountain) {
             smove(chss.frstn1main);
-        } else if (!global.flags.mountainstart) {
+        } else if (!global.flags.start_mountain) {
             msg('Gate Guard: "It is too dangerous for you to leave at this moment. Come back when you train a bit"','yellow');
-        } else if (global.flags.mountainstart) {
-            if (global.flags.mountainpillstaken) {
+        } else if (global.flags.start_mountain) {
+            if (global.flags.mountain_pills_taken) {
                 msg('I better watch myself in here.', 'lightyellow');
             }
             else {
@@ -17537,7 +17572,7 @@ chss.__villageoutskirts.sl = () => {
                         removeItem(inv[a]);
                     }
                 }
-                global.flags.mountainpillstaken = true;
+                global.flags.mountain_pills_taken = true;
                 msg('It\'s better to be safe than sorry.', 'lightyellow');
                 smove(chss.frstn1main);
             }
@@ -17571,13 +17606,13 @@ chss.__river.sl = () => {
 
     chs("There is a quaint body of flowing water at the end of the path, behind some trees. The water seems to glisten underneath the world's light.", true);
 
-    if (global.flags.riverguytalkedto) {
+    if (global.flags.spoken_to_river_man) {
         achs('=> Speak to the old man', () => {
             smove(chss.__riverman);
         })
     }
 
-    if (!global.flags.drunkfromriver) {
+    if (!global.flags.drunk_from_river) {
         achs('=> Take a closer look', () => {
             smove(chss.__rivercloser);
         })
@@ -17596,9 +17631,9 @@ chss.__rivercloser.sl = () => {
 
     chs("As you get closer, the rushing of the stream begins to sound like a low whisper. The surface of the water seems to twinkle in an odd manner, as if both possessing and reflecting some sort of internal light.", true);
 
-    if (!global.flags.drunkfromriver) {
+    if (!global.flags.drunk_from_river) {
         achs('Take a sip', () => {
-            global.flags.drunkfromriver = true;
+            global.flags.drunk_from_river = true;
             smove(chss.__riverdrink);
         });
     }
@@ -17626,7 +17661,7 @@ chss.__riverdrink.sl = () => {
 
     chs('You crouch down by the water and reach underneath it with cupped hands. You take a sip of it, almost immediately puking. This was a bad idea. After some coughing and hacking, you wipe your mouth and stand upright.', true);
     achs('"Upsy-daisy..."', () => {
-        if (global.flags.riverguytalkedto) {
+        if (global.flags.spoken_to_river_man) {
             smove(chss.__river);
         } else {
             smove(chss.__rivermanintro);
@@ -17656,7 +17691,7 @@ chss.__rivermanintro.sl = () => {
                             chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on a rest day."');
                             achs('"Thank you." *Take the charm*', () => {
                                 giveItem(acc.__rivercharm);
-                                global.flags.rivercharmtaken = true;
+                                global.flags.gotten_river_charm = true;
                                 smove(chss.__river);
                             })
                         });
@@ -17694,14 +17729,14 @@ chss.__riverman.sl = () => {
 
     chs('Old Man: "You can never be too careful out there."', true)
 
-    if (!global.flags.rivercharmtaken) {
+    if (!global.flags.gotten_river_charm) {
         achs('"I drank some of the water."', () => {
             chs('Old Man: "Ugh, you\'re killing me!.. Why are so many youngsters trying to get themselves killed these days... For now, please just focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water."');
             achs('I\'m not going to die, am I?', () => {
                 chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on your worst day."');
                 achs('"Thank you." Take the charm', () => {
                     giveItem(acc.__rivercharm);
-                    global.flags.rivercharmtaken = true;
+                    global.flags.gotten_river_charm = true;
                     smove(chss.__river);
                 })
             });
