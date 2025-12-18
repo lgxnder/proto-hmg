@@ -107,7 +107,7 @@ global.atkdftydt = {};
 
 global.current_m;
 global.current_z;
-global.current_l;
+global.current_location;
 global.stat = {
     tick:    0,
     akills:  0,
@@ -1283,7 +1283,7 @@ function load(dt) {
         clearInterval(timers.vndrstkchk);
         for (let obj in chss) {
             if (chss[obj].id === a1.i) {
-                global.current_l = chss[obj];
+                global.current_location = chss[obj];
                 move_to_area(chss[obj], false);
             }
         }
@@ -4886,7 +4886,7 @@ item.smbpll.use=function(x){
         let s = HOUR * 18;
         
         if (!global.flags.sleepmode) giveEff(you,effect.slep);
-        else if (global.current_l.id===112) b+=home.bed.sq;
+        else if (global.current_location.id===112) b+=home.bed.sq;
         global.stat.plst++
         
         for (let a=0;a<s;a++) {
@@ -5019,7 +5019,7 @@ item.bmsmktt.name='Smoke Pellet Cluster';
 item.bmsmktt.desc='Repurposed smoke bomb, made by concentrating multiple volatile components together, making the moke several times more hazardous, but not enough to cause real damage to a living person. Since the ignition period from such a modification is much longer, it has fewer uses than a regular smoke bomb';
 item.bmsmktt.stype=4;
 item.bmsmktt.use=function(){ 
-  if(global.current_l.id!==111){msg('This isn\'t the best place to use this','red'); return}
+  if(global.current_location.id!==111){msg('This isn\'t the best place to use this','red'); return}
   area.hmbsmnt.size=0; msg('You toss a cluster down your basement and hear a distant shrill','yellow')
   dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
   sector.home.data.smkp = 900; sector.home.data.smkt = time.minute; this.amount-- ; 
@@ -7919,7 +7919,7 @@ item.shppmf.desc = 'This was shoved onto you by someone on the streets. Store na
 item.shppmf.onGet=function(){global.flags.pmfspmkm1=true}
 item.shppmf.stype = 4; item.shppmf.data.time=HOUR*3;
 item.shppmf.use = function(){if(canRead()){if(this.data.timep>=this.cmax){ 
-   global.flags.mkplc1u=true; this.data.finished=true; msg('Right, you could go to the marketplace','lime'); if(global.current_l.id===chss.lsmain1.id) move_to_area(chss.lsmain1,false);
+   global.flags.mkplc1u=true; this.data.finished=true; msg('Right, you could go to the marketplace','lime'); if(global.current_location.id===chss.lsmain1.id) move_to_area(chss.lsmain1,false);
    this.data.read=false; this.amount-- ; 
 }else chss.trd.sl(this);}
 }
@@ -8024,7 +8024,7 @@ item.pdeedhs.name = '"Property Deed"'; item.pdeedhs.rar=2
 item.pdeedhs.desc = 'This old looking legal document indentifies you as a sole owner of this broken down hut you live in. It was passed down to you by your ancestors, you speculate'+dom.dseparator+'<span style="color:lime">Allows you to list and examine your possessions</span>';
 item.pdeedhs.stype = 4; item.pdeedhs.data.time=30;
 item.pdeedhs.use = function(){if(canRead()){if(this.data.timep>=this.cmax){ 
-  global.flags.hsedchk = true; if(global.current_l.id===111) move_to_area(chss.home,false)
+  global.flags.hsedchk = true; if(global.current_location.id===111) move_to_area(chss.home,false)
   this.data.read=false; this.amount-- ; 
 }else chss.trd.sl(this);}
 }
@@ -10849,7 +10849,7 @@ function addtosector(sector, loc){
 }
 
 function inSector(sector){
-  for(let a in global.current_l.sector) if(global.current_l.sector[a].id===sector.id) return true
+  for(let a in global.current_location.sector) if(global.current_location.sector[a].id===sector.id) return true
 }
 
 sector.home = new Sector(); sector.home.id = 1; sector.home.inside=true; sector.home.ddata={}
@@ -10883,7 +10883,7 @@ sector.home.onLeave=function(){
 sector.home.onStay=function(){
   if(this.data.smkp>0){
     if(effect.smoke.active) effect.smoke.duration=26;else giveEff(you,effect.smoke,26)
-    if(--this.data.smkp<=0) move_to_area(global.current_l)
+    if(--this.data.smkp<=0) move_to_area(global.current_location)
   }
   if(global.flags.catget) giveSkExp(skl.pet,you.mods.petxp);
   global.stat.athme+=global.timescale;global.stat.athmec+=global.timescale; 
@@ -11686,8 +11686,8 @@ act.scout.cond = function(l){
 act.scout.activate = function(){
   msg('You begin to look around','springgreen'); this.active=true;
   clearInterval(timers.actm); giveEff(you,effect.scout);
-  let t=2; for(let a in global.current_l.sector) {let m = canScout(global.current_l.sector[a]); if(m===1) t=m;}
-  if(canScout(global.current_l)===1||t===1) msg('You sense something','white')
+  let t=2; for(let a in global.current_location.sector) {let m = canScout(global.current_location.sector[a]); if(m===1) t=m;}
+  if(canScout(global.current_location)===1||t===1) msg('You sense something','white')
   timers.actm=setInterval(()=>{
     this.use();
   },1000);
@@ -11695,10 +11695,10 @@ act.scout.activate = function(){
 
 act.scout.use = function(){
     if(global.flags.isdark&&!cansee()) {deactivateAct(this); msg('You can\'t see anything','grey');return}
-    let a1 = canScout(global.current_l); let a2c=[]
-    for(let a in global.current_l.sector) a2c.push(canScout(global.current_l.sector[a])); 
+    let a1 = canScout(global.current_location); let a2c=[]
+    for(let a in global.current_location.sector) a2c.push(canScout(global.current_location.sector[a])); 
     let a2=3; for(let a in a2c) if(a2c[a]!==3) {if(a2c[a]===1){a2=1;break}else a2=2}
-    if(a1===1) global.current_l.onScout(); if(a2===1) {for(let a in global.current_l.sector) if(canScout(global.current_l.sector[a])===1)global.current_l.sector[a].onScout();}
+    if(a1===1) global.current_location.onScout(); if(a2===1) {for(let a in global.current_location.sector) if(canScout(global.current_location.sector[a])===1)global.current_location.sector[a].onScout();}
     if(a1===3&&a2===3) {
         msg('There doesn\'t seem to be anything of interest around..','lightgrey');deactivateAct(this)
     } else if(a1>=2&&a2>=2){
@@ -15119,24 +15119,24 @@ function move_to_area(where, lv) {
     you.eqp[6].dp = you.eqp[6].dp - 0.08 < 0 ? 0 : you.eqp[6].dp - 0.08;
     let flg = false;
     let und = []
-    for (let c in global.current_l.sector) {
+    for (let c in global.current_location.sector) {
         for (let a in where.sector) {
             for (let b in where.sector[a].group) {
-                if (where.sector[a].group[b] === global.current_l.id && where.sector[a].id === global.current_l.sector[c].id) {
+                if (where.sector[a].group[b] === global.current_location.id && where.sector[a].id === global.current_location.sector[c].id) {
                     flg = true;
                 }
             }
         }
         if (flg === false) {
-            global.current_l.sector[c].onLeave();
-            deactivateEffectors(global.current_l.sector[c].effectors);
-            sectors.splice(sectors.indexOf(global.current_l.sector[c]))
+            global.current_location.sector[c].onLeave();
+            deactivateEffectors(global.current_location.sector[c].effectors);
+            sectors.splice(sectors.indexOf(global.current_location.sector[c]))
         } else {
             flg = false;
         }
     }
-    global.current_l.onLeave();
-    deactivateEffectors(global.current_l.effectors);
+    global.current_location.onLeave();
+    deactivateEffectors(global.current_location.effectors);
     global.flags.civil = true;
     global.flags.btl = false;
     global.current_z = area.nwh;
@@ -15151,22 +15151,22 @@ function move_to_area(where, lv) {
     clr_chs();
     activateEffectors(where.effectors);
     where.sl();
-    global.current_l = where;
+    global.current_location = where;
     for (let a in sectors) {
         sectors[a].onMove();
     }
     global.current_a.deactivate();
     global.current_a = act.default;
     dom.ct_bt3.style.backgroundColor = 'inherit';
-    for (let a in global.current_l.sector) {
-        if (!scanbyid(sectors, global.current_l.sector[a].id)) {
-            sectors.push(global.current_l.sector[a]);
-            global.current_l.sector[a].onEnter();
-            activateEffectors(global.current_l.sector[a].effectors)
+    for (let a in global.current_location.sector) {
+        if (!scanbyid(sectors, global.current_location.sector[a].id)) {
+            sectors.push(global.current_location.sector[a]);
+            global.current_location.sector[a].onEnter();
+            activateEffectors(global.current_location.sector[a].effectors)
         }
     }
-    global.current_l.onEnter();
-    rfeff(global.current_l);
+    global.current_location.onEnter();
+    rfeff(global.current_location);
     if (global.flags.btl === false) {
         global.current_m = creature.default;
         global.current_m.eff = [];
@@ -15294,7 +15294,7 @@ chss.t1.sl = function() {
 };
 
 if (global.flags.gameone === false){
-    global.current_l = chss.t1;
+    global.current_location = chss.t1;
     move_to_area(chss.t1);
     giveFurniture(furniture.frplc,null,false);
     let _b = giveFurniture(furniture.bed1,null,false);
@@ -18192,7 +18192,7 @@ function u_loc(text) {
         txt=text;
     }
     dom.location_text.innerHTML = txt;
-    global.current_l.locn=text; 
+    global.current_location.locn=text; 
 }
 
 function rfeff(what){ 
@@ -18340,8 +18340,8 @@ function scoutGeneric(chs){
   let sct = select(chs.scout); let idx = chs.scout.indexOf(sct); giveSkExp(skl.scout,.3); chs.data.scout+=2*(1+skl.scout.lvl*.2); let m = 1;
   if(chs.data.scout>=chs.data.scoutm) {m=5; chs.data.scout=0} 
   if((!sct.cond||sct.cond()===true)&&!chs.data.gets[idx]&&random()<=sct.c*m*(1+skl.scout.lvl*.15)*(1+chs.data.gotmod*.2)){global.stat.dsct++;chs.data.gotmod++;sct.f();giveSkExp(skl.scout,(sct.exp?sct.exp:.5/sct.c))}
-  let t=2; for(let a in global.current_l.sector) {let m = canScout(global.current_l.sector[a]); if(m===1) t=m}
-  if(canScout(global.current_l)>=2&&t>=2) {deactivateAct(act.scout);msg('There doesn\'t seem to be anything of interest left in this area')}
+  let t=2; for(let a in global.current_location.sector) {let m = canScout(global.current_location.sector[a]); if(m===1) t=m}
+  if(canScout(global.current_location)>=2&&t>=2) {deactivateAct(act.scout);msg('There doesn\'t seem to be anything of interest left in this area')}
 }
 
 function disassembleGeneric(obj){
@@ -18379,8 +18379,8 @@ function ontick(){
     '</small> '+
     timeDisp(time); //global.stat.seed1=(random()*7e+7<<7)%7&7
     
-    global.current_l.onStay();
-    runEffectors(global.current_l.effectors);
+    global.current_location.onStay();
+    runEffectors(global.current_location.effectors);
   
     for (let a in sectors) {
         sectors[a].onStay();
