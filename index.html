@@ -1362,7 +1362,7 @@ function load(dt) {
             dom.gmsgs.style.display = '';
             dom.ct_ctrl.style.display = '';
             dom.ctr_1.style.display = '';
-            dom.d_lct.style.display = '';
+            dom.location.style.display = '';
         }
         dom.ctrwin3.style.display = 'none';
         dom.ctrwin5.style.display = 'none';
@@ -12088,11 +12088,11 @@ dom.d_time.addEventListener('click',function() {
     }
 });
 
-dom.d_lct = addElement(dom.ctr_1a,'div','ctr_l');
-dom.d_lct.style.display='none';
-dom.d_lct.innerHTML='Location: '
+dom.location = addElement(dom.ctr_1a,'div','ctr_l');
+dom.location.style.display='none';
+dom.location.innerHTML='Location: '
 
-dom.location_container = addElement(dom.d_lct,'div');
+dom.location_container = addElement(dom.location,'div');
 dom.location_container.style.fontSize='0.85em';
 dom.location_container.style.paddingTop=7;
 dom.location_container.style.marginLeft=-1;
@@ -15282,7 +15282,7 @@ chss.t1.sl = function() {
     achs('"..."', () => {
         global.time += DAY; 
         appear(dom.ctr_1); // fade in time
-        appear(dom.d_lct); // location
+        appear(dom.location); // location
         chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
         achs('"How did I get here..?"', () => {
             chs('???: "Don\'t you remember where you came from?"');
