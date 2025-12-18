@@ -12092,14 +12092,14 @@ dom.d_lct = addElement(dom.ctr_1a,'div','ctr_l');
 dom.d_lct.style.display='none';
 dom.d_lct.innerHTML='Location: '
 
-dom.d_lctc = addElement(dom.d_lct,'div');
-dom.d_lctc.style.fontSize='0.85em';
-dom.d_lctc.style.paddingTop=7;
-dom.d_lctc.style.marginLeft=-1;
-dom.d_lctc.style.display='flex';
+dom.location_container = addElement(dom.d_lct,'div');
+dom.location_container.style.fontSize='0.85em';
+dom.location_container.style.paddingTop=7;
+dom.location_container.style.marginLeft=-1;
+dom.location_container.style.display='flex';
 
-dom.location_text = addElement(dom.d_lctc,'span');
-dom.location_text_effector = addElement(dom.d_lctc,'span');
+dom.location_text = addElement(dom.location_container,'span');
+dom.location_text_effector = addElement(dom.location_container,'span');
 
 dom.ctr_2 = addElement(dom.ctrwin1,'div','ctrm_2');
 dom.ct_ctrl = addElement(dom.ctrmg,'div','ct_ctrl');
@@ -19459,7 +19459,7 @@ function __heal() {
 }
 
 // update global last location using an area's id
-function u_lastlocloc(chss) {
+function u_lastloc(chss) {
     global.lst_loc = chss.id;
 }
 
