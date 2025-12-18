@@ -19,6 +19,8 @@ CHANGES
     - moved the food stand to the marketplace menu
     - moved the cat to the rockpath (subject to change?)
     - higher sleep skill now means you can pass time quicker while sleeping
+    - change d_loc() to uloc()
+    - change ulst() to u_lst_loc();
 
 MOUNTAIN START
 
