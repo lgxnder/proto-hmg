@@ -15282,7 +15282,7 @@ chss.t1.sl = function() {
     achs('"..."', () => {
         global.time += DAY; 
         appear(dom.ctr_1); // fade in time
-        appear(dom.location); // location
+        appear(dom.location);
         chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
         achs('"How did I get here..?"', () => {
             chs('???: "Don\'t you remember where you came from?"');
@@ -17622,11 +17622,11 @@ chss.__rivermanintro.sl = () => {
             chs('Old Man: "*Sigh* ...it\'s the Qi in it. Bodies of water like rivers possess quite a lot of it... it\'s not good for the body."');
             achs('"Not good for the body?"', () => {
                 chs('Old Man: "No... not with your familiarity of it, anyway. It can mess you up, make you forget things, throw you off-balance from your goals. Of course, there are specialists all over that know how to properly purify the water for drinking."');
-                achs('Since when did this start happening?', () => {
+                achs('"Since when did this start happening?"', () => {
                     chs('Old Man: "Heh... I remember it being like this for a little while when I was young, too. The energy present in all things in nature runs its course and finds its cycle disrupted. Nature mutates and evolves on its own, and sometimes it gives rise to something like this contamination. There are different things that can spur it on... its effects started getting stronger a couple months ago."');
-                    achs('Is there any way to stop it?', () => {
+                    achs('"Is there any way to stop it?"', () => {
                         chs('Old Man: "Why yes but, an endeavour like that might take the peace of living out of a young person with potential like yourself. Nature will run its course, and it\'ll all dissipate eventually, I\'m sure. For now, focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water."');
-                        achs('I\'m not going to die, am I?', () => {
+                        achs('"I\'m not going to die, am I?"', () => {
                             chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on a rest day."');
                             achs('"Thank you." *Take the charm*', () => {
                                 giveItem(acc.__rivercharm);
@@ -17646,9 +17646,9 @@ chss.__rivermanintro.sl = () => {
             chs('Old Man: "*Sigh* you don\'t know?...it\'s the Qi in it. Bodies of water like rivers possess quite a lot of it... it\'s not good for the body."');
             achs('"Not good for the body?"', () => {
                 chs('Old Man: "No... not with your familiarity of it, anyway. It can mess you up, make you forget things, throw you off-balance from your goals. Of course, there are specialists all over that know how to properly purify the water for drinking."');
-                achs('Since when did this start happening?', () => {
+                achs('"Since when did this start happening?"', () => {
                     chs('Old Man: "Heh... I remember it being like this for a little while when I was young, too. The energy present in all things in nature runs its course and finds its cycle disrupted. Nature mutates and evolves on its own, and sometimes it gives rise to something like this contamination. There are different things that can spur it on... its effects started getting stronger a couple months ago."');
-                    achs('Is there any way to stop it?', () => {
+                    achs('"Is there any way to stop it?"', () => {
                         chs('Old Man: "Why yes but, an endeavour like that might take the peace of living out of a young person with potential like yourself. Nature will run its course, and it\'ll all dissipate eventually, I\'m sure. For now, focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water."');
                         achs('"Thank you for the advice."', () => {
                             move_to_area(chss.__river);
