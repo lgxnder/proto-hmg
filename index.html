@@ -12099,7 +12099,7 @@ dom.d_lctc.style.marginLeft=-1;
 dom.d_lctc.style.display='flex';
 
 dom.d_lctt = addElement(dom.d_lctc,'span');
-dom.d_lctte = addElement(dom.d_lctc,'span');
+dom.location_text_effector = addElement(dom.d_lctc,'span');
 
 dom.ctr_2 = addElement(dom.ctrwin1,'div','ctrm_2');
 dom.ct_ctrl = addElement(dom.ctrmg,'div','ct_ctrl');
@@ -18200,7 +18200,7 @@ function rfeff(what){
     for(let a in what.sector) if(what.sector[a].effectors) 
     for(let b in what.sector[a].effectors) t+='<span style="color:'+what.sector[a].effectors[b].e.c+';font-size:1.2em">&nbsp'+what.sector[a].effectors[b].e.x+'<span>';
     if(what.effectors) for(let a in what.effectors)  t+='<span style="color:'+what.effectors[a].e.c+';font-size:1.2em">&nbsp'+what.effectors[a].e.x+'<span>';
-    dom.d_lctte.innerHTML = t;
+    dom.location_text_effector.innerHTML = t;
 }
 
 function lvlup(p,t){
