@@ -1,3 +1,10 @@
+<!-- 
+
+  TODO:
+      - consume spirit pills in intro.
+      - clear message log in intro.
+
+-->
 <html>
 <head>
     <meta charset="UTF-8">
@@ -7400,8 +7407,9 @@ item.ywlt.rar=2;
 item.ywlt.use=function(x){
   giveItem(item.cd,2);giveItem(item.cq,1);giveItem(item.cn,1);giveItem(item.cp,rand(2,10));
   this.amount--; global.flags.m_un=true;
-  appear(dom.mn_2);appear(dom.mn_4);appear(dom.mn_3);
-
+  appear(dom.mn_2,
+         dom.mn_3,
+         dom.mn_4);
 }
 
 item.hnhn = new Item(); item.hnhn.id = 5025;
@@ -11785,7 +11793,6 @@ dom.d3.addEventListener('click',function() {
 });
 addDesc(dom.d3,you.title,5,true);
 
-//dom.d5 = addElement(dom.d1,'div','d5'); ???????
 dom.d5_1 = addElement(dom.d1,'div',null,'hp');
 dom.d5_2 = addElement(dom.d1,'div',null,'exp');
 dom.d5_3 = addElement(dom.d1,'div',null,'en');
@@ -11995,6 +12002,7 @@ dom.inv_btn_1_b = addElement(dom.inv_control_b,'div',null,'bts_b');
 dom.inv_btn_2_b = addElement(dom.inv_control_b,'div',null,'bts_b');
 dom.inv_btn_3_b = addElement(dom.inv_control_b,'div',null,'bts_b');
 
+// money
 dom.mn = addElement(dom.inv_control_b,'div','mn');
 dom.mn_1 = addElement(dom.mn,'small','mnb'); dom.mn_1.innerHTML = '㊧0';
 dom.mn_2 = addElement(dom.mn,'small','mnb'); dom.mn_2.innerHTML = '●0';
@@ -12013,7 +12021,7 @@ dom.mn_2.style.color='#ffd700';
 dom.mn_3.style.color='#c0c0c0';
 dom.mn_4.style.color='#ff743f';
 
-dom.mn_1.style.backgroundColor = 'darkred';
+dom.mn_1.style.backgroundColor='darkred';
 dom.mn_2.style.backgroundColor='664200';
 dom.mn_3.style.backgroundColor='383838';
 dom.mn_4.style.backgroundColor='662617';
@@ -12039,28 +12047,30 @@ dom.ctrwin6.style.display='none';
 dom.ctrwin7.style.display='none';
 
 dom.nthngdsp = addElement(dom.ctrmg_cb,'div');
-dom.nthngdsp.style.top=200;
-dom.nthngdsp.style.left=210;
-dom.nthngdsp.style.position='relative';
-dom.nthngdsp.style.color='grey';
-dom.nthngdsp.innerHTML='Nothing here yet';
-dom.nthngdsp.style.display='none'
+dom.nthngdsp.style.top = 200;
+dom.nthngdsp.style.left = 210;
+dom.nthngdsp.style.position = 'relative';
+dom.nthngdsp.style.color = 'grey';
+dom.nthngdsp.innerHTML = 'Nothing here yet';
+dom.nthngdsp.style.display = 'none'
 
 dom.ctr_1 = addElement(dom.ctrmg_ca,'div','ctrm_1');
-if(!global.flags.aw_u)dom.ctr_1.style.display='none';
 dom.ctr_1a = addElement(dom.ctr_1,'div');
 
+if (!global.flags.aw_u) {
+    dom.ctr_1.style.display='none';
+}
+
 dom.d_weather = addElement(dom.ctr_1a ,'div','ctr_w');
-dom.d_weathers=addElement(dom.d_weather ,'small');
-dom.d_weathert=addElement(dom.d_weather ,'span');
+dom.d_weathers = addElement(dom.d_weather ,'small');
+dom.d_weathert = addElement(dom.d_weather ,'span');
 dom.d_weathers.style.marginRight=5;
 dom.d_weathers.addEventListener('click',()=>{
-    global.flags.ssngaijin=!global.flags.ssngaijin;
+    global.flags.ssngaijin =! global.flags.ssngaijin;
     wdrseason(global.flags.ssngaijin);
 });
 
 dom.d_moon = addElement(dom.d_weather ,'span'); 
-
 dom.d_anomaly = addElement(dom.d_weather,'span');
 dom.d_anomaly.innerHTML=''; 
 
@@ -12103,45 +12113,128 @@ if (!global.flags.aw_u) dom.ct_ctrl.style.display='none';
 dom.ct_bt1 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt1.innerHTML = global.flags.asbu?'assemble':'???????';
 dom.ct_bt2 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt2.innerHTML = global.flags.sklu?'skills':'???????';
 dom.ct_bt3 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt3.innerHTML = global.flags.actsu?'actions':'???????';
-//dom.ct_bt4 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt4.innerHTML = '';
-//dom.ct_bt5 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt5.innerHTML = '';
 dom.ct_bt6 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt6.innerHTML = global.flags.jnlu?'journal':'???????'; 
 dom.ct_bt7 = addElement(dom.ct_ctrl ,'div',null,'ct_bts'); dom.ct_bt7.innerHTML = 'settings';
 dom.ct_bt1.style.borderLeft='none'; dom.ct_bt7.style.borderRight='none';
 
-dom.ct_bt7.addEventListener('click',()=>{ dom.nthngdsp.style.display='none';
-  if(global.lw_op===7) {dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='';global.lw_op=0;clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)}
-  else{dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='';dom.ctrwin3.style.display='none';dom.ctrwin1.style.display='none';dom.ctrwin2.style.display='none';global.lw_op=7}
-clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)});
-dom.ct_bt1.addEventListener('click',()=>{ dom.nthngdsp.style.display='none';
-  if(global.lw_op===1) {dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='';global.lw_op=0;clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)}
-  else{dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='';dom.ctrwin1.style.display='none';global.lw_op=1;
-  if(global.rec_d.length>0){dom.ct_bt1_c.style.display='';rsort(global.rm);clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)}else{dom.ct_bt1_c.style.display='none';dom.nthngdsp.style.display=''}}
+dom.ct_bt7.addEventListener('click',()=>{
+    dom.nthngdsp.style.display='none';
+    if(global.lw_op===7) {
+        dom.ctrwin6.style.display='none';
+        dom.ctrwin5.style.display='none';
+        dom.ctrwin4.style.display='none';
+        dom.ctrwin3.style.display='none';
+        dom.ctrwin2.style.display='none';
+        dom.ctrwin1.style.display='';
+        global.lw_op=0;
+        
+        clearInterval(timers.sklupdate);
+        clearInterval(timers.bstmonupdate);
+    } else{
+        dom.ctrwin6.style.display='none';
+        dom.ctrwin5.style.display='none';
+        dom.ctrwin4.style.display='';
+        dom.ctrwin3.style.display='none';
+        dom.ctrwin2.style.display='none';
+        dom.ctrwin1.style.display='none';
+        global.lw_op=7;
+    }
+    clearInterval(timers.sklupdate);
+    clearInterval(timers.bstmonupdate)
 });
 
-dom.ct_bt3.addEventListener('click',()=>{ dom.nthngdsp.style.display='none';
-    if(global.lw_op===3) {dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='none';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='';global.lw_op=0;clearInterval(timers.sklupdate);clearInterval(timers.bstmonupdate)}
-    else{dom.ctrwin6.style.display='none';dom.ctrwin5.style.display='';dom.ctrwin4.style.display='none';dom.ctrwin3.style.display='none';dom.ctrwin2.style.display='none';dom.ctrwin1.style.display='none';global.lw_op=3;empty(dom.ctrwin5);
-    if(acts.length>0){ 
-        this.acch = addElement(dom.ctrwin5,'div');this.acch.innerHTML='A c t i o n　　l i s t';
-        this.acch.style.padding='2px';
-        this.acch.style.textAlign='center';this.acch.style.backgroundColor='#050730';
-        this.acch_e = addElement(this.acch,'div');
-        this.acch_e.style.float='right';this.acch_e.style.display='flex';this.acch_e.style.position='relative';this.acch_e.style.top=-6;this.acch_e.style.right=-2;
-        this.acch_e.style.height=20;
-        dom.acccon = addElement(dom.ctrwin5,'div'); empty(dom.acccon);
-        for(let a in acts){
-        renderAct(acts[a]);
+dom.ct_bt1.addEventListener('click',()=>{
+    dom.nthngdsp.style.display='none';
+    if(global.lw_op===1) {
+        dom.ctrwin6.style.display='none';
+        dom.ctrwin5.style.display='none';
+        dom.ctrwin4.style.display='none';
+        dom.ctrwin3.style.display='none';
+        dom.ctrwin2.style.display='none';
+        dom.ctrwin1.style.display='';
+        global.lw_op=0;
+
+        clearInterval(timers.sklupdate);
+        clearInterval(timers.bstmonupdate);
+    } else {
+        dom.ctrwin6.style.display='none';
+        dom.ctrwin5.style.display='none';
+        dom.ctrwin4.style.display='none';
+        dom.ctrwin3.style.display='none';
+        dom.ctrwin2.style.display='';
+        dom.ctrwin1.style.display='none';
+        global.lw_op=1;
+
+        if (global.rec_d.length>0) {
+            dom.ct_bt1_c.style.display='';
+            rsort(global.rm);
+
+            clearInterval(timers.sklupdate);
+            clearInterval(timers.bstmonupdate)
+        } else {
+            dom.ct_bt1_c.style.display='none';
+            dom.nthngdsp.style.display='';
         }
-    }else dom.nthngdsp.style.display=''}
+    }
+});
+
+dom.ct_bt3.addEventListener('click',()=>{
+    dom.nthngdsp.style.display='none';
+    if(global.lw_op===3) {
+        dom.ctrwin6.style.display='none';
+        dom.ctrwin5.style.display='none'
+        dom.ctrwin4.style.display='none';
+        dom.ctrwin3.style.display='none';
+        dom.ctrwin2.style.display='none';
+        dom.ctrwin1.style.display='';
+        global.lw_op=0;
+
+        clearInterval(timers.sklupdate);
+        clearInterval(timers.bstmonupdate);
+    } else {
+        dom.ctrwin6.style.display='none';
+        dom.ctrwin5.style.display='';
+        dom.ctrwin4.style.display='none';
+        dom.ctrwin3.style.display='none';
+        dom.ctrwin2.style.display='none';
+        dom.ctrwin1.style.display='none';
+        global.lw_op=3;
+        empty(dom.ctrwin5);
+
+        if (acts.length>0){ 
+            this.acch = addElement(dom.ctrwin5,'div');
+            this.acch.innerHTML='A c t i o n　　l i s t';
+            this.acch.style.padding='2px';
+            this.acch.style.textAlign='center';
+            this.acch.style.backgroundColor='#050730';
+            this.acch_e = addElement(this.acch,'div');
+            this.acch_e.style.float='right';
+            this.acch_e.style.display='flex';
+            this.acch_e.style.position='relative';
+            this.acch_e.style.top=-6;
+            this.acch_e.style.right=-2;
+            this.acch_e.style.height=20;
+            dom.acccon = addElement(dom.ctrwin5,'div');
+            empty(dom.acccon);
+            for(let a in acts) {
+                renderAct(acts[a]);
+            }
+        } else {
+            dom.nthngdsp.style.display='';
+        }
+    }
 }); 
 
 function renderAct(a){
-    this.accm = addElement(dom.acccon,'div',null,'skwmmc'); a.t = this.accm;
+    this.accm = addElement(dom.acccon,'div',null,'skwmmc');
+    a.t = this.accm;
     addDesc(this.accm,null,2,a.name,a.desc());
-    this.accm.innerHTML = a.name; this.accm.style.textAlign='center'; this.accm.style.display='block'
-    if(acts.length-1===acts.indexOf(a))this.accm.style.borderBottom='1px solid #46a';
-    if(a.cond(false)!==true) this.accm.style.color='grey'; if(a.active===true) this.accm.style.color='lime';
+    this.accm.innerHTML = a.name;
+    this.accm.style.textAlign='center';
+    this.accm.style.display='block';
+    if(acts.length-1===acts.indexOf(a)) this.accm.style.borderBottom='1px solid #46a';
+    if(a.cond(false)!==true) this.accm.style.color='grey';
+    if(a.active===true) this.accm.style.color='lime';
     this.accm.addEventListener('click',function(){
     switch(a.type){
         case 1:
@@ -13126,14 +13219,21 @@ dom.sl_kill.addEventListener('click', ()=>{
 });
 
 function update_db(){
-  dom.d4_1.innerHTML = 'STR: '+Math.round(you.str_d); dom.d4_2.innerHTML = 'AGL: '+Math.round(you.agl_d);
-  dom.d4_3.innerHTML = 'INT: '+Math.round(you.int_d); dom.d4_4.innerHTML = 'SPD: '+you.spd;
-} update_db()
+  dom.d4_1.innerHTML = 'STR: '+Math.round(you.str_d);
+  dom.d4_2.innerHTML = 'AGL: '+Math.round(you.agl_d);
+  dom.d4_3.innerHTML = 'INT: '+Math.round(you.int_d);
+  dom.d4_4.innerHTML = 'SPD: '+you.spd;
+}
+update_db()
 
 function update_d(){
-  dom.d5_1_1m.innerHTML = 'hp: '+format3(global.current_m.hp.toString())+'/'+format3(global.current_m.hpmax.toString()); dom.d5_1m.style.width = 100*global.current_m.hp/global.current_m.hpmax+'%';
-  dom.hit_c(); dom.d5_3_1.update();  dom.d5_1_1.update();
-} update_d()
+    dom.d5_1_1m.innerHTML = 'hp: '+format3(global.current_m.hp.toString())+'/'+format3(global.current_m.hpmax.toString());
+    dom.d5_1m.style.width = 100*global.current_m.hp/global.current_m.hpmax+'%';
+    dom.hit_c();
+    dom.d5_3_1.update();
+    dom.d5_1_1.update();
+}
+update_d()
 
 global.text.mtp=['Human','Beast','Undead','Evil','Phantom','Dragon'];
 
@@ -13470,16 +13570,19 @@ function format(thing,what){
   msg('wHw')
 }
 
-function appear(dom){
-  if(!!dom){ let tmr = 0;
-  dom.style.opacity=0;
-  dom.style.display='';
-  let a = setInterval(()=>{
-    tmr++;
-    dom.style.opacity=tmr/100;
-    if(tmr===100) clearInterval(a);
-  },10);
-  }
+function appear(...dom_elements){
+    for (let elem of dom_elements) {
+        if (elem instanceof HTMLElement) {
+            let tmr = 0;
+            elem.style.opacity=0;
+            elem.style.display='';
+            let a = setInterval(()=>{
+                tmr++;
+                elem.style.opacity=tmr/100;
+                if(tmr===100) clearInterval(a);
+            }, 10);
+        }
+    }
 }
 
 function fade(dom, timer, del){
@@ -15271,16 +15374,48 @@ chss.t1.id = 101;
 chss.t1.sl = function() {
     u_loc('Outside Dojo, Village');
 
+    global.flags.start_mountain = true;
+    global.flags.unl_rockpath = true;
+    global.flags.unl_house = false;
+    global.flags.unl_shack = true;
+    global.flags.unl_hiddengrounds = true;
+    global.flags.dojolocked = true;
+
+    giveTitle(ttl.__mountainchild, false);
+    you.title = ttl.__mountainchild;
+
+    giveSkExp(skl.unc, 853, showLevelUp=false); //give unarmed mastery
+    giveSkExp(skl.fgt, 335, showLevelUp=false);
+
     chs('???: "Kid..."'); 
     achs('"..."', () => {
         global.time += DAY; 
-        appear(dom.ctr_1);     // time + weather
         appear(dom.location);
+
         chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
-        achs('"How did I get here..?"', () => {
-            chs('???: "Don\'t you remember where you came from?"');
+        achs('"Where am I..?"', () => {
+            dom.ctr_1.style.display = '';
+            dom.ctr_1.style.opacity = 1;
+            dom.ctr_1a.style.display    = 'none';
+            dom.d_weather.style.display = 'none';
+            dom.d_time.style.display    = 'none';
+
+            appear(dom.ctr_1a); // location
+            chs('???: "You\'re outside the village dojo... I found you here unconscious. Do you remember how you first arrived here?"');
             achs('"I came down from a dojo in the mountains..."', () => {
-                move_to_area(chss.__quickstart, false);
+                appear(dom.d_weather, dom.d_weathert);
+                appear(dom.d0);
+                
+                chs('???: "You have some experience then, huh? Yet even still, someone like you can end up in a place like this."');
+                achs('"..."', () => {
+                    appear(dom.d1m);
+
+                    chs('???: "It\'s getting dangerous out there... you ought to be more mindful of your surroundings..."');
+                    achs('"..."', () => {
+                        appear(dom.d_time);
+                        move_to_area(chss.__quickstart, false);                        
+                    });
+                });
             });
         });
     });
@@ -17305,18 +17440,9 @@ chss.__quickstart.sl = function() {
     clr_chs();
     
     // fade in all menus
-    appear(dom.d0);
-    appear(dom.inv_ctx);
-    appear(dom.gmsgs);
-    appear(dom.ct_ctrl);
-    appear(dom.d1m);
-
-    global.flags.start_mountain = true;
-    global.flags.unl_rockpath = true;
-    global.flags.unl_house = false;
-    global.flags.unl_shack = true;
-    global.flags.unl_hiddengrounds = true;
-    global.flags.dojolocked = true;
+    appear(dom.inv_ctx,  // inventory
+           dom.gmsgs,    // message log
+           dom.ct_ctrl); // center-bottom clickables
 
     global.home_loc = 703 // chss__home2 
     
@@ -17332,9 +17458,10 @@ chss.__quickstart.sl = function() {
     dom.ct_bt3.innerHTML = 'actions';
     dom.ct_bt2.innerHTML = 'skills';
 
-    appear(dom.mn_2); // make wealth appear
-    appear(dom.mn_3);
-    appear(dom.mn_4);
+    // make wealth appear
+    appear(dom.mn_2,
+           dom.mn_3,
+           dom.mn_4);
     m_update();
 
     global.flags.mkplc1u = true;
@@ -17354,14 +17481,6 @@ chss.__quickstart.sl = function() {
     giveItem(item.__leatherwallet); // coinage
     giveItem(item.sp2, 5);          // pills
     //giveItem(item.__sp4);
-
-    giveTitle(ttl.__mountainchild, false);
-    you.title = ttl.__mountainchild;
-    
-    giveSkExp(skl.unc, 853, showLevelUp=false); //give unarmed mastery
-    giveSkExp(skl.fgt, 335, showLevelUp=false);
-
-    //area.trn.size = 1000 // change 10k dummies to 1k also need to change chss.djinf
     
     move_to_area(chss.lsmain1); // move to courtyard
 };
