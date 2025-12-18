@@ -5021,7 +5021,7 @@ item.bmsmktt.stype=4;
 item.bmsmktt.use=function(){ 
   if(global.current_l.id!==111){msg('This isn\'t the best place to use this','red'); return}
   area.hmbsmnt.size=0; msg('You toss a cluster down your basement and hear a distant shrill','yellow')
-  dom.d_lctt.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
+  dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
   sector.home.data.smkp = 900; sector.home.data.smkt = time.minute; this.amount-- ; 
 }
 
@@ -10856,7 +10856,7 @@ sector.home = new Sector(); sector.home.id = 1; sector.home.inside=true; sector.
 sector.home.onEnter=function(){ let fire = findbyid(furn,furniture.frplc.id);
   for(let f in furn) activatef(furn[f])
     if(this.data.smkp>0){
-    dom.d_lctt.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
+    dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
     let re = time.minute-this.data.smkt; this.data.smkp-=re;
   }
 }
@@ -10869,7 +10869,7 @@ sector.home.onScout=function(){scoutGeneric(this)}
 
 sector.home.onMove=function(){
   if(this.data.smkp>0){
-    dom.d_lctt.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
+    dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
   }
 }
 
@@ -12098,7 +12098,7 @@ dom.d_lctc.style.paddingTop=7;
 dom.d_lctc.style.marginLeft=-1;
 dom.d_lctc.style.display='flex';
 
-dom.d_lctt = addElement(dom.d_lctc,'span');
+dom.location_text = addElement(dom.d_lctc,'span');
 dom.location_text_effector = addElement(dom.d_lctc,'span');
 
 dom.ctr_2 = addElement(dom.ctrwin1,'div','ctrm_2');
@@ -16946,7 +16946,7 @@ chss.hbed.onLeave=function(){
 
 chss.ofrplc = new Chs(); chss.ofrplc.id = 117; addtosector(sector.home,chss.ofrplc)
     chss.ofrplc.sl=()=>{u_loc('Your Home, Fireplace'); let fire = findbyid(furn,furniture.frplc.id);  global.lst_loc = 117;  
-    //dom.d_lctt.innerHTML+='<span style="color:orange;font-size:1.2em">&nbspⓞ<span>'
+    //dom.location_text.innerHTML+='<span style="color:orange;font-size:1.2em">&nbspⓞ<span>'
     let its = []
     if(findbyid(inv,item.fwd1.id)) its.push([findbyid(inv,item.fwd1.id),'some firewood',30])
     if(findbyid(inv,item.coal1.id)) its.push([findbyid(inv,item.coal1.id),'some coal',300])
@@ -18191,7 +18191,7 @@ function u_loc(text) {
     } else { 
         txt=text;
     }
-    dom.d_lctt.innerHTML = txt;
+    dom.location_text.innerHTML = txt;
     global.current_l.locn=text; 
 }
 
