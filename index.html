@@ -1,9 +1,7 @@
 <!-- 
 
   TODO:
-      - consume spirit pills in intro.
-      - clear message log in intro.
-
+       
 -->
 <html>
 <head>
@@ -208,8 +206,8 @@ global.flags = {
     unl_house: true,
     unl_hiddengrounds: false,
 
-    mountain_pills_taken: false,
-    visited_western_woods: false, 
+    taken_handfulsp2: false,
+    finished_intro: false, 
     rock_path_show_cat: false,
     drunk_from_river: false,
     spoken_to_river_man: false,
@@ -4723,7 +4721,9 @@ item.sp2.name='Mid-grade Spirit Pill';
 item.sp2.desc='Small cheap spirit pill, made from condensed Ki. Developed to help young martial artists to go through their training'+dom.dseparator+'<span style=\'color:orange\'> Grants +2500 EXP </span>';
 item.sp2.stype=4;
 item.sp2.use=function(){
-  giveExp(2500,true,true,true); global.stat.plst++; global.stat.medst++
+  giveExp(2500,true,true,true);
+  global.stat.plst++;
+  global.stat.medst++
   this.amount-- ;
 }
 
@@ -7406,10 +7406,9 @@ item.ywlt.stype=4;
 item.ywlt.rar=2;
 item.ywlt.use=function(x){
   giveItem(item.cd,2);giveItem(item.cq,1);giveItem(item.cn,1);giveItem(item.cp,rand(2,10));
-  this.amount--; global.flags.m_un=true;
-  appear(dom.mn_2,
-         dom.mn_3,
-         dom.mn_4);
+  this.amount--;
+  global.flags.m_un=true;
+  check_if_money_should_appear()
 }
 
 item.hnhn = new Item(); item.hnhn.id = 5025;
@@ -7922,7 +7921,7 @@ item.shppmf.desc = 'This was shoved onto you by someone on the streets. Store na
 item.shppmf.onGet=function(){global.flags.pmfspmkm1=true}
 item.shppmf.stype = 4; item.shppmf.data.time=HOUR*3;
 item.shppmf.use = function(){if(canRead()){if(this.data.timep>=this.cmax){ 
-   global.flags.mkplc1u=true; this.data.finished=true; msg('Right, you could go to the marketplace','lime'); if(global.current_location.id===chss.lsmain1.id) move_to_area(chss.lsmain1,false);
+   global.flags.mkplc1u=true; this.data.finished=true; msg('Right, you could go to the marketplace','lime'); if(global.current_location.id===chss.village_center.id) move_to_area(chss.village_center,false);
    this.data.read=false; this.amount-- ; 
 }else chss.trd.sl(this, 0, this.id);}
 }
@@ -8074,12 +8073,29 @@ item.__leatherwallet.desc = "A plain, but sturdy leather wallet gifted to by an 
 item.__leatherwallet.stype = 4;
 item.__leatherwallet.rar = 1;
 item.__leatherwallet.use = function() {
-    giveItem(item.lcn, 5);
-    giveItem(item.cp, 3);
-    giveItem(item.cn, 6);
-    giveItem(item.cd, 6);
-    giveItem(item.cq, 4);
+    global.flags.m_un = true;
+    giveItem(item.lcn, 5, false, null, sendMsg=false);
+    giveItem(item.cp,  3, false, null, sendMsg=false);
+    giveItem(item.cn,  6, false, null, sendMsg=false);
+    giveItem(item.cd,  6, false, null, sendMsg=false);
+    giveItem(item.cq,  4, false, null, sendMsg=false);
+    check_if_money_should_appear()
     this.amount--;
+}
+
+item.__handfulsp2 = new Item();
+item.__handfulsp2.id = 70003;
+item.__handfulsp2.name = "Handful of Spirit Pills";
+item.__handfulsp2.desc = "A small brown sack containing several medium-grade spirit pills. They are made out of condensed ki, meant for young martial artists to help them through their training."+
+                        dom.dseparator+
+                        '<span style=\'color:orange\'>This\'ll boost you back to your prime.</span>';
+item.__handfulsp2.stype = 4;
+item.__handfulsp2.rar = 1;
+item.__handfulsp2.use = function() {
+    giveExp(11000, true, true, true, false,
+    "You feel as though you've gotten your strength back.");
+    this.amount--;
+    global.flags.taken_handfulsp2 = true;
 }
 
 acc.__rivercharm = new Chs();
@@ -9903,7 +9919,7 @@ function You(){
             global.flags.civil=true;
             global.current_z.onDeath();
             if(sector.home.data.smkp>0) {
-                move_to_area(chss.lsmain1,false);
+                move_to_area(chss.village_center,false);
                 msg('You ran out of your smoked up house','grey')
             } else {
                 if (global.home_loc == 111) move_to_area(chss.hbed, false);
@@ -14093,14 +14109,17 @@ function area_init(area){
             global.current_z=area;
             let temp=area.pop[obj]; 
             let newobj = temp.crt.id===creature.default.id?creature.default:mon_gen(temp.crt); 
-            lvlup(newobj,rand(temp.lvlmin-1,temp.lvlmax-1)) ; 
-            //newobj.data.lasthp=newobj.hp; 
+            lvlup(newobj,rand(temp.lvlmin-1,temp.lvlmax-1));
             global.current_m = newobj; update_m(); dom.d5_1_1m.update(); if(!!dom.d7m)dom.d7m.update(); //dom.d5m.update(); 
             return newobj;
         } else(area_init(area));
         }
     } else msg('nobody\'s here');
-    if(!!dom.d7m)dom.d7m.update(); update_m(); dom.d5_1_1m.update();
+
+    if(!!dom.d7m) dom.d7m.update();
+
+    update_m();
+    dom.d5_1_1m.update();
 }
 
 function mon_gen(crt) {
@@ -14372,7 +14391,7 @@ function spend(m) {
     m_update();
 }
 
-function giveItem(obj, am, ignore, flag) {
+function giveItem(obj, am, ignore, flag, sendMsg=true) {
     am = am || 1;
     if (!!obj.slot) {
         let nitm;
@@ -14389,7 +14408,9 @@ function giveItem(obj, am, ignore, flag) {
                 nitm.dss = tmp.dss;
             }
             inv.push(nitm);
-            msg('New item obtained: <span style="color:coral">' + nitm.name + '</span>', 'cyan', obj);
+            if (sendMsg) {
+                msg('New item obtained: <span style="color:coral">' + nitm.name + '</span>', 'cyan', obj);
+            }
             obj.onGet();
             if (global.sm === nitm.stype) {
                 global.sinv.push(nitm);
@@ -14432,7 +14453,9 @@ function giveItem(obj, am, ignore, flag) {
         obj.data.dscv = true;
         inv.push(obj);
         obj.amount += am;
-        msg('New item obtained: <span style="color:coral">' + obj.name + '</span><span style="color:lime"> x' + am + '</span>', 'cyan', obj);
+        if (sendMsg) {
+            msg('New item obtained: <span style="color:coral">' + obj.name + '</span><span style="color:lime"> x' + am + '</span>', 'cyan', obj);
+        }
         obj.onGet();
         if (global.sm === obj.stype) {
             global.sinv.push(obj);
@@ -14442,7 +14465,9 @@ function giveItem(obj, am, ignore, flag) {
         }
     } else {
         obj.amount += am;
-        msg('Item Acquired: <span style="color:chartreuse">' + obj.name + '</span><span style="color:lime"> x' + am + '</span>', 'cyan', obj);
+        if (sendMsg) {
+            msg('Item Acquired: <span style="color:chartreuse">' + obj.name + '</span><span style="color:lime"> x' + am + '</span>', 'cyan', obj);
+        }
         if (global.sm === 1) {
             updateInv(inv.indexOf(obj));
         } else if (global.sm === obj.stype) {
@@ -15381,7 +15406,7 @@ chss.t1.sl = function() {
     giveSkExp(skl.fgt, 335, showLevelUp=false);
 
     giveItem(item.__leatherwallet); // coinage
-    giveItem(item.sp2, 5); // pills
+    giveItem(item.__handfulsp2); // pills
 
     chs('???: "Kid..."'); 
     achs('"..."', () => {
@@ -15401,14 +15426,15 @@ chss.t1.sl = function() {
             achs('"I came down from a dojo in the mountains..."', () => {
                 appear(dom.d_weather, dom.d_weathert); // show weather
                 appear(dom.d0); // show player menu
-                
+                appear(dom.inv_ctx); // show inventory                
                 chs('???: "You have some experience then, huh? Yet even still, someone like you can end up in a place like this."');
                 achs('"..."', () => {
                     appear(dom.d1m);
-
+                    empty(dom.mscont) // clear message log
+                    appear(dom.gmsgs);
+                    appear(dom.d_time);
                     chs('???: "It\'s getting dangerous out there... you ought to be more mindful of your surroundings..."');
                     achs('"..."', () => {
-                        appear(dom.d_time);
                         move_to_area(chss.__quickstart, false);                        
                     });
                 });
@@ -15484,17 +15510,17 @@ chss.t3.sl=()=>{global.flags.inside=true; u_loc('Dojo, lobby'); global.flags.ins
   }
   else { 
     if(!global.flags.dj1end){chs('Instructor: "Your training is over for today, you did well. As a reward, select one of these skill manuals to practice. The better your understanding, the stronger you will be in battle"',true);
-      chs('"Practitioner Skillbook (Swords)"',false).addEventListener('click',()=>{giveItem(item.skl1);global.flags.dj1end=true; move_to_area(chss.lsmain1);});
-      chs('"Practitioner Skillbook (Knives)"',false).addEventListener('click',()=>{giveItem(item.skl2);global.flags.dj1end=true; move_to_area(chss.lsmain1);});
-      chs('"Practitioner Skillbook (Axes)"',false).addEventListener('click',()=>{giveItem(item.skl3);global.flags.dj1end=true; move_to_area(chss.lsmain1);});
-      chs('"Practitioner Skillbook (Spears)"',false).addEventListener('click',()=>{giveItem(item.skl4);global.flags.dj1end=true; move_to_area(chss.lsmain1);});
-      chs('"Practitioner Skillbook (Hammers)"',false).addEventListener('click',()=>{giveItem(item.skl5);global.flags.dj1end=true; move_to_area(chss.lsmain1);});
-      chs('"Practitioner Skillbook (Martial)"',false).addEventListener('click',()=>{giveItem(item.skl6);global.flags.dj1end=true; move_to_area(chss.lsmain1);});
+      chs('"Practitioner Skillbook (Swords)"',false).addEventListener('click',()=>{giveItem(item.skl1);global.flags.dj1end=true; move_to_area(chss.village_center);});
+      chs('"Practitioner Skillbook (Knives)"',false).addEventListener('click',()=>{giveItem(item.skl2);global.flags.dj1end=true; move_to_area(chss.village_center);});
+      chs('"Practitioner Skillbook (Axes)"',false).addEventListener('click',()=>{giveItem(item.skl3);global.flags.dj1end=true; move_to_area(chss.village_center);});
+      chs('"Practitioner Skillbook (Spears)"',false).addEventListener('click',()=>{giveItem(item.skl4);global.flags.dj1end=true; move_to_area(chss.village_center);});
+      chs('"Practitioner Skillbook (Hammers)"',false).addEventListener('click',()=>{giveItem(item.skl5);global.flags.dj1end=true; move_to_area(chss.village_center);});
+      chs('"Practitioner Skillbook (Martial)"',false).addEventListener('click',()=>{giveItem(item.skl6);global.flags.dj1end=true; move_to_area(chss.village_center);});
     }
     else if(global.flags.trnex1===true&&!global.flags.trnex2){
       chs('Instructor: "Hahahhha! What a great disciple! That\'s not the dedication most of the other disciples have! Take this, it\'ll help you in your future endeavours"',true,'yellow');
       chs('"Thanks teacher!"',false).addEventListener('click',()=>{
-        giveItem(acc.snch); move_to_area(chss.lsmain1); global.flags.trnex2=true;
+        giveItem(acc.snch); move_to_area(chss.village_center); global.flags.trnex2=true;
       });
     }
     else{ chs(select(['Instructor: "Back already?"','You notice other dojo disciples diligently train','Pieces of broken training dummies are scattered on the floor']),true);
@@ -15626,16 +15652,16 @@ chss.t3.sl=()=>{global.flags.inside=true; u_loc('Dojo, lobby'); global.flags.ins
       });
     });
     chs('"<= Go outside"',false).addEventListener('click',()=>{
-      move_to_area(chss.lsmain1);
+      move_to_area(chss.village_center);
     });
     if(global.flags.trne4e1&&!global.flags.trne4e1b){     
       chs('Instructor: "Once again, choose the skillbook of specialization you are interested in. Doesn\'t mean you have to stick with it to the bitter end, but it will help you train"',true);
-      chs('"Bladesman Manual"',false).addEventListener('click',()=>{giveItem(item.skl1a);global.flags.trne4e1b=true; move_to_area(chss.lsmain1);});
-      chs('"Assassin Manual"',false).addEventListener('click',()=>{giveItem(item.skl2a);global.flags.trne4e1b=true; move_to_area(chss.lsmain1);});
-      chs('"Axeman Manual"',false).addEventListener('click',()=>{giveItem(item.skl3a);global.flags.trne4e1b=true; move_to_area(chss.lsmain1);});
-      chs('"Lancer Manual"',false).addEventListener('click',()=>{giveItem(item.skl4a);global.flags.trne4e1b=true; move_to_area(chss.lsmain1);});
-      chs('"Clubber Manual"',false).addEventListener('click',()=>{giveItem(item.skl5a);global.flags.trne4e1b=true; move_to_area(chss.lsmain1);});
-      chs('"Brawler Manual"',false).addEventListener('click',()=>{giveItem(item.skl6a);global.flags.trne4e1b=true; move_to_area(chss.lsmain1);});}
+      chs('"Bladesman Manual"',false).addEventListener('click',()=>{giveItem(item.skl1a);global.flags.trne4e1b=true; move_to_area(chss.village_center);});
+      chs('"Assassin Manual"',false).addEventListener('click',()=>{giveItem(item.skl2a);global.flags.trne4e1b=true; move_to_area(chss.village_center);});
+      chs('"Axeman Manual"',false).addEventListener('click',()=>{giveItem(item.skl3a);global.flags.trne4e1b=true; move_to_area(chss.village_center);});
+      chs('"Lancer Manual"',false).addEventListener('click',()=>{giveItem(item.skl4a);global.flags.trne4e1b=true; move_to_area(chss.village_center);});
+      chs('"Clubber Manual"',false).addEventListener('click',()=>{giveItem(item.skl5a);global.flags.trne4e1b=true; move_to_area(chss.village_center);});
+      chs('"Brawler Manual"',false).addEventListener('click',()=>{giveItem(item.skl6a);global.flags.trne4e1b=true; move_to_area(chss.village_center);});}
     }
   }
 }
@@ -15749,7 +15775,7 @@ chss.frstn1main.sl=()=>{global.flags.inside=false; u_loc('Western Woods, The Woo
     move_to_area(chss.frstn1a3);
   });
   chs('"<= Return back"',false).addEventListener('click',()=>{
-    move_to_area(chss.lsmain1);
+    move_to_area(chss.village_center);
   });
 }
 
@@ -16080,7 +16106,7 @@ chss.frstn3main.sl=()=>{
     move_to_area(chss.frstn9a1m);
   });
   chs('"<= Return back"',false).addEventListener('click',()=>{
-    move_to_area(chss.lsmain1);
+    move_to_area(chss.village_center);
   });
 }
 
@@ -16095,14 +16121,41 @@ chss.frstn9a1m.onEnter=function(){
   area_init(area.frstn9a1);
 }
 
+chss.intro_village_center = new Chs();
+chss.intro_village_center.id = 105;
+chss.intro_village_center.sl = () => {
+    u_loc('Village Center');
+    
+    // change weather here
+    chs('Dark clouds loom over. They appear to be a bad omen.')
 
-chss.lsmain1 = new Chs();
-chss.lsmain1.id = 106;
-addtosector(sector.vcent,chss.lsmain1);
-addtosector(sector.vmain1,chss.lsmain1)
-chss.lsmain1.sl = () => {
+    achs('=> Check the Message Board', ()=>{
+        __dbgsp();
+        //move_to_area(chss.message_board,false);
+    });
+
+    achs('=> Enter Dojo', () => {
+        msg('The entrance to the dojo is locked.', 'lightyellow');
+    });
+
+    achs('=> Visit Marketplace', ()=>{
+        move_to_area(chss.intro_marketplace); 
+    });
+
+    achs('=> Walk to Village Outskirts',  () => {
+        move_to_area(chss.intro_village_outskirts);
+    });
+}
+
+chss.village_center = new Chs();
+chss.village_center.id = 106;
+addtosector(sector.vcent,chss.village_center);
+addtosector(sector.vmain1,chss.village_center)
+chss.village_center.sl = () => {
     global.flags.inside = false;
     u_loc('Village Center');
+
+    // chs('Dark clouds loom over. They appear to be a bad omen.');
     
     if (isWeather(weather.sunny) || isWeather(weather.clear)) {
         chs('The surroundings are flourishing with energy.');
@@ -16135,16 +16188,12 @@ chss.lsmain1.sl = () => {
     }
 
     achs('=> Walk to Village Outskirts',  () => {
-        move_to_area(chss.__villageoutskirts);
+        move_to_area(chss.village_outskirts);
     });
-    
-    //  chs('"=> Visit Pill Tower"',false).addEventListener('click',()=>{
-    //    move_to_area(chss.pltwr1);
-    //  });
     
     if (global.flags.mkplc1u === true) {
         achs('=> Visit Marketplace', ()=>{
-            move_to_area(chss.mrktvg1); 
+            move_to_area(chss.marketplace); 
         });
     }
 
@@ -16165,70 +16214,94 @@ chss.lsmain1.sl = () => {
         chs('Paper Boy: Hey, this is for you!');
         achs('?', () => {
             giveItem(item.shppmf);
-            move_to_area(chss.lsmain1,false);
+            move_to_area(chss.village_center,false);
         });
         }
     }
 }
 
-chss.mrktvg1 = new Chs();
-chss.mrktvg1.id = 127;
-addtosector(sector.vmain1,chss.mrktvg1);
-chss.mrktvg1.sl = () => {
-    global.flags.inside=false; 
-    u_loc('Village Center, Marketplace')    ;
+chss.intro_marketplace = new Chs();
+chss.intro_marketplace.id = 107;
+chss.intro_marketplace.sl = () => {
+    u_loc('Village Center, Marketplace');
+    chs("All of the stalls are closed up. No one seems to be around.")
+
+    // put nervous guy here ?
+
+    achs('<= Return back to the Village Center', ()=>{
+            move_to_area(chss.intro_village_center);
+    });
+}
+
+chss.marketplace = new Chs();
+chss.marketplace.id = 127;
+addtosector(sector.vmain1,chss.marketplace);
+chss.marketplace.sl = () => {
+    u_loc('Village Center, Marketplace');
     chs('The marketplace feels busy');
+
     achs('Grocery Shop =>', () => {
         move_to_area(chss.grc1);
     }, 'gold');
-    chs('General Store =>', false, 'gold').addEventListener('click',()=>{
+
+    achs('General Store =>', () => {
         move_to_area(chss.gens1);
-    });
-    if (!global.flags.scrtgltt) chs('Food stand =>').addEventListener('click',()=>{
-        if (skl.trad.lvl >= 2 && random() < 0.2) global.flags.scrtglti=true;
+    }, 'gold');
+
+    if (!global.flags.scrtgltt) 
+        achs('Food stand =>', () =>{
+        if (skl.trad.lvl >= 2 && random() < 0.2) {
+            global.flags.scrtglti=true;
+        }
         if (global.flags.scrtglti===true){
             chs('...',true);
             chs('?').addEventListener('click',()=>{
                 chs('Passerby: "Looking for the foodstand guy? He took his stuff and went South. That one supposedly travels from place to place to sell the food he makes, doubt we\'ll see him back any time soon"');
                 chs('Well then..').addEventListener('click',()=>{
-                    global.flags.scrtgltt=true; move_to_area(chss.lsmain1,false);
+                    global.flags.scrtgltt=true; move_to_area(chss.village_center,false);
                 });
             });
         } else {
             move_to_area(chss.vendor1, false);
         }
     });
-    if(global.flags.phai1udt) chs('Herbalist =>', false, 'gold').addEventListener('click',()=>{
+
+    if(global.flags.phai1udt) {
+        achs('Herbalist =>', ()=>{
             move_to_area(chss.pha1);
-    });
+        }, 'gold');
+    }
+
     chs('Nervous Guy =>', false).addEventListener('click',()=>{
             move_to_area(chss.fdwrg1qt);
     });
     
-    if(global.flags.grddtjb) chs('"Checkpoint"',false,'hotpink').addEventListener('click',()=>{
-        if (getHour()>=7&&getHour()<=10) {
-            chs('Lookout Guard: Here for work? You won\'t have to do much, just stand there near the gate and look intimidating. You\'re not doing any fighting if someone dangerous comes around, that would be dealth by Us, your militia. Your shift ends at 8PM, sign up now and go',true);
-            chs('"Alright..."',false).addEventListener('click',()=>{
-                if (getHour()>=7&&getHour()<=10) {
-                    giveQst(quest.grds1);
-                    move_to_area(chss.jbgd1);
-                } else {
-                    chs('Lookout Guard: Too damn late, next time don\'t stand there like a decoration wasting everyone\'s time',true);
-                    chs('"Ah..."',false).addEventListener('click',()=>{
-                        move_to_area(chss.lsmain1);
-                    });
-                }
-            });
-            chs('"<= Maybe not"',false).addEventListener('click',()=>{
-                move_to_area(chss.mrktvg1);
-            });
-        } else {
-            chs('Lookout Guard: If you want work come at the time that\'s stated in the notice and not a minute late!',true);
-            chs('"<= Return"',false).addEventListener('click',()=>{
-                move_to_area(chss.mrktvg1);
-            });
-        }
-    });
+    if(global.flags.grddtjb) {
+        chs('"Checkpoint"',false,'hotpink').addEventListener('click',()=>{
+            if (getHour()>=7&&getHour()<=10) {
+                chs('Lookout Guard: Here for work? You won\'t have to do much, just stand there near the gate and look intimidating. You\'re not doing any fighting if someone dangerous comes around, that would be dealth by Us, your militia. Your shift ends at 8PM, sign up now and go',true);
+                chs('"Alright..."',false).addEventListener('click',()=>{
+                    if (getHour()>=7&&getHour()<=10) {
+                        giveQst(quest.grds1);
+                        move_to_area(chss.jbgd1);
+                    } else {
+                        chs('Lookout Guard: Too damn late, next time don\'t stand there like a decoration wasting everyone\'s time',true);
+                        chs('"Ah..."',false).addEventListener('click',()=>{
+                            move_to_area(chss.village_center);
+                        });
+                    }
+                });
+                chs('"<= Maybe not"',false).addEventListener('click',()=>{
+                    move_to_area(chss.marketplace);
+                });
+            } else {
+                chs('Lookout Guard: If you want work come at the time that\'s stated in the notice and not a minute late!',true);
+                chs('"<= Return"',false).addEventListener('click',()=>{
+                    move_to_area(chss.marketplace);
+                });
+            }
+        });
+    }
 
     if (random() < 0.15) {
         chs('"Shady Kid =>"', false, 'springgreen').addEventListener('click', () => {
@@ -16237,10 +16310,10 @@ chss.mrktvg1.sl = () => {
     }
     
     chs('"<= Return back to the village Center"',false).addEventListener('click',()=>{
-            move_to_area(chss.lsmain1);
+            move_to_area(chss.village_center);
     });
 }
-chss.mrktvg1.onEnter=function(){  // on entering the marketplace, the player may overhear one of these messages
+chss.marketplace.onEnter=function(){  // on entering the marketplace, the player may overhear one of these messages
     if(!timers.mktwawa1)timers.mktwawa1=setInterval(function(){
         if(random()<.1) {
             if (!global.text.mktwawa1) {
@@ -16277,7 +16350,7 @@ chss.mrktvg1.onEnter=function(){  // on entering the marketplace, the player may
         }
     },1000);
 }
-chss.mrktvg1.onLeave=function(){
+chss.marketplace.onLeave=function(){
     clearInterval(timers.mktwawa1);
     delete timers.mktwawa1;
 }
@@ -16315,7 +16388,7 @@ chss.fdwrg1qt.sl=()=>{
     u_loc('Marketplace, Stalls'); 
     chs('"<span style="color:cyan">Nervous Guy:</span> Argh, what am I gonna do now! How could this... Uh? S-sorry, can\'t talk right now, please leave me be. Ahh damn it..."<div style="color: darkgrey">The man then proceeds to fidget in unrest</div>',true)
     chs('"<= Walk away"',false).addEventListener('click',()=>{ 
-        move_to_area(chss.mrktvg1,false);
+        move_to_area(chss.marketplace,false);
     });
 }
 
@@ -16325,13 +16398,13 @@ chss.grc1.sl=()=>{global.flags.inside=true;  u_loc('Marketplace, Grocery Shop');
   chs('Old Lady: '+(select(['These are very fresh, buy some!','Freshest vegetables for the lowest price!','Try a few and you\'ll want even more!'])),true);
   chs('"Purchase"',false,'orange').addEventListener('click',()=>{
     chs_spec(4,vendor.grc1)
-    vendor.grc1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.grc1.restocked===true){clearInterval(timers.vndrstkchk);vendor.grc1.restocked=false;msg('We\'re restocking, step out for a minute');move_to_area(chss.mrktvg1,false);}});  
+    vendor.grc1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.grc1.restocked===true){clearInterval(timers.vndrstkchk);vendor.grc1.restocked=false;msg('We\'re restocking, step out for a minute');move_to_area(chss.marketplace,false);}});  
     chs('"<= Return"',false,'','',null,null,null,true).addEventListener('click',()=>{
     move_to_area(chss.grc1,false); clearInterval(timers.vndrstkchk);
   });
   });
   chs('"<= Return back"',false).addEventListener('click',()=>{
-    move_to_area(chss.mrktvg1); 
+    move_to_area(chss.marketplace); 
   });
 }
 chss.grc1.data={scoutm:200,scout:0,scoutf:false,gets:[false],gotmod:0}
@@ -16357,7 +16430,7 @@ chss.gens1.sl=()=>{
                 clearInterval(timers.vndrstkchk);
                 vendor.gens1.restocked=false;
                 msg('We\'re restocking, step out for a minute');
-                move_to_area(chss.mrktvg1,false);
+                move_to_area(chss.marketplace,false);
             }
         });  
         chs('"<= Return"',false,'','',null,null,null,true).addEventListener('click',()=>{
@@ -16405,7 +16478,7 @@ chss.gens1.sl=()=>{
         }, 'grey');
     }
     achs('"<= Return back"', () => {
-        move_to_area(chss.mrktvg1); 
+        move_to_area(chss.marketplace); 
     });
 }
 chss.gens1.data={scoutm:200,scout:0,scoutf:false,gets:[false],gotmod:0}
@@ -16419,7 +16492,7 @@ chss.pha1.sl=()=>{global.flags.inside=true;  u_loc('Marketplace, Herbalist');
   chs('Herbalist: '+(select(['Injured? Come in, I\'ll give you a check up','Yes yes..','Don\'t neglect your well being, stack on anything you will need'])),true);
   chs('"Purchase"',false,'orange').addEventListener('click',()=>{
     chs_spec(4,vendor.pha1)
-    vendor.pha1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.pha1.restocked===true){clearInterval(timers.vndrstkchk);vendor.pha1.restocked=false;msg('We\'re restocking, step out for a minute');move_to_area(chss.mrktvg1,false);}});  
+    vendor.pha1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.pha1.restocked===true){clearInterval(timers.vndrstkchk);vendor.pha1.restocked=false;msg('We\'re restocking, step out for a minute');move_to_area(chss.marketplace,false);}});  
     chs('"<= Return"',false,'','',null,null,null,true).addEventListener('click',()=>{
       move_to_area(chss.pha1,false); clearInterval(timers.vndrstkchk);
     });
@@ -16445,7 +16518,7 @@ chss.pha1.sl=()=>{global.flags.inside=true;  u_loc('Marketplace, Herbalist');
   });
   
   chs('"<= Return back"',false).addEventListener('click',()=>{
-    move_to_area(chss.mrktvg1); 
+    move_to_area(chss.marketplace); 
   });
 }
 chss.pha1.data={scoutm:200,scout:0,scoutf:false,gets:[false],gotmod:0}
@@ -16472,7 +16545,7 @@ chss.vendor1.sl=()=>{
             clearInterval(timers.vndrstkchk);
             vendor.stvr1.restocked=false;
             msg('We\'re restocking, step out for a minute');
-            move_to_area(chss.lsmain1,false);
+            move_to_area(chss.village_center,false);
         }
     });
     let hi = 'Street Merchant Ran: Welcome! What would you like?';
@@ -16486,13 +16559,14 @@ chss.vendor1.sl=()=>{
     addDesc(dom.vndrs,itm[0]);
     }
     chs('"<= Go back"',false).addEventListener('click',()=>{
-        move_to_area(chss.lsmain1,false); clearInterval(timers.vndrstkchk);
+        move_to_area(chss.marketplace,false);
+        clearInterval(timers.vndrstkchk);
     });    
 }
 
 chss.vendorkid1 = new Chs(); chss.vendorkid1.id = 123; chss.vendorkid1.shop=true; addtosector(sector.vcent,chss.vendorkid1); addtosector(sector.vmain1,chss.vendorkid1)
 chss.vendorkid1.sl=()=>{ u_loc('Village Center, Child Trader'); 
-  vendor.kid1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.kid1.restocked===true){clearInterval(timers.vndrstkchk);vendor.kid1.restocked=false;msg('You, step out for a moment, I\'m getting new stuff');move_to_area(chss.lsmain1,false);}});
+  vendor.kid1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.kid1.restocked===true){clearInterval(timers.vndrstkchk);vendor.kid1.restocked=false;msg('You, step out for a moment, I\'m getting new stuff');move_to_area(chss.village_center,false);}});
   let hi = 'Hey, I\'ve got some good stuff for you'; dom.vndr1 = chs(hi,true);
   for(let ost=0;ost<vendor.kid1.stock.length;ost++){ let itm = vendor.kid1.stock[ost];
   dom.vndrs = chs(itm[0].name+' <small style="color:rgb(255, 116, 63)">'+itm[2]+'●</small> x'+itm[1],false);
@@ -16508,19 +16582,19 @@ chss.vendorkid1.sl=()=>{ u_loc('Village Center, Child Trader');
         chs('"There ya go, enjoy"',true)
           global.flags.vndrkd1sp1=true; giveItem(item.fgtsb1); spend(300)
           chs('"Sweet purchase!"',false).addEventListener('click',()=>{
-            move_to_area(chss.lsmain1,false); 
+            move_to_area(chss.village_center,false); 
           });    
       }else{
         chs('No money - no goods! Don\'t waste my time!',true);
         chs('"<= Go back"',false).addEventListener('click',()=>{
-          move_to_area(chss.lsmain1,false); 
+          move_to_area(chss.village_center,false); 
         });    
       }
     });
     chs('"<= Nah"',false,'Red').addEventListener('click',()=>{
       chs('No worries, I\'ll keep it for you',true);
       chs('"<= Go back"',false).addEventListener('click',()=>{
-        move_to_area(chss.lsmain1,false); 
+        move_to_area(chss.village_center,false); 
       });    
     });    
   });
@@ -16531,24 +16605,24 @@ chss.vendorkid1.sl=()=>{ u_loc('Village Center, Child Trader');
         chs('"Deal successfully made"',true)
           global.flags.vndrkd1sp2=true; giveItem(item.bfsnwt); spend(500)
           chs('"Score!"',false).addEventListener('click',()=>{
-            move_to_area(chss.lsmain1,false); 
+            move_to_area(chss.village_center,false); 
           });    
       }else{
         chs('No money - no goods! Don\'t waste my time!',true);
         chs('"<= Go back"',false).addEventListener('click',()=>{
-          move_to_area(chss.lsmain1,false); 
+          move_to_area(chss.village_center,false); 
         });    
       }
     });
     chs('"<= Nah"',false,'Red').addEventListener('click',()=>{
       chs('No worries, I\'ll keep it for you',true);
       chs('"<= Go back"',false).addEventListener('click',()=>{
-        move_to_area(chss.lsmain1,false); 
+        move_to_area(chss.village_center,false); 
       });    
     });    
   });
   chs('"<= Go back"',false).addEventListener('click',()=>{
-    move_to_area(chss.lsmain1,false); 
+    move_to_area(chss.village_center,false); 
   });    
 }
 chss.vendorkid1.onLeave=function(){clearInterval(timers.vndrstkchk)}
@@ -16562,7 +16636,7 @@ chss.tstauto.sl=()=>{ u_loc('Test auto');
     global.flags.testauto_1=false;chss.tstauto.sl(); clearInterval(timers.testauto1);
   });
   chs('"<= Go back"',false).addEventListener('click',()=>{
-    chss.lsmain1.sl();
+    chss.village_center.sl();
   });    
 }
 
@@ -16571,7 +16645,7 @@ chss.tst.sl=()=>{ u_loc('Test');
   dom.tst = chs('TEST',true);
     global.flags.btl=true; global.flags.civil=false; area_init(area.tst); 
   chs('"<= Go back"',false).addEventListener('click',()=>{
-    chss.lsmain1.sl();
+    chss.village_center.sl();
   });    
 }
 
@@ -16726,7 +16800,7 @@ chss.message_board.sl=()=>{
     }
 
     achs('<= Go back', ()=>{
-        move_to_area(chss.lsmain1,false);
+        move_to_area(chss.village_center,false);
     });    
 }
 
@@ -16984,7 +17058,7 @@ chss.home.sl = () => {
     }
 
     chs('"<= Go outside"', false).addEventListener('click', () => {
-        move_to_area(chss.lsmain1);
+        move_to_area(chss.village_center);
     });
 };
 
@@ -17148,7 +17222,7 @@ chss.catamn.sl=()=>{ u_loc('Catacombs, The Entryway');
     move_to_area(chss.cata1);
   });
   chs('"<= Exit"',false).addEventListener('click',()=>{ 
-    move_to_area(chss.lsmain1);
+    move_to_area(chss.village_center);
   });
 }
 
@@ -17434,11 +17508,9 @@ chss.__quickstart = new Chs();
 chss.__quickstart.id = 701;
 chss.__quickstart.sl = function() {
     clr_chs();
-    
-    // fade in all menus
-    appear(dom.inv_ctx,  // inventory
-           dom.gmsgs,    // message log
-           dom.ct_ctrl); // center-bottom clickables
+    empty(dom.mscont) // clear message log
+
+    appear(dom.ct_ctrl); // center-bottom clickables
 
     global.home_loc = 703 // chss__home2 
     
@@ -17449,29 +17521,15 @@ chss.__quickstart.sl = function() {
     global.flags.actsu = true;
     global.flags.jnlu  = true;
 
+    /*
     dom.ct_bt6.innerHTML = 'journal';
     dom.ct_bt1.innerHTML = 'assemble';
     dom.ct_bt3.innerHTML = 'actions';
     dom.ct_bt2.innerHTML = 'skills';
-
-    // make wealth appear
-    appear(dom.mn_2,
-           dom.mn_3,
-           dom.mn_4);
+    */
     m_update();
-
-    global.flags.mkplc1u = true;
-    global.flags.dj1end = true;  // do not show any skillbook at the dojo
-    global.flags.dj1rw1 = true;  // obtain lvl5-10 dojo rewards
-    global.flags.dj1rw2 = true;        // fine for now, the player *should* be level 11 ... 
-    global.flags.hbgget = true;  // get the bag at home
-    global.flags.chbdfst = true; // hidden stash
-    //global.flags.frst1u = true;  // can enter south forest
-    //global.flags.frst1um = true; // give permission to enter south forest
-    global.flags.frstn1b1g1 = true;  // show guard notice,
-                                     // show dangerous beasts message in message board
     
-    move_to_area(chss.lsmain1); // move to courtyard
+    move_to_area(chss.intro_village_center); // move to courtyard
 };
 
 chss.__rockpath = new Chs();
@@ -17510,7 +17568,7 @@ chss.__rockpath.sl = function() {
     })
 
     achs('<= Return to Village Center', () => {
-        move_to_area(chss.lsmain1);
+        move_to_area(chss.village_center);
     });
 };
 
@@ -17585,9 +17643,47 @@ chss.__shackbed.onLeave=function(){
     removeEff(effect.slep); 
 }
 
-chss.__villageoutskirts = new Chs();
-chss.__villageoutskirts.id = 707;
-chss.__villageoutskirts.sl = () => {
+chss.intro_village_outskirts = new Chs();
+chss.intro_village_outskirts.id = 705;
+chss.intro_village_outskirts.sl = () => {
+    u_loc('Village Outskirts');
+
+    chs('There is a guard posted at the gate. He gives you a shifty look.');
+    
+    achs('=> Enter Southern Forest', () => {
+        __dbgsp();
+        //msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow');
+    });
+    
+    achs('=> Enter Western Woods', ()=>{
+        if (global.flags.taken_handfulsp2) {
+            msg('I better watch myself in here.', 'lightyellow');
+        }
+        else {
+            msg('It\'s better to be safe than sorry.', 'lightyellow');
+            for (let a in inv) {
+                if (inv[a] === item.__handfulsp2) {
+                    amt = inv[a].amount;
+                    inv[a].amount = 0;
+                    inv[a].use();
+                    removeItem(inv[a]);
+                }
+            }
+            global.flags.mountain_pills_taken = true;
+        }
+
+        __dbgsp();
+        //move_to_area(chss.frstn1main);
+    });
+
+    achs('<= Walk to Village Center', () => {
+        move_to_area(chss.intro_village_center);
+    });
+}
+
+chss.village_outskirts = new Chs();
+chss.village_outskirts.id = 707;
+chss.village_outskirts.sl = () => {
     u_loc('Village Outskirts');
 
     chs('There is a guard posted at the gate. He gives you a shifty look.');
@@ -17608,30 +17704,11 @@ chss.__villageoutskirts.sl = () => {
     });
     
     achs('=> Enter Western Woods', ()=>{
-        // PLACEHOLDER
-        if (global.flags.mountain_pills_taken) {
-            msg('I better watch myself in here.', 'lightyellow');
-        }
-        else {
-            for (let a in inv) {
-                if (inv[a] === item.sp2) {
-                    amt = inv[a].amount;
-                    inv[a].amount = 0;
-
-                    for (let i = 0; i <= amt; i++) {
-                        inv[a].use();
-                    }
-                    removeItem(inv[a]);
-                }
-            }
-            global.flags.mountain_pills_taken = true;
-            msg('It\'s better to be safe than sorry.', 'lightyellow');
-        }
         move_to_area(chss.frstn1main);
     });
 
     achs('<= Walk to Village Center', () => {
-        move_to_area(chss.lsmain1);
+        move_to_area(chss.village_center);
     });
 };
 
@@ -18308,38 +18385,85 @@ function rfeff(what){
     dom.location_text_effector.innerHTML = t;
 }
 
-function lvlup(p,t){
-    if(t===0) {
-        p.hp=p.hp_r;p.str=p.str_r;p.agl=p.agl_r;p.spd=p.spd_r;
-    } else{ t=t||1
-    p.lvl+=t;
-    let sb =randf(t*p.stat_p[1],2*t*p.stat_p[1]); p.str_r+=sb;
-    let sa =randf(t*p.stat_p[2],2*t*p.stat_p[2]); p.agl_r+=sa;
-    let si =randf(t*p.stat_p[3],2*t*p.stat_p[3]); p.int_r+=si;  
-    let hpp; if(p.id===you.id) hpp = Math.round(rand(1.4*Math.log(p.lvl)*t*p.stat_p[0],1.8*p.lvl*t*p.stat_p[0]));
-    else hpp = Math.round(rand(1.8*Math.log(p.lvl)*t*p.stat_p[0],2.2*p.lvl*t*p.stat_p[0]));
-    p.hp_r+=hpp; p.hpmax+=hpp; p.hp+=hpp; if(p.id!==you.id) p.hp=p.hpmax=p.hp_r;
-    if(p.id!=you.id) p.exp=p.exp*(1+t/5)+1<<0;
-    else {dom.d3.update(); 
-        msg("Leveled Up "+you.lvl,'orange');
-        msg('STR +'+Math.round(sb),'darkturquoise');
-        msg_add(' | AGL +'+Math.round(sa),'darkturquoise');
-        msg_add(' | INT +'+Math.round(si),'darkturquoise');
-        msg_add(' | HP +'+hpp,'darkturquoise');
-        you.expnext_t=you.expnext();
-        if(you.eqp[0].id===10000){you.eqp[0].cls[2]=you.lvl/4<<0;you.eqp[0].aff[0]=you.lvl/5<<0;you.eqp[0].ctype=2}
-        if(global.stat.deadt<1&&you.lvl>=20) giveTitle(ttl.ndthextr)
-    }} p.stat_r(); update_d(); 
+function lvlup(p, t, sendMsg){
+    if (t===0) {
+        p.hp=p.hp_r;
+        p.str=p.str_r;
+        p.agl=p.agl_r;
+        p.spd=p.spd_r;
+    } else {
+        t = t || 1
+        p.lvl += t;
+        let sb = randf(t*p.stat_p[1],2*t*p.stat_p[1]);
+        let sa = randf(t*p.stat_p[2],2*t*p.stat_p[2]);
+        let si = randf(t*p.stat_p[3],2*t*p.stat_p[3]);
+        p.str_r += sb;
+        p.agl_r += sa;
+        p.int_r += si;  
+
+        let hpp;
+        if (p.id === you.id) {
+            hpp = Math.round(rand(1.4*Math.log(p.lvl)*t*p.stat_p[0],1.8*p.lvl*t*p.stat_p[0]));
+        } else {
+            hpp = Math.round(rand(1.8*Math.log(p.lvl)*t*p.stat_p[0],2.2*p.lvl*t*p.stat_p[0]));
+        }
+        p.hp_r+=hpp;
+        p.hpmax+=hpp;
+        p.hp+=hpp;
+        if(p.id!==you.id) {
+            p.hp=p.hpmax=p.hp_r;
+        }
+        if (p.id!=you.id) {
+            p.exp=p.exp*(1+t/5)+1<<0;
+        } else {
+            dom.d3.update();
+
+            if (sendMsg) {
+                msg("Leveled Up "+you.lvl,'orange');
+                msg('STR +'+Math.round(sb),'darkturquoise');
+                msg_add(' | AGL +'+Math.round(sa),'darkturquoise');
+                msg_add(' | INT +'+Math.round(si),'darkturquoise');
+                msg_add(' | HP +'+hpp,'darkturquoise');
+            }
+
+            you.expnext_t=you.expnext();
+            if (you.eqp[0].id===10000) {
+                you.eqp[0].cls[2]=you.lvl/4<<0;
+                you.eqp[0].aff[0]=you.lvl/5<<0;
+                you.eqp[0].ctype=2;
+            }
+            if (global.stat.deadt<1&&you.lvl>=20) giveTitle(ttl.ndthextr);
+        }
+    }
+    p.stat_r();
+    update_d(); 
 }
 
-function giveExp(exp,r,g,b){
+function giveExp(exp, r, g, b, sendLvlUpMsg=true, customMsg, customMsgColor='lightyellow'){
     if(!r) exp = Math.round((exp*you.exp_t*(0.4+you.efficiency()*0.6)))-(you.lvl-1); exp=exp<=0?1:exp;
-    if(!b) {if(global.flags.m_blh===false) if(!g) {msg('EXP: +'+formatw(exp),'hotpink');global.stat.exptotl+=exp}}else {msg('EXP: +'+formatw(exp),'hotpink');global.stat.exptotl+=exp}
+    
+    if (!customMsg) {
+        if(!b) {
+            if(global.flags.m_blh === false && !g){
+                msg('EXP: +'+formatw(exp),'hotpink');
+            }
+        } else {
+            msg('EXP: +'+formatw(exp),'hotpink');
+        }
+    } else {
+        msg(customMsg, customMsgColor);
+    }
+    global.stat.exptotl+=exp;
+
     if(you.exp+exp<you.expnext_t) you.exp+=exp;
     else {
         let extra = (you.exp+exp)-you.expnext_t; 
         you.exp=0; 
-        lvlup(you); 
+        if (sendLvlUpMsg) {
+            lvlup(you, undefined); 
+        } else {
+            lvlup(you, undefined, false); 
+        }
         giveExp(extra,true,true);
     } 
     dom.d5_2_1.update(); 
@@ -19572,7 +19696,17 @@ function achs(txt, action, color=null) {
     return chs_elem;
 }
 
+function check_if_money_should_appear() {
+    if (global.flags.m_un) {
+        appear(dom.mn_2,
+              dom.mn_3,
+              dom.mn_4);
+    }
+}
 
+function __dbgsp() { // debug : send placeholder message in message log
+    msg('PLACEHOLDER : TO BE ADDED', 'red');
+}
 </script>
 </body>
 </html>
