@@ -3,6 +3,7 @@
   TODO:
       - consume spirit pills in intro.
       - clear message log in intro.
+      - sum increased attributes upon consecutive level ups
 
 -->
 <html>
@@ -209,7 +210,7 @@ global.flags = {
     unl_hiddengrounds: false,
 
     mountain_pills_taken: false,
-    visited_woods: false, 
+    visited_western_woods: false, 
     rock_path_show_cat: false,
     drunk_from_river: false,
     spoken_to_river_man: false,
@@ -13272,10 +13273,12 @@ function offline_a(){
   global.offline_evil_index=Math.sqrt(global.offline_evil_index+2100)/45;
 }
 
-function dscr(c, what, type, ttl, dsc, id){
-  id=id||0;
-  global.dscr.style.display=''; empty(global.dscr);
-  global.dscr.style.top = c.clientY+30; global.dscr.style.left = c.clientX+30;
+function describe(c, what, type, ttl, dsc, id){
+  id = id || 0;
+  global.dscr.style.display='';
+  empty(global.dscr);
+  global.dscr.style.top  = c.clientY + 30;
+  global.dscr.style.left = c.clientX + 30;
   if(!type||type===1){
     this.label = addElement(global.dscr,'div','d_l'); this.label.innerHTML = what.name;
     switch(what.rar){
@@ -13603,7 +13606,7 @@ function fade(dom, timer, del){
 
 function addDesc(dm, what, type, ttl, dsc, f, id){
     dm.addEventListener('mouseenter', a => {
-            dscr(a, what, type, ttl, f === true ? (dsc)() : dsc, id);
+            describe(a, what, type, ttl, f === true ? (dsc)() : dsc, id);
             giveSkExp(skl.rdg, 0.002);
             global.stat.popt++; //** poptart
             global.curwds = this;
@@ -15387,6 +15390,9 @@ chss.t1.sl = function() {
     giveSkExp(skl.unc, 853, showLevelUp=false); //give unarmed mastery
     giveSkExp(skl.fgt, 335, showLevelUp=false);
 
+    giveItem(item.__leatherwallet); // coinage
+    giveItem(item.sp2, 5); // pills
+
     chs('???: "Kid..."'); 
     achs('"..."', () => {
         global.time += DAY; 
@@ -15400,11 +15406,11 @@ chss.t1.sl = function() {
             dom.d_weather.style.display = 'none';
             dom.d_time.style.display    = 'none';
 
-            appear(dom.ctr_1a); // location
+            appear(dom.ctr_1a); // show location
             chs('???: "You\'re outside the village dojo... I found you here unconscious. Do you remember how you first arrived here?"');
             achs('"I came down from a dojo in the mountains..."', () => {
-                appear(dom.d_weather, dom.d_weathert);
-                appear(dom.d0);
+                appear(dom.d_weather, dom.d_weathert); // show weather
+                appear(dom.d0); // show player menu
                 
                 chs('???: "You have some experience then, huh? Yet even still, someone like you can end up in a place like this."');
                 achs('"..."', () => {
@@ -17475,13 +17481,6 @@ chss.__quickstart.sl = function() {
     global.flags.frstn1b1g1 = true;  // show guard notice,
                                      // show dangerous beasts message in message board
     
-    //__get_cat();
-    //global.stat.cat_c = 100;
-
-    giveItem(item.__leatherwallet); // coinage
-    giveItem(item.sp2, 5);          // pills
-    //giveItem(item.__sp4);
-    
     move_to_area(chss.lsmain1); // move to courtyard
 };
 
@@ -17616,34 +17615,28 @@ chss.__villageoutskirts.sl = () => {
             console.log('placeholder');
             //msg('...', 'lightyellow');
         }
-    })
-    ;
-    achs('=> Enter Western Woods', ()=>{
-        if(you.lvl >= 6 && !global.flags.start_mountain) {
-            move_to_area(chss.frstn1main);
-        } else if (!global.flags.start_mountain) {
-            msg('Gate Guard: "It is too dangerous for you to leave at this moment. Come back when you train a bit"','yellow');
-        } else if (global.flags.start_mountain) {
-            if (global.flags.mountain_pills_taken) {
-                msg('I better watch myself in here.', 'lightyellow');
-            }
-            else {
-                for (let a in inv) {
-                    if (inv[a] === item.sp2) {
-                        amt = inv[a].amount;
-                        inv[a].amount = 0;
+    });
 
-                        for (let i = 0; i <= amt; i++) {
-                            inv[a].use();
-                        }
-                        removeItem(inv[a]);
+    achs('=> Enter Western Woods', () => {
+        // PLACEHOLDER
+        if (global.flags.mountain_pills_taken) {
+            msg('I better watch myself in here.', 'lightyellow');
+        } else {
+            for (let a in inv) {
+                if (inv[a] === item.sp2) {
+                    amt = inv[a].amount;
+                    inv[a].amount = 0;
+
+                    for (let i = 0; i <= amt; i++) {
+                        inv[a].use();
                     }
+                    removeItem(inv[a]);
                 }
-                global.flags.mountain_pills_taken = true;
-                msg('It\'s better to be safe than sorry.', 'lightyellow');
-                move_to_area(chss.frstn1main);
             }
+            global.flags.mountain_pills_taken = true;
+            msg('It\'s better to be safe than sorry.', 'lightyellow');
         }
+        move_to_area(chss.frstn1main);
     });
 
     achs('<= Walk to Village Center', () => {
@@ -19106,7 +19099,7 @@ function _drawmwindow() {
                 test.mgui.selected = m;
                 _renderm(tmain);
                 if (!m.hidden && (m.dscv || m.have)) {
-                    dscr(xy, null, 12, !m.have ? '????????' : m.name, !m.have ? m.condd : m.desc);
+                    describe(xy, null, 12, !m.have ? '????????' : m.name, !m.have ? m.condd : m.desc);
                 }
                 return;
             }
