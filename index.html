@@ -3,7 +3,6 @@
   TODO:
       - consume spirit pills in intro.
       - clear message log in intro.
-      - sum increased attributes upon consecutive level ups
 
 -->
 <html>
@@ -13273,12 +13272,10 @@ function offline_a(){
   global.offline_evil_index=Math.sqrt(global.offline_evil_index+2100)/45;
 }
 
-function describe(c, what, type, ttl, dsc, id){
-  id = id || 0;
-  global.dscr.style.display='';
-  empty(global.dscr);
-  global.dscr.style.top  = c.clientY + 30;
-  global.dscr.style.left = c.clientX + 30;
+function dscr(c, what, type, ttl, dsc, id){
+  id=id||0;
+  global.dscr.style.display=''; empty(global.dscr);
+  global.dscr.style.top = c.clientY+30; global.dscr.style.left = c.clientX+30;
   if(!type||type===1){
     this.label = addElement(global.dscr,'div','d_l'); this.label.innerHTML = what.name;
     switch(what.rar){
@@ -13606,7 +13603,7 @@ function fade(dom, timer, del){
 
 function addDesc(dm, what, type, ttl, dsc, f, id){
     dm.addEventListener('mouseenter', a => {
-            describe(a, what, type, ttl, f === true ? (dsc)() : dsc, id);
+            dscr(a, what, type, ttl, f === true ? (dsc)() : dsc, id);
             giveSkExp(skl.rdg, 0.002);
             global.stat.popt++; //** poptart
             global.curwds = this;
@@ -15327,7 +15324,6 @@ function deactivatef(f){
 
 global._preig=addElement(document.body,'img');
 global._preig.src='ctst.png';
-//global._preig.crossOrigin = "Anonymous"; global._preig.src='http://127.0.0.1:8887/ctst.png'; 
 global._preic=addElement(document.body,'canvas');
 global._preic_tmain=global._preic.getContext('2d');
 
@@ -15351,12 +15347,6 @@ function icon(root,x,y,sx,sy,sz){ //sz=2
         var div = addElement(root,'canvas'); div.width=sx;div.height=sy;
         let data = global._preic_tmain.getImageData(x*sx-sx,y*sy-sy,sx,sy); 
         div.getContext('2d').putImageData(data,0,0);
-    //    let temp = addElement(root,'canvas'); temp.width=sx;temp.height=sy;
-    //    let data = global._preic_tmain.getImageData(x*sx-sx,y*sy-sy,sx,sy); 
-    //    temp.getContext('2d').putImageData(data,0,0);
-    //    var div = addElement(root,'canvas'); div.width=sx*sz;div.height=sy*sz;
-    //    div.getContext('2d').imageSmoothingEnabled=false;
-    //    div.getContext('2d').drawImage(temp,0,0,sx,sy,0,0,sx*sz,sy*sz);
     } else div = addElement(root,'span');
     return div;
 }
@@ -16115,7 +16105,7 @@ chss.lsmain1.sl = () => {
     u_loc('Village Center');
     
     if (isWeather(weather.sunny) || isWeather(weather.clear)) {
-        chs('The surroundings are flourishing with life; nothing bad can happen.');
+        chs('The surroundings are flourishing with energy.');
     }
     else if (isWeather(weather.cloudy) || isWeather(weather.overcast) || isWeather(weather.stormy)) {
         chs('You have a feeling it might rain soon.');
@@ -16131,7 +16121,7 @@ chss.lsmain1.sl = () => {
     }
     
     achs('=> Check the Message Board', ()=>{
-        move_to_area(chss.mbrd,false);
+        move_to_area(chss.message_board,false);
     });
 
     if (!global.flags.dojolocked) {
@@ -16205,7 +16195,7 @@ chss.mrktvg1.sl = () => {
                 });
             });
         } else {
-            move_to_area(chss.vndr1, false);
+            move_to_area(chss.vendor1, false);
         }
     });
     if(global.flags.phai1udt) chs('Herbalist =>', false, 'gold').addEventListener('click',()=>{
@@ -16242,7 +16232,7 @@ chss.mrktvg1.sl = () => {
 
     if (random() < 0.15) {
         chs('"Shady Kid =>"', false, 'springgreen').addEventListener('click', () => {
-            move_to_area(chss.vndrkd1, false);
+            move_to_area(chss.vendorkid1, false);
         });
     }
     
@@ -16467,12 +16457,12 @@ chss.pha1.onScout = function() {
 }
 
 
-chss.vndr1 = new Chs();
-chss.vndr1.id = 116;
-chss.vndr1.effectors=[{e:effector.shop}];
-addtosector(sector.vcent,chss.vndr1);
-addtosector(sector.vmain1,chss.vndr1)
-chss.vndr1.sl=()=>{
+chss.vendor1 = new Chs();
+chss.vendor1.id = 116;
+chss.vendor1.effectors=[{e:effector.shop}];
+addtosector(sector.vcent,chss.vendor1);
+addtosector(sector.vmain1,chss.vendor1)
+chss.vendor1.sl=()=>{
     u_loc('Village Center, Street Food Stand');
 
     vendor.stvr1.restocked=false;
@@ -16500,8 +16490,8 @@ chss.vndr1.sl=()=>{
     });    
 }
 
-chss.vndrkd1 = new Chs(); chss.vndrkd1.id = 123; chss.vndrkd1.shop=true; addtosector(sector.vcent,chss.vndrkd1); addtosector(sector.vmain1,chss.vndrkd1)
-chss.vndrkd1.sl=()=>{ u_loc('Village Center, Child Trader'); 
+chss.vendorkid1 = new Chs(); chss.vendorkid1.id = 123; chss.vendorkid1.shop=true; addtosector(sector.vcent,chss.vendorkid1); addtosector(sector.vmain1,chss.vendorkid1)
+chss.vendorkid1.sl=()=>{ u_loc('Village Center, Child Trader'); 
   vendor.kid1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.kid1.restocked===true){clearInterval(timers.vndrstkchk);vendor.kid1.restocked=false;msg('You, step out for a moment, I\'m getting new stuff');move_to_area(chss.lsmain1,false);}});
   let hi = 'Hey, I\'ve got some good stuff for you'; dom.vndr1 = chs(hi,true);
   for(let ost=0;ost<vendor.kid1.stock.length;ost++){ let itm = vendor.kid1.stock[ost];
@@ -16561,7 +16551,7 @@ chss.vndrkd1.sl=()=>{ u_loc('Village Center, Child Trader');
     move_to_area(chss.lsmain1,false); 
   });    
 }
-chss.vndrkd1.onLeave=function(){clearInterval(timers.vndrstkchk)}
+chss.vendorkid1.onLeave=function(){clearInterval(timers.vndrstkchk)}
 
 chss.tstauto = new Chs(); chss.tstauto.id = -1;
 chss.tstauto.sl=()=>{ u_loc('Test auto');
@@ -16685,11 +16675,11 @@ global.text.mbrdtt = [
     'This is an advertisement for hemp clothing'
 ]
 
-chss.mbrd = new Chs();
-chss.mbrd.id = 108;
-addtosector(sector.vcent,chss.mbrd);
-addtosector(sector.vmain1,chss.mbrd);
-chss.mbrd.sl=()=>{
+chss.message_board = new Chs();
+chss.message_board.id = 108;
+addtosector(sector.vcent,chss.message_board);
+addtosector(sector.vmain1,chss.message_board);
+chss.message_board.sl=()=>{
     u_loc('Village Center, Message Board');
 
     for(let a in inv) if(inv[a].id===acc.wdl1.id||inv[a].id===acc.sdl1.id||inv[a].id===acc.bdl1.id||inv[a].id===acc.gdl1.id) {
@@ -16699,7 +16689,7 @@ chss.mbrd.sl=()=>{
         achs('"?"', ()=>{
           chs('<span style="color:lime">Xiao Xiao</span>: "Hey, hey, what are those dolls you carry? Make one for me!!"');
           achs('"Alright..."', ()=>{
-              global.flags.glqtdltn=true;move_to_area(chss.mbrd,false)
+              global.flags.glqtdltn=true;move_to_area(chss.message_board,false)
           });
         });
     }
@@ -16709,7 +16699,7 @@ chss.mbrd.sl=()=>{
     achs('Explore the posts', ()=>{
         chs(select(global.text.mbrdtt));
         achs('<= Return', ()=>{
-            move_to_area(chss.mbrd,false);
+            move_to_area(chss.message_board,false);
         });    
     });  
 
@@ -16717,14 +16707,14 @@ chss.mbrd.sl=()=>{
         achs('\'Notice #4\'', ()=>{
             chs('It says here:<br><span style="color:orange">Looking for a anyone with free time to assist local militia with guarding duty. Apply at the checkpoint near marketplace area between 7AM and 10AM."</span>',true);
             achs('"Huh..."', ()=>{
-                global.flags.grddtjb=true;move_to_area(chss.mbrd);
+                global.flags.grddtjb=true;move_to_area(chss.message_board);
             });    
         });
 
         achs('\'Warning!\'', ()=> {
             chs('"Dangerous beasts were sighted in vicinity of the Southern Forest. These reports are likely linked to the cause of livestock and locals getting injured, therefore, to avoid further casualties, entry into the forest is prohibited to those without permit or high enough self-defence ability until the situation is resolved."<br><br><div style="text-align:right">一Head of The Guard, Hitoshi</div>');
             achs('"I see..."', ()=>{
-                move_to_area(chss.mbrd);
+                move_to_area(chss.message_board);
             });
         });
     }
@@ -16784,12 +16774,12 @@ chss.xpgdqt1.sl=()=>{
                 global.offline_evil_index-=.002;
                 msg('You feel more peaceful','gold');
                 giveItem(acc.ubrlc);
-                move_to_area(chss.mbrd,false);
+                move_to_area(chss.message_board,false);
             });
         });
     }
     chs('"<= Return"',false).addEventListener('click',()=>{
-        move_to_area(chss.mbrd,false);
+        move_to_area(chss.message_board,false);
     });    
 }
 
@@ -17600,7 +17590,7 @@ chss.__villageoutskirts.id = 707;
 chss.__villageoutskirts.sl = () => {
     u_loc('Village Outskirts');
 
-    chs('There is a guard posted at the gate. He finds you shifty.');
+    chs('There is a guard posted at the gate. He gives you a shifty look.');
     
     achs('=> Enter Southern Forest', () => {
         if(!global.flags.frst1u && !global.flags.start_mountain) {
@@ -17616,12 +17606,13 @@ chss.__villageoutskirts.sl = () => {
             //msg('...', 'lightyellow');
         }
     });
-
-    achs('=> Enter Western Woods', () => {
+    
+    achs('=> Enter Western Woods', ()=>{
         // PLACEHOLDER
         if (global.flags.mountain_pills_taken) {
             msg('I better watch myself in here.', 'lightyellow');
-        } else {
+        }
+        else {
             for (let a in inv) {
                 if (inv[a] === item.sp2) {
                     amt = inv[a].amount;
@@ -19099,7 +19090,7 @@ function _drawmwindow() {
                 test.mgui.selected = m;
                 _renderm(tmain);
                 if (!m.hidden && (m.dscv || m.have)) {
-                    describe(xy, null, 12, !m.have ? '????????' : m.name, !m.have ? m.condd : m.desc);
+                    dscr(xy, null, 12, !m.have ? '????????' : m.name, !m.have ? m.condd : m.desc);
                 }
                 return;
             }
