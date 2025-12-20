@@ -1,7 +1,7 @@
 <!-- 
 
   TODO:
-       
+       - build out general progression
 -->
 <html>
 <head>
@@ -15387,9 +15387,9 @@ function Chs() {
     this.sector = [];
 }
 
-chss.t1 = new Chs();
-chss.t1.id = 101; 
-chss.t1.sl = function() {
+chss.intro = new Chs();
+chss.intro.id = 101; 
+chss.intro.sl = function() {
     u_loc('Outside Dojo, Village');
 
     global.flags.start_mountain = true;
@@ -15398,6 +15398,8 @@ chss.t1.sl = function() {
     global.flags.unl_shack = true;
     global.flags.unl_hiddengrounds = true;
     global.flags.dojolocked = true;
+
+    global.home_loc = 703 // chss__home2 
 
     giveTitle(ttl.__mountainchild, false);
     you.title = ttl.__mountainchild;
@@ -15408,34 +15410,55 @@ chss.t1.sl = function() {
     giveItem(item.__leatherwallet); // coinage
     giveItem(item.__handfulsp2); // pills
 
+    dom.d_weather.style.display = 'none';
+    dom.d_time.style.display    = 'none';
+
+    appear(dom.ctr_1);
+    appear(dom.ctr_1a);
+
     chs('???: "Kid..."'); 
     achs('"..."', () => {
         global.time += DAY; 
-        appear(dom.location);
+        
+        appear(dom.d_weather, dom.d_weathert); // show weather
 
         chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
         achs('"Where am I..?"', () => {
-            dom.ctr_1.style.display = '';
-            dom.ctr_1.style.opacity = 1;
-            dom.ctr_1a.style.display    = 'none';
-            dom.d_weather.style.display = 'none';
-            dom.d_time.style.display    = 'none';
 
-            appear(dom.ctr_1a); // show location
+            appear(dom.location); // show location
             chs('???: "You\'re outside the village dojo... I found you here unconscious. Do you remember how you first arrived here?"');
             achs('"I came down from a dojo in the mountains..."', () => {
-                appear(dom.d_weather, dom.d_weathert); // show weather
-                appear(dom.d0); // show player menu
-                appear(dom.inv_ctx); // show inventory                
+                empty(dom.mscont)  // clear message log
+                appear(dom.d0);    // show player menu
+                appear(dom.gmsgs); // show message log
+
                 chs('???: "You have some experience then, huh? Yet even still, someone like you can end up in a place like this."');
                 achs('"..."', () => {
                     appear(dom.d1m);
-                    empty(dom.mscont) // clear message log
-                    appear(dom.gmsgs);
                     appear(dom.d_time);
                     chs('???: "It\'s getting dangerous out there... you ought to be more mindful of your surroundings..."');
                     achs('"..."', () => {
-                        move_to_area(chss.__quickstart, false);                        
+                        appear(dom.inv_ctx); // show inventory
+                        appear(dom.ct_ctrl); // center-bottom clickables
+                        
+                        global.flags.aw_u  = true;
+                        global.flags.dm1ap = true;
+                        global.flags.asbu  = true;
+                        global.flags.sklu  = true;
+                        global.flags.actsu = true;
+                        global.flags.jnlu  = true;
+
+                        /*
+                        dom.ct_bt6.innerHTML = 'journal';
+                        dom.ct_bt1.innerHTML = 'assemble';
+                        dom.ct_bt3.innerHTML = 'actions';
+                        dom.ct_bt2.innerHTML = 'skills';
+                        */
+
+                        m_update();
+                        
+                        move_to_area(chss.intro_village_center);
+
                     });
                 });
             });
@@ -15444,8 +15467,8 @@ chss.t1.sl = function() {
 };
 
 if (global.flags.gameone === false){
-    global.current_location = chss.t1;
-    move_to_area(chss.t1);
+    global.current_location = chss.intro;
+    move_to_area(chss.intro);
     giveFurniture(furniture.frplc,null,false);
     let _b = giveFurniture(furniture.bed1,null,false);
     home.bed = _b;
@@ -15481,7 +15504,8 @@ chss.tdf.onEnter = function() {
     area_init(area.nwh); 
 }
 
-chss.t2 = new Chs(); chss.t2.id = 103;
+chss.t2 = new Chs();
+chss.t2.id = 103;
 chss.t2.sl = function() {
     global.flags.inside = true;
     chs('Instructor: "'+select(['Good','Nice','Great','Excellent'])+' '+select(['job','work'])+' kid! Here\'s the reward for completing the course"',true,'lime');
@@ -15502,7 +15526,7 @@ chss.t3 = new Chs();
 chss.t3.id = 104;
 chss.t3.sl=()=>{global.flags.inside=true; u_loc('Dojo, lobby'); global.flags.inside=true;
   if(global.flags.nbtfail){
-    chs('Instructor: "You got beaten up by an inanimated dummy?! Pay attention to your condition!"',true);
+    chs('Instructor: "You got beaten up by fan inanimated dummy?! Pay attention to your condition!"',true);
     chs('"..."',false).addEventListener('click',()=>{
       global.flags.nbtfail=false;  clr_chs();
       move_to_area(chss.tdf,false); giveItem(item.hrb1,4);
@@ -17504,33 +17528,6 @@ chss.cata25.sl=()=>{ u_loc('Catacombs, The End Of Journey');
   });
 }
 
-chss.__quickstart = new Chs();
-chss.__quickstart.id = 701;
-chss.__quickstart.sl = function() {
-    clr_chs();
-    empty(dom.mscont) // clear message log
-
-    appear(dom.ct_ctrl); // center-bottom clickables
-
-    global.home_loc = 703 // chss__home2 
-    
-    global.flags.aw_u  = true; // unlock menu options
-    global.flags.dm1ap = true;
-    global.flags.asbu  = true;
-    global.flags.sklu  = true;
-    global.flags.actsu = true;
-    global.flags.jnlu  = true;
-
-    /*
-    dom.ct_bt6.innerHTML = 'journal';
-    dom.ct_bt1.innerHTML = 'assemble';
-    dom.ct_bt3.innerHTML = 'actions';
-    dom.ct_bt2.innerHTML = 'skills';
-    */
-    m_update();
-    
-    move_to_area(chss.intro_village_center); // move to courtyard
-};
 
 chss.__rockpath = new Chs();
 chss.__rockpath.id = 702;
@@ -17648,7 +17645,7 @@ chss.intro_village_outskirts.id = 705;
 chss.intro_village_outskirts.sl = () => {
     u_loc('Village Outskirts');
 
-    chs('There is a guard posted at the gate. He gives you a shifty look.');
+    chs('There is a guard posted at the gate. He gives you a shifty look, but otherwise doesn\'t mind you leaving.');
     
     achs('=> Enter Southern Forest', () => {
         __dbgsp();
