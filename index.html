@@ -15611,7 +15611,7 @@ chss.village_center.sl = () => {
 
     if (global.flags.unl_rockpath) {
         achs('<= Walk down Rock Path', () => {
-            move_to_area(chss.__rockpath);
+            move_to_area(chss.rock_path);
         });
     }
 
@@ -16788,14 +16788,14 @@ chss.cat1.sl = () => {
                     chs('"Take it with you"', false).addEventListener('click', () => {
                         __get_cat();
                         msg('The cat decided to move into your house!', 'lime');
-                        move_to_area(chss.__rockpath);
+                        move_to_area(chss.rock_path);
                     });
                     chs('"Leave it as is"', false).addEventListener('click', () => {
-                        move_to_area(chss.__rockpath);
+                        move_to_area(chss.rock_path);
                     });
                 });
                 chs('"<= Return"', false).addEventListener('click', () => {
-                    move_to_area(chss.__rockpath);
+                    move_to_area(chss.rock_path);
                 })
             }
         }
@@ -16806,16 +16806,16 @@ chss.cat1.sl = () => {
             chs('"Take it with you"', false).addEventListener('click', () => {
                 __get_cat();
                 msg('The cat decided to move into your house!', 'lime');
-                move_to_area(chss.__rockpath);
+                move_to_area(chss.rock_path);
             });
             chs('"Leave it as is"', false).addEventListener('click', () => {
-                move_to_area(chss.__rockpath);
+                move_to_area(chss.rock_path);
             });
         });
     }
     
     chs('"<= Return"', false).addEventListener('click', () => {
-        move_to_area(chss.__rockpath);
+        move_to_area(chss.rock_path);
     });
 }
 
@@ -17154,7 +17154,7 @@ chss.home.sl = () => {
     }
 
     achs('<= Leave the shack', () => {
-        move_to_area(chss.__rockpath);
+        move_to_area(chss.rock_path);
     });
 };
 
@@ -17602,9 +17602,9 @@ chss.cata25.sl=()=>{ u_loc('Catacombs, The End Of Journey');
 }
 
 
-chss.__rockpath = new Chs();
-chss.__rockpath.id = 702;
-chss.__rockpath.sl = function() {
+chss.rock_path = new Chs();
+chss.rock_path.id = 702;
+chss.rock_path.sl = function() {
     clr_chs();
     u_loc('Village, Rock Path');
     
@@ -17650,7 +17650,7 @@ chss.__hiddengrounds.sl = () => {
     chs("There are disciples meditating nearby. Their eyes are closed and they seem to be intently focusing.", true);
 
     achs('<= Return to Rock Path', () => {
-        move_to_area(chss.__rockpath);
+        move_to_area(chss.rock_path);
     })
 }
 
@@ -17674,7 +17674,7 @@ chss.__river.sl = () => {
     }
 
     achs('<= Go back to the Rock Path', () => {
-        move_to_area(chss.__rockpath);
+        move_to_area(chss.rock_path);
     });
 }
 
