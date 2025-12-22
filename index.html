@@ -200,10 +200,9 @@ global.flags = {
     ssngaijin: true,
     rptbncgt:  false,
 
-    start_mountain: false,
     unl_rockpath: true, 
-    unl_shack: false,
-    unl_house: true,
+    unl_house: false,
+    unl_dojo: false,
     unl_hiddengrounds: false,
 
     taken_handfulsp2: false,
@@ -9922,8 +9921,7 @@ function You(){
                 move_to_area(chss.village_center,false);
                 msg('You ran out of your smoked up house','grey')
             } else {
-                if (global.home_loc == 111) move_to_area(chss.hbed, false);
-                else move_to_area(chss.__shackbed, false);  //703
+                move_to_area(chss.home_bed, false);
                 global.current_z=area.nwh;dom.hit_c();
                 dom.d7m.update()
             }
@@ -15388,18 +15386,9 @@ function Chs() {
 }
 
 chss.intro = new Chs();
-chss.intro.id = 101; 
+chss.intro.id = 101;
 chss.intro.sl = function() {
     u_loc('Outside Dojo, Village');
-
-    global.flags.start_mountain = true;
-    global.flags.unl_rockpath = true;
-    global.flags.unl_house = false;
-    global.flags.unl_shack = true;
-    global.flags.unl_hiddengrounds = true;
-    global.flags.dojolocked = true;
-
-    global.home_loc = 703 // chss__home2 
 
     giveTitle(ttl.__mountainchild, false);
     you.title = ttl.__mountainchild;
@@ -15473,6 +15462,201 @@ if (global.flags.gameone === false){
     let _b = giveFurniture(furniture.bed1,null,false);
     home.bed = _b;
 }
+
+
+chss.intro_village_center = new Chs();
+chss.intro_village_center.id = 102;
+chss.intro_village_center.sl = () => {
+    u_loc('Village Center');
+    
+    // change weather here
+    chs('Dark clouds loom over. They appear to be a bad omen.')
+
+    achs('=> Check the Message Board', ()=>{
+        __dbgsp();
+        //move_to_area(chss.message_board,false);
+    });
+
+    achs('=> Enter Dojo', () => {
+        msg('The entrance to the dojo is locked.', 'lightyellow');
+    });
+
+    achs('=> Visit Marketplace', ()=>{
+        move_to_area(chss.intro_marketplace); 
+    });
+
+    achs('=> Walk to Village Outskirts',  () => {
+        move_to_area(chss.intro_village_outskirts);
+    });
+}
+
+
+chss.intro_marketplace = new Chs();
+chss.intro_marketplace.id = 103;
+chss.intro_marketplace.sl = () => {
+    u_loc('Village Center, Marketplace');
+    chs("All of the stalls are closed up. No one seems to be around.")
+
+    // put nervous guy here ?
+
+    achs('<= Return back to the Village Center', ()=>{
+            move_to_area(chss.intro_village_center);
+    });
+}
+
+
+chss.intro_village_outskirts = new Chs();
+chss.intro_village_outskirts.id = 104;
+chss.intro_village_outskirts.sl = () => {
+    u_loc('Village Outskirts');
+
+    chs('There is a guard posted at the southern gate. He gives you a shifty look, but otherwise doesn\'t seem to mind you leaving.');
+    
+    achs('=> Enter Southern Forest', () => {
+        msg('Gate Guard: "I can\'t grant you permission nor clearance to enter these woods. They are protected."','yellow');
+    });
+    
+    achs('=> Enter Western Woods', ()=>{
+        if (global.flags.taken_handfulsp2) {
+            msg('I better watch myself in here.', 'lightyellow');
+        }
+        else {
+            msg('It\'s better to be safe than sorry.', 'lightyellow');
+            msg('You consume the handful of pills.', 'darkgrey');
+            for (let a in inv) {
+                if (inv[a] === item.__handfulsp2) {
+                    amt = inv[a].amount;
+                    inv[a].amount = 0;
+                    inv[a].use();
+                    removeItem(inv[a]);
+                }
+            }
+            global.flags.mountain_pills_taken = true;
+        }
+
+        __dbgsp();
+        move_to_area(chss.intro_western_woods);
+        //move_to_area(chss.frstn1main);
+    });
+
+    achs('<= Walk to Village Center', () => {
+        move_to_area(chss.intro_village_center);
+    });
+}
+
+
+chss.intro_western_woods = new Chs();
+chss.intro_western_woods.id = 105;
+chss.intro_western_woods.sl = () => {
+    __dbgsp();
+    move_to_area(chss.intro_village_outskirts);
+}
+
+
+chss.village_center = new Chs();
+chss.village_center.id = 106;
+addtosector(sector.vcent,chss.village_center);
+addtosector(sector.vmain1,chss.village_center)
+chss.village_center.sl = () => {
+    global.flags.inside = false;
+    u_loc('Village Center');
+
+    // chs('Dark clouds loom over. They appear to be a bad omen.');
+    
+    if (isWeather(weather.sunny) || isWeather(weather.clear)) {
+        chs('The surroundings are flourishing with energy.');
+    }
+    else if (isWeather(weather.cloudy) || isWeather(weather.overcast) || isWeather(weather.stormy)) {
+        chs('You have a feeling it might rain soon.');
+    }
+    else if (isWeather(weather.storm) || isWeather(weather.rain)||isWeather(weather.drizzle)) {
+        chs('The rain feels surprisingly refreshing.');
+    }
+    else if (isWeather(weather.heavyrain) || isWeather(weather.thunder)) {
+        chs('It\'s pouring so hard the streets are completely flooded. There\'s no one around '+(getHour()>6&&getHour()<21?'except for a few kids.':''));
+    }
+    else if (isWeather(weather.misty) || isWeather(weather.foggy)) {
+        chs('Can\'t see a meter in front of you with all this fog.');
+    }
+    
+    achs('=> Check the Message Board', ()=>{
+        move_to_area(chss.message_board,false);
+    });
+
+    if (!global.flags.unl_dojo) {
+        achs('=> Enter Dojo', () => {
+            move_to_area(chss.t3);
+        });
+    } else {
+        achs('=> Enter Dojo', () => {
+            msg('The entrance to the dojo is locked.', 'lightyellow');
+        });
+    }
+
+    achs('=> Walk to Village Outskirts',  () => {
+        move_to_area(chss.village_outskirts);
+    });
+    
+    if (global.flags.mkplc1u === true) {
+        achs('=> Visit Marketplace', ()=>{
+            move_to_area(chss.marketplace); 
+        });
+    }
+
+    if (global.flags.unl_house) {
+        achs('=> Go home', ()=>{
+            move_to_area(chss.home);
+        }, 'green');
+    }
+
+    if (global.flags.unl_rockpath) {
+        achs('<= Walk down Rock Path', () => {
+            move_to_area(chss.__rockpath);
+        });
+    }
+
+    if(!global.flags.mkplc1u){
+        if(global.flags.dj1end === true && global.flags.pmfspmkm1!==true&&random()<.4){
+        chs('Paper Boy: Hey, this is for you!');
+        achs('?', () => {
+            giveItem(item.shppmf);
+            move_to_area(chss.village_center,false);
+        });
+        }
+    }
+}
+
+
+chss.village_outskirts = new Chs();
+chss.village_outskirts.id = 707;
+chss.village_outskirts.sl = () => {
+    u_loc('Village Outskirts');
+
+    chs('There is a guard posted at the gate. He gives you a shifty look.');
+    
+    achs('=> Enter Southern Forest', () => {
+        if(!global.flags.frst1u && !global.flags.start_mountain) {
+            msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow');
+        } else if (!global.flags.start_mountain) {
+            if (!global.flags.frst1um) {
+                msg('Gate Guard: "You were given permission to proceed. Go on"','yellow');
+                global.flags.frst1um = true;
+            }
+            move_to_area(chss.frstn3main);
+        } else if (global.flags.start_mountain) {
+            console.log('placeholder');
+            //msg('...', 'lightyellow');
+        }
+    });
+    
+    achs('=> Enter Western Woods', ()=>{
+        move_to_area(chss.frstn1main);
+    });
+
+    achs('<= Walk to Village Center', () => {
+        move_to_area(chss.village_center);
+    });
+};
 
 chss.tdf = new Chs();
 chss.tdf.id = 102;
@@ -16143,118 +16327,6 @@ chss.frstn9a1m.sl=()=>{global.flags.inside=false; u_loc('Southern Forest, The Fo
 }
 chss.frstn9a1m.onEnter=function(){
   area_init(area.frstn9a1);
-}
-
-chss.intro_village_center = new Chs();
-chss.intro_village_center.id = 105;
-chss.intro_village_center.sl = () => {
-    u_loc('Village Center');
-    
-    // change weather here
-    chs('Dark clouds loom over. They appear to be a bad omen.')
-
-    achs('=> Check the Message Board', ()=>{
-        __dbgsp();
-        //move_to_area(chss.message_board,false);
-    });
-
-    achs('=> Enter Dojo', () => {
-        msg('The entrance to the dojo is locked.', 'lightyellow');
-    });
-
-    achs('=> Visit Marketplace', ()=>{
-        move_to_area(chss.intro_marketplace); 
-    });
-
-    achs('=> Walk to Village Outskirts',  () => {
-        move_to_area(chss.intro_village_outskirts);
-    });
-}
-
-chss.village_center = new Chs();
-chss.village_center.id = 106;
-addtosector(sector.vcent,chss.village_center);
-addtosector(sector.vmain1,chss.village_center)
-chss.village_center.sl = () => {
-    global.flags.inside = false;
-    u_loc('Village Center');
-
-    // chs('Dark clouds loom over. They appear to be a bad omen.');
-    
-    if (isWeather(weather.sunny) || isWeather(weather.clear)) {
-        chs('The surroundings are flourishing with energy.');
-    }
-    else if (isWeather(weather.cloudy) || isWeather(weather.overcast) || isWeather(weather.stormy)) {
-        chs('You have a feeling it might rain soon.');
-    }
-    else if (isWeather(weather.storm) || isWeather(weather.rain)||isWeather(weather.drizzle)) {
-        chs('The rain feels surprisingly refreshing.');
-    }
-    else if (isWeather(weather.heavyrain) || isWeather(weather.thunder)) {
-        chs('It\'s pouring so hard the streets are completely flooded. There\'s no one around '+(getHour()>6&&getHour()<21?'except for a few kids.':''));
-    }
-    else if (isWeather(weather.misty) || isWeather(weather.foggy)) {
-        chs('Can\'t see a meter in front of you with all this fog.');
-    }
-    
-    achs('=> Check the Message Board', ()=>{
-        move_to_area(chss.message_board,false);
-    });
-
-    if (!global.flags.dojolocked) {
-        achs('=> Enter Dojo', () => {
-            move_to_area(chss.t3);
-        });
-    } else {
-        achs('=> Enter Dojo', () => {
-            msg('The entrance to the dojo is locked.', 'lightyellow');
-        });
-    }
-
-    achs('=> Walk to Village Outskirts',  () => {
-        move_to_area(chss.village_outskirts);
-    });
-    
-    if (global.flags.mkplc1u === true) {
-        achs('=> Visit Marketplace', ()=>{
-            move_to_area(chss.marketplace); 
-        });
-    }
-
-    if (global.flags.unl_house) {
-        achs('=> Go home', ()=>{
-            move_to_area(chss.home);
-        }, 'green');
-    }
-
-    if (global.flags.unl_rockpath) {
-        achs('<= Walk down Rock Path', () => {
-            move_to_area(chss.__rockpath);
-        });
-    }
-
-    if(!global.flags.mkplc1u){
-        if(global.flags.dj1end === true && global.flags.pmfspmkm1!==true&&random()<.4){
-        chs('Paper Boy: Hey, this is for you!');
-        achs('?', () => {
-            giveItem(item.shppmf);
-            move_to_area(chss.village_center,false);
-        });
-        }
-    }
-}
-
-chss.intro_marketplace = new Chs();
-chss.intro_marketplace.id = 107;
-chss.intro_marketplace.sl = () => {
-    u_loc('Village Center, Marketplace');
-    chs("All of the stalls are closed up. No one seems to be around.")
-
-    // put nervous guy here ?
-
-    achs('<= Return back to the Village Center', ()=>{
-            move_to_area(chss.intro_village_center);
-    });
 }
 
 chss.marketplace = new Chs();
@@ -16963,7 +17035,7 @@ chss.home.sl = () => {
             msg('This isn\'t time for sleep', 'red');
             return;
         }
-        move_to_area(chss.hbed, false);
+        move_to_area(chss.home_bed, false);
     });
 
     if (!global.flags.chbdfst) chs('"Examine your hidden stash"', false).addEventListener('click', () => {
@@ -17081,8 +17153,8 @@ chss.home.sl = () => {
         });
     }
 
-    chs('"<= Go outside"', false).addEventListener('click', () => {
-        move_to_area(chss.village_center);
+    achs('<= Leave the shack', () => {
+        move_to_area(chss.__rockpath);
     });
 };
 
@@ -17145,10 +17217,10 @@ chss.bsmnthm1.scout=[
 ]; 
 chss.bsmnthm1.onScout=function(){scoutGeneric(this)}
 
-chss.hbed = new Chs();
-chss.hbed.id = 112;
-addtosector(sector.home,chss.hbed)
-chss.hbed.sl=()=>{
+chss.home_bed = new Chs();
+chss.home_bed.id = 112;
+addtosector(sector.home, chss.home_bed)
+chss.home_bed.sl=()=>{
     u_loc('Your Home, Bed');
     let extra='';
     if(you.alive===false) {
@@ -17162,7 +17234,7 @@ chss.hbed.sl=()=>{
         move_to_area(chss.home); 
     });
 }
-chss.hbed.onStay = function(){ 
+chss.home_bed.onStay = function(){ 
     let hpr = (skl.sleep.use(home.bed)+(global.flags.catget ? 5 : 1)+1) << 0;  
     if (!effect.fei1.active && you.hp < you.hpmax) {
         you.hp + hpr <= you.hpmax ? you.hp += hpr : you.hp = you.hpmax;
@@ -17176,12 +17248,12 @@ chss.hbed.onStay = function(){
     //   ta.size = 1; z_bake(ta); area_init(ta); dom.d7m.update(); msg('Your sins are crawling up on you','red')
     //}
 }
-chss.hbed.onEnter=function(){
+chss.home_bed.onEnter=function(){
     global.flags.sleepmode=true;
     if (effect.slep.active===false) giveEff(you,effect.slep);
     global.timescale = you.timescale_sleeping;;
 }
-chss.hbed.onLeave=function(){
+chss.home_bed.onLeave=function(){
     global.flags.sleepmode=false;
     global.timescale=1;
     removeEff(effect.slep); 
@@ -17224,6 +17296,7 @@ chss.ofrplc = new Chs(); chss.ofrplc.id = 117; addtosector(sector.home,chss.ofrp
     chs('"<= Step away"',false).addEventListener('click',()=>{ 
         move_to_area(chss.home,false);
   });
+  
 }
 
 chss.sboxhm = new Chs(); chss.sboxhm.id = 131; addtosector(sector.home,chss.sboxhm)
@@ -17565,146 +17638,6 @@ chss.__rockpath.sl = function() {
     })
 
     achs('<= Return to Village Center', () => {
-        move_to_area(chss.village_center);
-    });
-};
-
-chss.__home2 = new Chs(); // secluded shack, home for mountain child
-chss.__home2.id = 703;
-//addtosector(sector.home, chss.__home2);
-chss.__home2.sl = () => {
-    u_loc('Your Home');
-
-    if (!global.flags.catget || sector.home.data.smkp > 0) {
-        chs('Your humble abode. You can rest here. ', true);
-    }
-    else {
-        if (!global.text.hmcttt) {
-            global.text.hmcttt = ['Your cat comes out to greet you!', '', 'You hear rustling', 'Meow'];
-        }
-        chs('You feel safe. You can rest here. ' + select(global.text.hmcttt), true);
-    }
-
-    // some item to get here ?
-
-    achs('Take a nap', () => {
-        if (sector.home.data.smkp > 0) {
-            msg('This isn\'t time for sleep', 'red');
-            return;
-        }
-        move_to_area(chss.__shackbed, false);
-    });
-
-    // furniture?
-
-    // fireplace?
-
-    achs('<= Leave the shack', () => {
-        move_to_area(chss.__rockpath);
-    });
-}
-
-chss.__shackbed = new Chs();
-chss.__shackbed.id = 704;
-addtosector(sector.home,chss.__shackbed);
-chss.__shackbed.sl = () => {
-    u_loc('Your Home, Bed');
-    
-    let extra='';
-    if(you.alive===false) {
-        chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']),true);
-        you.alive=true}
-    else {
-        if(global.flags.catget) extra=select(['. Your cat is resting next to you', '. You feel warm']);
-        chs('Great way to pass time'+extra,true);
-    }
-    chs('<= Get up',false).addEventListener('click',()=>{ 
-        move_to_area(chss.__home2);
-    });
-}
-chss.__shackbed.onStay=function(){ 
-    let hpr=(skl.sleep.use(home.bed)+(global.flags.catget?5:1)+1)<<0;  
-    if (!effect.fei1.active&&you.hp<you.hpmax) {
-        you.hp+hpr<=you.hpmax?you.hp+=hpr:you.hp=you.hpmax;
-        dom.d5_1_1.update();
-    }
-}
-chss.__shackbed.onEnter=function(){
-    global.flags.sleepmode=true;
-    if (effect.slep.active===false) giveEff(you, effect.slep);
-    global.timescale = you.timescale_sleeping;
-}
-chss.__shackbed.onLeave=function(){
-    global.flags.sleepmode=false;
-    global.timescale=1;
-    removeEff(effect.slep); 
-}
-
-chss.intro_village_outskirts = new Chs();
-chss.intro_village_outskirts.id = 705;
-chss.intro_village_outskirts.sl = () => {
-    u_loc('Village Outskirts');
-
-    chs('There is a guard posted at the gate. He gives you a shifty look, but otherwise doesn\'t mind you leaving.');
-    
-    achs('=> Enter Southern Forest', () => {
-        __dbgsp();
-        //msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow');
-    });
-    
-    achs('=> Enter Western Woods', ()=>{
-        if (global.flags.taken_handfulsp2) {
-            msg('I better watch myself in here.', 'lightyellow');
-        }
-        else {
-            msg('It\'s better to be safe than sorry.', 'lightyellow');
-            for (let a in inv) {
-                if (inv[a] === item.__handfulsp2) {
-                    amt = inv[a].amount;
-                    inv[a].amount = 0;
-                    inv[a].use();
-                    removeItem(inv[a]);
-                }
-            }
-            global.flags.mountain_pills_taken = true;
-        }
-
-        __dbgsp();
-        //move_to_area(chss.frstn1main);
-    });
-
-    achs('<= Walk to Village Center', () => {
-        move_to_area(chss.intro_village_center);
-    });
-}
-
-chss.village_outskirts = new Chs();
-chss.village_outskirts.id = 707;
-chss.village_outskirts.sl = () => {
-    u_loc('Village Outskirts');
-
-    chs('There is a guard posted at the gate. He gives you a shifty look.');
-    
-    achs('=> Enter Southern Forest', () => {
-        if(!global.flags.frst1u && !global.flags.start_mountain) {
-            msg('Gate Guard: "Nothing for you to do there. Scram!"','yellow');
-        } else if (!global.flags.start_mountain) {
-            if (!global.flags.frst1um) {
-                msg('Gate Guard: "You were given permission to proceed. Go on"','yellow');
-                global.flags.frst1um = true;
-            }
-            move_to_area(chss.frstn3main);
-        } else if (global.flags.start_mountain) {
-            console.log('placeholder');
-            //msg('...', 'lightyellow');
-        }
-    });
-    
-    achs('=> Enter Western Woods', ()=>{
-        move_to_area(chss.frstn1main);
-    });
-
-    achs('<= Walk to Village Center', () => {
         move_to_area(chss.village_center);
     });
 };
