@@ -15665,7 +15665,8 @@ function icon(root,x,y,sx,sy,sz){ //sz=2
     return div;
 }
 
-function Chs() {
+function Chs(op={}) {
+    this.id;
     this.ttl;
     this.sl = function(){};
     this.data = {};
@@ -15674,81 +15675,86 @@ function Chs() {
     this.onLeave = function(){};
     this.onScout = function(){};
     this.sector = [];
+
+    Object.assign(this, op);
 }
 
-chss.intro = new Chs();
-chss.intro.id = 101;
-chss.intro.sl = function() {
-    u_loc('Outside Dojo, Village');
 
-    giveTitle(ttl.mountain_child, false);
-    you.title = ttl.mountain_child;
+chss.intro = new Chs({
+    id: 101,
+    sl: () => {
+        u_loc('Outside Dojo, Village');
 
-    giveSkExp(skl.unc, 853, showLevelUp=false); //give unarmed mastery
-    giveSkExp(skl.fgt, 335, showLevelUp=false);
+        giveTitle(ttl.mountain_child, false);
+        you.title = ttl.mountain_child;
 
-    giveItem(item.leather_wallet); // coinage
-    giveItem(item.handful_pills); // pills
+        giveSkExp(skl.unc, 853, showLevelUp=false); //give unarmed mastery
+        giveSkExp(skl.fgt, 335, showLevelUp=false);
 
-    dom.d_weather.style.display = 'none';
-    dom.d_time.style.display    = 'none';
+        giveItem(item.leather_wallet); // coinage
+        giveItem(item.handful_pills); // pills
 
-    appear(dom.ctr_1);
-    appear(dom.ctr_1a);
+        dom.d_weather.style.display = 'none';
+        dom.d_time.style.display    = 'none';
 
-    chs('???: "Kid..."'); 
-    achs('"..."', () => {
-        global.time += DAY; 
-        appear(dom.d_weather, dom.d_weathert); // show weather
+        appear(dom.ctr_1);
+        appear(dom.ctr_1a);
 
-        chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
-        achs('"Where am I..?"', () => {
+        chs('???: "Kid..."'); 
+        achs('"..."', () => {
+            global.time += DAY; 
+            appear(dom.d_weather, dom.d_weathert); // show weather
 
-            appear(dom.location); // show location
-            chs('???: "You\'re outside the village dojo... I found you here unconscious. Do you remember how you first arrived here?"');
-            achs('"I came down from a dojo in the mountains..."', () => {
-                empty(dom.mscont)  // clear message log
-                appear(dom.d0);    // show player menu
-                appear(dom.gmsgs); // show message log
+            chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
+            achs('"Where am I..?"', () => {
 
-                chs('???: "You have some experience then, huh? Yet even still, someone like you can end up in a place like this."');
-                achs('"..."', () => {
-                    appear(dom.d1m);
-                    appear(dom.d_time);
-                    chs('???: "It\'s getting dangerous out there... you ought to be more mindful of your surroundings..."');
+                appear(dom.location); // show location
+                chs('???: "You\'re outside the village dojo... I found you here unconscious. Do you remember how you first arrived here?"');
+                achs('"I came down from a dojo in the mountains..."', () => {
+                    empty(dom.mscont)  // clear message log
+                    appear(dom.d0);    // show player menu
+                    appear(dom.gmsgs); // show message log
+
+                    chs('???: "You have some experience then, huh? Yet even still, someone like you can end up in a place like this."');
                     achs('"..."', () => {
-                        appear(dom.inv_ctx); // show inventory
-                        appear(dom.ct_ctrl); // center-bottom clickables
-                        
-                        global.flags.aw_u  = true;
-                        global.flags.dm1ap = true;
-                        global.flags.asbu  = true;
-                        global.flags.sklu  = true;
-                        global.flags.actsu = true;
-                        global.flags.jnlu  = true;
+                        appear(dom.d1m);
+                        appear(dom.d_time);
+                        chs('???: "It\'s getting dangerous out there... you ought to be more mindful of your surroundings..."');
+                        achs('"..."', () => {
+                            appear(dom.inv_ctx); // show inventory
+                            appear(dom.ct_ctrl); // center-bottom clickables
+                            
+                            global.flags.aw_u  = true;
+                            global.flags.dm1ap = true;
+                            global.flags.asbu  = true;
+                            global.flags.sklu  = true;
+                            global.flags.actsu = true;
+                            global.flags.jnlu  = true;
 
-                        /*
-                        dom.ct_bt6.innerHTML = 'journal';
-                        dom.ct_bt1.innerHTML = 'assemble';
-                        dom.ct_bt3.innerHTML = 'actions';
-                        dom.ct_bt2.innerHTML = 'skills';
-                        */
+                            /*
+                            dom.ct_bt6.innerHTML = 'journal';
+                            dom.ct_bt1.innerHTML = 'assemble';
+                            dom.ct_bt3.innerHTML = 'actions';
+                            dom.ct_bt2.innerHTML = 'skills';
+                            */
 
-                        m_update();
-                        
-                        move_to_area(chss.intro_village_center);
+                            m_update();
+                            
+                            move_to_area(chss.intro_village_center);
 
+                        });
                     });
                 });
             });
         });
-    });
 
-    achs('"DEBUG : Intro Western Woods"', () => {
-        __dbgqs();
-        move_to_area(chss.intro_western_woods1);
-    });
-};
+        achs('"DEBUG : Intro Western Woods"', () => {
+            __dbgqs();
+            move_to_area(chss.intro_western_woods1);
+        });
+    }
+});
+
 
 if (global.flags.gameone === false){
     global.current_location = chss.intro;
@@ -15759,165 +15765,176 @@ if (global.flags.gameone === false){
 }
 
 
-chss.intro_village_center = new Chs();
-chss.intro_village_center.id = 102;
-chss.intro_village_center.sl = () => {
-    u_loc('Village Center');
-    
-    // change weather here
-    chs('Dark clouds loom over. They appear to be a bad omen.')
+chss.intro_village_center = new Chs({
+    id: 102,
+    sl: () => {
+        u_loc('Village Center');
+        
+        // change weather here
+        chs('Dark clouds loom over. They appear to be a bad omen.')
 
-    achs('=> Check the Message Board', ()=>{
-        __dbgsp();
-        //move_to_area(chss.message_board,false);
-    });
+        achs('=> Check the Message Board', ()=>{
+            __dbgsp();
+            //move_to_area(chss.message_board,false);
+        });
 
-    achs('=> Enter Dojo', () => {
-        msg('The entrance to the dojo is locked.', 'lightyellow');
-    });
+        achs('=> Enter Dojo', () => {
+            msg('The entrance to the dojo is locked.', 'lightyellow');
+        });
 
-    achs('=> Visit Marketplace', ()=>{
-        move_to_area(chss.intro_marketplace); 
-    });
+        achs('=> Visit Marketplace', ()=>{
+            move_to_area(chss.intro_marketplace); 
+        });
 
-    achs('=> Walk to Village Outskirts',  () => {
-        move_to_area(chss.intro_village_outskirts);
-    });
-}
-
-
-chss.intro_marketplace = new Chs();
-chss.intro_marketplace.id = 103;
-chss.intro_marketplace.sl = () => {
-    u_loc('Village Center, Marketplace');
-    chs("All of the stalls are closed up. No one seems to be around.")
-
-    // put nervous guy here ?
-
-    achs('<= Return back to the Village Center', ()=>{
-            move_to_area(chss.intro_village_center);
-    });
-}
-
-
-chss.intro_village_outskirts = new Chs();
-chss.intro_village_outskirts.id = 104;
-chss.intro_village_outskirts.sl = () => {
-    u_loc('Village Outskirts');
-
-    chs('There is a guard posted at the southern gate. He gives you a shifty look, but otherwise doesn\'t seem to mind you leaving.');
-    
-    achs('=> Enter Southern Forest', () => {
-        msg('Gate Guard: "I can\'t grant you permission nor clearance to enter these woods. They are protected."','yellow');
-    });
-    
-    achs('=> Enter Western Woods', () => {
-        msg('I better watch myself in here.', 'lightyellow');
-        move_to_area(chss.intro_western_woods1);
-    });
-
-    achs('<= Walk to Village Center', () => {
-        move_to_area(chss.intro_village_center);
-    });
-}
-
-
-chss.intro_western_woods1 = new Chs();
-chss.intro_western_woods1.id = 105;
-chss.intro_western_woods1.sl = () => {
-    u_loc('Western Woods, The Wooden Gate');
-    chs('The woods are silent. You spot an old lodge. Walking up a little closer, you see a handwritten note posted to the front door.');
-
-    achs("Read the handwritten note", () => {
-        move_to_area(chss.intro_western_woods_note);
-    });
-
-    achs("Go deeper into the woods =>", () => {
-        move_to_area(chss.intro_western_woods2);
-    });
-
-    if (global.flags.show_exit_from_intro_woods1) {
-        achs("<= Return back to the village", () => {
-            msg('I need to keep moving. I need to find <i>that place</i>.', 'lightyellow');
-            global.flags.show_exit_from_intro_woods1 = false;
-            move_to_area(chss.intro_western_woods1); // lets refresh that choice so that it disappears
+        achs('=> Walk to Village Outskirts',  () => {
+            move_to_area(chss.intro_village_outskirts);
         });
     }
-}
+});
 
 
-chss.intro_western_woods_note = new Chs();
-chss.intro_western_woods_note.id = 106;
-chss.intro_western_woods_note.sl = () => {
-    // don't need to update location here
-    chs('<div style="text-align:left">"Gone up north for the time being. For any poor soul who\'s wandered out here without the strength to confront what lurks beyond the whispers of the wind that pass by every tree branch, steele yourself.</div><br>Be kind to the woods."<br><br><div style="text-align:right">一Head Hunter, Yamato</div>');
+chss.intro_marketplace = new Chs({
+    id: 103,
+    sl: () => {
+        u_loc('Village Center, Marketplace');
+        chs("All of the stalls are closed up. No one seems to be around.")
 
-    achs('"Alrighty."', () => {
-        move_to_area(chss.intro_western_woods1);
-    });
-}
+        // put nervous guy here ?
+
+        achs('<= Return back to the Village Center', ()=>{
+                move_to_area(chss.intro_village_center);
+        });
+    }
+});
 
 
-chss.intro_western_woods2 = new Chs();
-chss.intro_western_woods2.id = 107;
-chss.intro_western_woods2.sl = () => {
-    u_loc('Deep Forest, Western Woods');
-    chs('You feel the hairs on the back of your neck stand up as the wind that flows around the trees momentarily circles around you. You brush that feeling off, but your footing stays rooted into the ground.');
+chss.intro_village_outskirts = new Chs({
+    id: 104,
+    sl: () => {
+        u_loc('Village Outskirts');
 
-    achs("Continue deeper into the woods =>", () => {
-        if (!global.flags.mountain_pills_taken) {
-            msg('It\'s better to be safe than sorry.', 'lightyellow');
-            msg('You consume the handful of pills.', 'darkgrey');
-            for (let a in inv) {
-                if (inv[a] === item.handful_pills) {
-                    amt = inv[a].amount;
-                    inv[a].amount = 0;
-                    inv[a].use();
-                    removeItem(inv[a]);
-                }
-            }
-            global.flags.mountain_pills_taken = true;
-        } else {
-            msg('I took those spirit pills. I should be fine...', 'lightyellow');
-        }
-        move_to_area(chss.intro_western_woods3)
-    });
+        chs('There is a guard posted at the southern gate. He gives you a shifty look, but otherwise doesn\'t seem to mind you leaving.');
+        
+        achs('=> Enter Southern Forest', () => {
+            msg('Gate Guard: "I can\'t grant you permission nor clearance to enter these woods. They are protected."','yellow');
+        });
+        
+        achs('=> Enter Western Woods', () => {
+            msg('I better watch myself in here.', 'lightyellow');
+            move_to_area(chss.intro_western_woods1);
+        });
 
-    if (global.flags.show_exit_from_intro_woods2) {
-        achs("<= Return back to the village", () => {
-            msg('I need to keep moving. I need to find <i>that place</i>.', 'lightyellow');
-            global.flags.show_exit_from_intro_woods2 = false;
+        achs('<= Walk to Village Center', () => {
+            move_to_area(chss.intro_village_center);
+        });
+    }
+});
+
+
+chss.intro_western_woods1 = new Chs({
+    id: 105,
+    sl: () => {
+        u_loc('Western Woods, The Wooden Gate');
+        chs('The woods are silent. You spot an old lodge. Walking up a little closer, you see a handwritten note posted to the front door.');
+
+        achs("Read the handwritten note", () => {
+            move_to_area(chss.intro_western_woods_note);
+        });
+
+        achs("Go deeper into the woods =>", () => {
             move_to_area(chss.intro_western_woods2);
         });
+
+        if (global.flags.show_exit_from_intro_woods1) {
+            achs("<= Return back to the village", () => {
+                msg('I need to keep moving. I need to find <i>that place</i>.', 'lightyellow');
+                global.flags.show_exit_from_intro_woods1 = false;
+                move_to_area(chss.intro_western_woods1); // lets refresh that choice so that it disappears
+            });
+        }
     }
-}
+});
 
 
-chss.intro_western_woods3 = new Chs();
-chss.intro_western_woods3.id = 108;
-chss.intro_western_woods3.sl = () => {
-    chs('scary bad enemy ow=w spooky');
+chss.intro_western_woods_note = new Chs({
+    id: 106,
+    sl: () => {
+        // don't need to update location here
+        chs('<div style="text-align:left">"Gone up north for the time being. For any poor soul who\'s wandered out here"+\
+            "without the strength to confront what lurks beyond the whispers of the wind that pass by every tree branch"+\
+            ", steele yourself.</div><br>Be kind to the woods."<br><br><div style="text-align:right">一Head Hunter, Yamato</div>');
 
-    achs("Stand and fight", () => {
-        __dbgsp();
-        //area_init(area.namehere);
-    });
-
-    if (global.flags.show_exit_from_intro_woods3) {
-        achs("<= Flee from the beast", () => {
-            msg('It feels like running would be useless...', 'lightyellow');
-            global.flags.show_exit_from_intro_woods3 = false;
-            move_to_area(chss.intro_western_woods3);
-        })
+        achs('"Alrighty."', () => {
+            move_to_area(chss.intro_western_woods1);
+        });
     }
-}
+});
 
 
-chss.intro_western_woods_btl = new Chs();
-chss.intro_western_woods_btl.id = 109;
-chss.intro_western_woods_btl.sl = () => {
-    // battle here
-}
+chss.intro_western_woods2 = new Chs({
+    id: 107,
+    sl: () => {
+        u_loc('Deep Forest, Western Woods');
+        chs('You feel the hairs on the back of your neck stand up as the wind that flows around the trees momentarily"+\
+            "circles around you. You brush that feeling off, but your footing stays rooted into the ground.');
+
+        achs("Continue deeper into the woods =>", () => {
+            if (!global.flags.mountain_pills_taken) {
+                msg('It\'s better to be safe than sorry.', 'lightyellow');
+                msg('You consume the handful of pills.', 'darkgrey');
+                for (let a in inv) {
+                    if (inv[a] === item.handful_pills) {
+                        amt = inv[a].amount;
+                        inv[a].amount = 0;
+                        inv[a].use();
+                        removeItem(inv[a]);
+                    }
+                }
+                global.flags.mountain_pills_taken = true;
+            } else {
+                msg('I took those spirit pills. I should be fine...', 'lightyellow');
+            }
+            move_to_area(chss.intro_western_woods3)
+        });
+
+        if (global.flags.show_exit_from_intro_woods2) {
+            achs("<= Return back to the village", () => {
+                msg('I need to keep moving. I need to find <i>that place</i>.', 'lightyellow');
+                global.flags.show_exit_from_intro_woods2 = false;
+                move_to_area(chss.intro_western_woods2);
+            });
+        }
+    }
+});
+
+
+chss.intro_western_woods3 = new Chs({
+    id: 108,
+    sl: () => {
+        chs('scary bad enemy ow=w spooky');
+
+        achs("Stand and fight", () => {
+            __dbgsp();
+            //area_init(area.namehere);
+        });
+
+        if (global.flags.show_exit_from_intro_woods3) {
+            achs("<= Flee from the beast", () => {
+                msg('It feels like running would be useless...', 'lightyellow');
+                global.flags.show_exit_from_intro_woods3 = false;
+                move_to_area(chss.intro_western_woods3);
+            })
+        } 
+    }
+});
+
+
+chss.intro_western_woods_btl = new Chs({
+    id: 109,
+    sl: () => {
+        // battle here
+    }
+});
 
 
 chss.forestn1main = new Chs();
