@@ -2247,7 +2247,12 @@ global.text.d_j = ["月","火","水","木","金","土","日"];
 function Effect(){
     this.name = 'dummy';
     this.desc = '';
-    this.type = 0; // 1 - on attack; 2 - on stat refersh; 3 - on tick; 4 - decor? 5 - stat mod? 6 - tickstat
+    this.type = 0; // 1 - on attack
+                   // 2 - on stat refresh
+                   // 3 - on tick
+                   // 4 - decor?
+                   // 5 - stat mod?
+                   // 6 - tickstat
     this.x;
     this.c;
     this.b;
@@ -10010,7 +10015,7 @@ function Creature(){
     this.strm = this.intm = this.spdm = this.aglm = this.hpm = 1;
     this.crt = 0.008;
     this.dmlt = 1;
-    this.rnk = 0;    // rank - (1, --G), (2, -G)
+    this.rnk = 0;    // rank - (1, --G), (2, -G), ...
     this.pts = 1;
     this.eva = 0;
     this.data = { lstdmg : 0, oneshot : true };
@@ -10643,13 +10648,13 @@ abl.bash.f = function(x,y){
 //EFFECTORS
 ///////////////////////////////////////////
 function Effector() {
-  this.id = 0;
-  this.x = '@';
-  this.c = 'white';
-  this.active = false;
-  this.activate = function(){}
-  this.deactivate = function(){}
-  this.use = function(){}
+    this.id = 0;
+    this.x = '@';
+    this.c = 'white';
+    this.active = false;
+    this.activate = function(){}
+    this.deactivate = function(){}
+    this.use = function(){}
 }
 
 effector.dark = new Effector();
@@ -10696,16 +10701,34 @@ area.nwh = new Area ({
     id: 101,
     name: 'Somewhere',
     size: 1,
-    pop: [
-        {crt: creature.default, lvlmin: 1, lvlmax: 1, c: 1}
-    ],
+    pop: [  // c is the percent from 0.0-1.0 that this creature will show up compared to other creatures.
+            // the sum of all c values should equal 1.
+        { crt: creature.default, lvlmin: 1, lvlmax: 1, c: 1 }
+    ]
 });
 z_bake(area.nwh);
 global.current_z = area.nwh;
 
 
-area.trn = new Area({
+area.intro_woods = new Area ({
     id: 102,
+    name: 'Western Woods',
+    size: 1,
+    pop: [
+        { crt: creature.intro_beast, lvlmin: 30, lvlmax: 30, c: 1 }
+    ],
+    onEnd() {
+        msg("Give me a real challenge.", 'lightyellow');
+        giveExp(999999);
+    },
+    onDeath() {
+        msg('u ded boi');
+    }
+});
+
+
+area.trn = new Area({
+    id: 202,
     name: 'Training Grounds',
     size: 10000,
     pop: [
@@ -10728,7 +10751,7 @@ z_bake(area.trn);
 
 
 area.trn1 = new Area({
-    id: 103,
+    id: 203,
     name: 'Training Grounds',
     size: 10,
     pop: [
@@ -10750,7 +10773,7 @@ z_bake(area.trn1);
 
 
 area.trn2 = new Area({
-    id: 104,
+    id: 204,
     name: 'Training Grounds',
     size: 20,
     pop: [
@@ -10772,7 +10795,7 @@ z_bake(area.trn2);
 
 
 area.trn3 = new Area({
-    id: 105,
+    id: 205,
     name: 'Training Grounds',
     size: 50,
     pop: [
@@ -10795,7 +10818,7 @@ z_bake(area.trn3);
 
 
 area.clg = new Area({
-    id: 106,
+    id: 206,
     name: 'Damp cellar',
     size: 33,
     pop: [
@@ -10815,7 +10838,7 @@ z_bake(area.clg);
 
 
 area.trnf = new Area({
-    id: 107,
+    id: 207,
     name: "Training Grounds",
     size: -1,
     pop: [
@@ -10832,7 +10855,7 @@ z_bake(area.trnf);
 
 
 area.tst = new Area({
-    id: 108,
+    id: 208,
     name: 'Test',
     size: -1,
     pop: [
@@ -10844,7 +10867,7 @@ z_bake(area.tst);
 
 
 area.forestn1a2 = new Area({
-    id: 109,
+    id: 209,
     name: 'Western forest hunting area',
     size: 60,
     pop: [
@@ -10878,7 +10901,7 @@ z_bake(area.forestn1a2);
 
 
 area.hmbsmnt = new Area({
-    id: 110,
+    id: 210,
     name: 'Your basement',
     size: 10,
     pop: [
@@ -10901,7 +10924,7 @@ z_bake(area.hmbsmnt);
 
 
 area.trne1 = new Area({
-    id: 111,
+    id: 211,
     name: 'Training Grounds',
     size: 1,
     protected: true,
@@ -10921,7 +10944,7 @@ z_bake(area.trne1);
 
 
 area.forestn2a2 = new Area({
-    id: 112,
+    id: 212,
     name: 'Western forest hunting area',
     size: 50,
     pop: [
@@ -10965,7 +10988,7 @@ z_bake(area.forestn2a2);
 
 
 area.trne2 = new Area({
-    id: 113,
+    id: 213,
     name: 'Training Grounds',
     size: 1,
     protected: true,
@@ -10985,7 +11008,7 @@ z_bake(area.trne2);
 
 
 area.trne3 = new Area({
-    id: 114,
+    id: 214,
     name: 'Training Grounds',
     size: 1,
     protected: true,
@@ -11005,7 +11028,7 @@ z_bake(area.trne3);
 
 
 area.forestn1a3 = new Area({
-    id: 115,
+    id: 215,
     name: 'Western forest hunting area',
     size: -1,
     protected: true,
@@ -11035,7 +11058,7 @@ z_bake(area.forestn1a3);
 
 
 area.forestn1a4 = new Area({
-    id: 116,
+    id: 216,
     name: 'Western forest hidden area',
     size: 25,
     protected: true,
@@ -11055,7 +11078,7 @@ z_bake(area.forestn1a4);
 
 
 area.trne4 = new Area({
-    id: 117,
+    id: 217,
     name: 'Training Grounds',
     size: 1,
     protected: true,
@@ -11076,7 +11099,7 @@ z_bake(area.trne4);
 
 
 area.forestn9a1 = new Area({
-    id: 118,
+    id: 218,
     name: 'Southern forest hunting area',
     size: 48,
     pop: [
@@ -11103,29 +11126,21 @@ area.forestn9a1 = new Area({
 z_bake(area.forestn9a1);
 
 
-function z_bake(area){
-  let c=0;
-  let d=0;
-  let b=[];
-  let e=[];
-  let s=0;
-  for(let i=0;i<area.pop.length;i++) c+=area.pop[i].c
-  d=1-c;
-  
-  for(let i=0;i<area.pop.length;i++) b[i]=(d/c)*area.pop[i].c+area.pop[i].c;
-  
-  for(let i=0;i<b.length;i++) {
-    if(i===0) {
-        e[i]=[0,b[i]];
-        s=b[i];
-    }
-    else if (i===b.length-1) e[i]=[s,1];
-    else {
-        e[i]=[s,b[i]+s];
-        s+=b[i]
-    }
-  }
-  area.popc=e;
+function z_bake(area) { // convert pop into weighted prob. range; bake population
+    const weights_raw  = area.pop.reduce((sum, entry) => sum + entry.c, 0);
+    const weights_norm = area.pop.map(entry => entry.c / weights_raw);
+    const ranges = [];
+    let cum = 0; // :thinking:
+
+    weights_norm.forEach((weight, idx) => {
+        const start = cum;
+        cum += weight;
+
+        const end = (idx === weights_norm.length - 1) ? 1 : cum;
+        ranges.push([start, end]);
+    });
+
+    area.popc = ranges;
 }
 
 ///////////////////////////////////////////
@@ -15914,8 +15929,7 @@ chss.intro_western_woods3 = new Chs({
         chs('scary bad enemy ow=w spooky');
 
         achs("Stand and fight", () => {
-            __dbgsp();
-            //area_init(area.namehere);
+            area_init(area.intro_woods);
         });
 
         if (global.flags.show_exit_from_intro_woods3) {
@@ -16236,6 +16250,7 @@ chss.village_outskirts.sl = () => {
         move_to_area(chss.village_center);
     });
 };
+
 
 chss.tdf = new Chs();
 chss.tdf.id = 102;
