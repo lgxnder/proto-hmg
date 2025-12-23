@@ -1,7 +1,9 @@
 <!-- 
 
   TODO:
-       - build out general progression
+       - Polish the intro sequence
+       - Build out the general progression of the game
+       - Implement new mechanics
 -->
 <html>
 <head>
@@ -19,7 +21,6 @@ var w_manager = new Object();
 var creature = new Object();
 var offline = new Object();
 var effect = new Object();
-
 var item = new Object();
 var wpn = new Object();
 var eqp = new Object();
@@ -203,6 +204,8 @@ global.flags = {
     show_exit_from_intro_woods1: true,
     show_exit_from_intro_woods2: true,
     show_exit_from_intro_woods3: true,
+
+    can_open_wallet: false,
 
     unl_rockpath: true, 
     unl_house: false,
@@ -2057,15 +2060,15 @@ ttl.indkill.rar = 2;
 ttl.indkill.rars = true;
 ttl.indkill.desc = '';
 
-ttl.__mountainchild = new Title(701);
-ttl.__mountainchild.name = 'Mountain Child';
-ttl.__mountainchild.rar = 1;
-ttl.__mountainchild.rars = true;
-ttl.__mountainchild.desc = 'You\'ve descended from the peak of a harsh mountain. Your past experience leaves you with a great proficiency in unarmed combat.';
-ttl.__mountainchild.talent = function() {
+ttl.mountain_child = new Title(701);
+ttl.mountain_child.name = 'Mountain Child';
+ttl.mountain_child.rar = 1;
+ttl.mountain_child.rars = true;
+ttl.mountain_child.desc = 'You\'ve descended from the peak of a harsh mountain. Your past experience leaves you with a great proficiency in unarmed combat.';
+ttl.mountain_child.talent = function() {
     you.mods.undc += 5;
 };
-ttl.__mountainchild.tdesc = 'Improves your unarmed combat skill by a considerable amount.';
+ttl.mountain_child.tdesc = 'Improves your unarmed combat skill by a considerable amount.';
 
 
 function Weather(id){
@@ -8053,68 +8056,68 @@ item.jnlbk.use = function(){if(canRead()){if(this.data.timep>=this.cmax){ msg('J
 }else chss.trd.sl(this, 0, this.id);}
 }
 
-item.__sp4 = new Item();
-item.__sp4.id = 70001;
-item.__sp4.name = 'Tempered Pill of the Immortal';
-item.__sp4.desc = 'A medicinal treasure forged by a great pill-maker. If you are seeking it out, it will surely reward your immortal temperance.'+
+item.sp4 = new Item();
+item.sp4.id = 70001;
+item.sp4.name = 'Tempered Pill of the Immortal';
+item.sp4.desc = 'A medicinal treasure forged by a great pill-maker. If you are seeking it out, it will surely reward your immortal temperance.'+
                     dom.dseparator+
                     '<span style=\'color:orange\'> Grants +185000000 EXP </span><br><span style=\'color:rebeccapurple\'>EXP Gain +8%</span>';
-item.__sp4.stype = 4;
-item.__sp4.rar = 4;
-item.__sp4.use = function() {
+item.sp4.stype = 4;
+item.sp4.rar = 4;
+item.sp4.use = function() {
     giveExp(185000000, true, true, true);
     you.exp_t += 0.08;
     this.amount--;
 }
 
-item.__leatherwallet = new Item();
-item.__leatherwallet.id = 70002;
-item.__leatherwallet.name = "Leather Wallet";
-item.__leatherwallet.desc = "A plain, but sturdy leather wallet gifted to by an old friend."+
+item.leather_wallet = new Item();
+item.leather_wallet.id = 70002;
+item.leather_wallet.name = "Leather Wallet";
+item.leather_wallet.desc = "A plain, but sturdy leather wallet gifted to by an old friend."+
                         dom.dseparator+
                         '<span style=\'color:orange\'>There\'s quite a bit of money inside.</span>';
-item.__leatherwallet.stype = 4;
-item.__leatherwallet.rar = 1;
-item.__leatherwallet.use = function() {
+item.leather_wallet.stype = 4;
+item.leather_wallet.rar = 1;
+item.leather_wallet.use = function() {
     global.flags.m_un = true;
     giveItem(item.lcn, 5, false, null, sendMsg=false);
     giveItem(item.cp,  3, false, null, sendMsg=false);
     giveItem(item.cn,  6, false, null, sendMsg=false);
     giveItem(item.cd,  6, false, null, sendMsg=false);
     giveItem(item.cq,  4, false, null, sendMsg=false);
-    check_if_money_should_appear()
+    check_if_money_should_appear();
     this.amount--;
 }
 
-item.__handfulsp2 = new Item();
-item.__handfulsp2.id = 70003;
-item.__handfulsp2.name = "Handful of Spirit Pills";
-item.__handfulsp2.desc = "A small brown sack containing several medium-grade spirit pills. They are made out of condensed ki, meant for young martial artists to help them through their training."+
+item.handful_pills = new Item();
+item.handful_pills.id = 70003;
+item.handful_pills.name = "Handful of Spirit Pills";
+item.handful_pills.desc = "A small brown sack containing several medium-grade spirit pills. They are made out of condensed ki, meant for young martial artists to help them through their training."+
                         dom.dseparator+
                         '<span style=\'color:orange\'>This\'ll boost you back to your prime.</span>';
-item.__handfulsp2.stype = 4;
-item.__handfulsp2.rar = 1;
-item.__handfulsp2.use = function() {
+item.handful_pills.stype = 4;
+item.handful_pills.rar = 1;
+item.handful_pills.use = function() {
     giveExp(11000, true, true, true, false,
     "You feel as though you've gotten your strength back.");
     this.amount--;
     global.flags.taken_handfulsp2 = true;
 }
 
-acc.__rivercharm = new Chs();
-acc.__rivercharm.id = 80001;
-acc.__rivercharm.name = "Water Charm";
-acc.__rivercharm.desc = "blablablbal";
-acc.__rivercharm.slot = 8;
-acc.__rivercharm.stype = 3;
-acc.__rivercharm.rar = 2;
-acc.__rivercharm.oneq = function() {
+acc.river_charm = new Chs();
+acc.river_charm.id = 80001;
+acc.river_charm.name = "Water Charm";
+acc.river_charm.desc = "blablablbal";
+acc.river_charm.slot = 8;
+acc.river_charm.stype = 3;
+acc.river_charm.rar = 2;
+acc.river_charm.oneq = function() {
     you.cmaff[6]+=15;
 }
-acc.__rivercharm.onuneq = function() {
+acc.river_charm.onuneq = function() {
     you.cmaff[6]-=15;
 }
-acc.__rivercharm.onGet = function() {}
+acc.river_charm.onGet = function() {}
 
 
 
@@ -10672,7 +10675,7 @@ function runEffectors(e){ if(!e) return
 }
 
 ///////////////////////////////////////////
-//ZNE
+//AREA / ZONE / ZNE
 ///////////////////////////////////////////
 
 function Area(){
@@ -10695,7 +10698,10 @@ global.current_z=area.nwh;
 
 area.trn = new Area(); area.trn.id = 102;
 area.trn.name = 'Training Grounds';
-area.trn.pop = [{crt:creature.sdummy,lvlmin:1,lvlmax:9,c:.3},{crt:creature.tdummy,lvlmin:4,lvlmax:8,c:.3},{crt:creature.wdummy,lvlmin:3,lvlmax:5,c:.3}];
+area.trn.pop = [
+    {crt:creature.sdummy,lvlmin:1,lvlmax:9,c:.3},
+    {crt:creature.tdummy,lvlmin:4,lvlmax:8,c:.3},
+    {crt:creature.wdummy,lvlmin:3,lvlmax:5,c:.3}];
 area.trn.size = 10000; z_bake(area.trn);
 area.trn.onEnd = function(){this.size = -1;giveTitle(ttl.thr);global.flags.trnex1=true;move_to_area(chss.t3,false)};
 area.trn.drop=[{item:item.appl,c:.02},{item:acc.gpin,c:.00012,cond:()=>{return ttl.tqtm.tget}}]
@@ -11484,44 +11490,52 @@ rcp.wfar.onmake=function(){giveCrExp(skl.crft,10,3)}
 
 
 function evaluateSpecialRequirementsForRecipe(recipe) {
-  if(recipe.srect==null) {
-    return [0];
-  }
-  
-  let results = [];
-  for(let i in recipe.srec){
-    results[i] = (recipe.srec[i]()===true) ? 1 : 2;
-  }
-  return results;
-}
-
-function scan2(arr, val, am){
-  for (let o=0;o<arr.length+1;o++) {
-    if(o===arr.length) return {a:false,b:arr[o]};
-    if (arr[o].id === val.id&&arr[o].amount>=am) return {a:true,b:arr[o]}; else continue;
-  }
-}
-
-function canMake(rc,times){
-  let missing=[]; let has=[]; let z=[]; let b=[]; let r=[];
-  let o = evaluateSpecialRequirementsForRecipe(rc);
-  for(let i=0;i<rc.rec.length;i++){ 
-    let sc = new Object();
-    if (!rc.rec[i].item.slot){
-      sc = scan2(inv,rc.rec[i].item,rc.rec[i].amount*times);
-      z.push(rc.rec[i].item.amount*times);
-    } else {
-      let ar = findworst(inv, rc.rec[i].item); 
-      if(ar.length>=rc.rec[i].amount*times) sc.a = true; 
-      z.push(ar.length); r=ar;
-    }  
-    if (!sc.a) {
-      missing.push(rc.rec[i].item); b.push(false)
-    } else {
-      has.push(rc.rec[i].item); b.push(true)
+    if(recipe.srect==null) {
+      return [0];
     }
-  }  for(let a in global.tstcr)global.tstcr[a].testc=false;
-  return {x: missing, y: has, z, o, success: missing.length === 0 && !o.includes(2),b,r};
+    
+    let results = [];
+    for(let i in recipe.srec){
+      results[i] = (recipe.srec[i]()===true) ? 1 : 2;
+    }
+    return results;
+}
+
+
+function findItemQuantity(arr, val, am){
+    for (let o =0; o<arr.length; o++) {
+        if(arr[o].id === val.id && arr[o].amount >= am) {
+            return { a: true, b: arr[o] };
+        }
+    }
+    return { a: false, b: arr[o] };
+}
+
+function canMake(rc, times) {
+    let missing=[];
+    let has=[];
+    let z=[];
+    let b=[];
+    let r=[];
+    let o = evaluateSpecialRequirementsForRecipe(rc);
+    
+    for(let i=0;i<rc.rec.length;i++){ 
+      let sc = new Object();
+      if (!rc.rec[i].item.slot){
+        sc = findItemQuantity(inv,rc.rec[i].item,rc.rec[i].amount*times);
+        z.push(rc.rec[i].item.amount*times);
+      } else {
+        let ar = findworst(inv, rc.rec[i].item); 
+        if(ar.length>=rc.rec[i].amount*times) sc.a = true; 
+        z.push(ar.length); r=ar;
+      }  
+      if (!sc.a) {
+        missing.push(rc.rec[i].item); b.push(false)
+      } else {
+        has.push(rc.rec[i].item); b.push(true)
+      }
+    }  for(let a in global.tstcr)global.tstcr[a].testc=false;
+    return {x: missing, y: has, z, o, success: missing.length === 0 && !o.includes(2),b,r};
 }
 
 
@@ -11533,7 +11547,7 @@ function make(rc,rp,times){ times=times||1
   for(let j=0;j<rc.rec.length;j++) {
     if (rc.rec[j].return) continue;
     if(!rc.rec[j].item.slot){
-      let itemToAlter = scan2(inv, rc.rec[j].item, rc.rec[j].amount).b;
+      let itemToAlter = findItemQuantity(inv, rc.rec[j].item, rc.rec[j].amount).b;
       itemToAlter.amount-=rc.rec[j].amount;
       if(itemToAlter.amount===0) removeItem(itemToAlter); 
     } else {
@@ -15394,14 +15408,14 @@ chss.intro.id = 101;
 chss.intro.sl = function() {
     u_loc('Outside Dojo, Village');
 
-    giveTitle(ttl.__mountainchild, false);
-    you.title = ttl.__mountainchild;
+    giveTitle(ttl.mountain_child, false);
+    you.title = ttl.mountain_child;
 
     giveSkExp(skl.unc, 853, showLevelUp=false); //give unarmed mastery
     giveSkExp(skl.fgt, 335, showLevelUp=false);
 
-    giveItem(item.__leatherwallet); // coinage
-    giveItem(item.__handfulsp2); // pills
+    giveItem(item.leather_wallet); // coinage
+    giveItem(item.handful_pills); // pills
 
     dom.d_weather.style.display = 'none';
     dom.d_time.style.display    = 'none';
@@ -15457,23 +15471,8 @@ chss.intro.sl = function() {
         });
     });
 
-    achs('"DEBUG : WW"', () => {
-        appear(dom.d_weather, dom.d_weathert); // show weather
-        appear(dom.location); // show location
-        empty(dom.mscont)     // clear message log
-        appear(dom.d0);       // show player menu
-        appear(dom.gmsgs);    // show message log
-        appear(dom.d1m);
-        appear(dom.d_time);
-        appear(dom.inv_ctx);  // show inventory
-        appear(dom.ct_ctrl);  // center-bottom clickables
-
-        global.flags.aw_u  = true;
-        global.flags.dm1ap = true;
-        global.flags.asbu  = true;
-        global.flags.sklu  = true;
-        global.flags.actsu = true;
-        global.flags.jnlu  = true;
+    achs('"DEBUG : Intro Western Woods"', () => {
+        __dbgqs();
         move_to_area(chss.intro_western_woods1);
     });
 };
@@ -15597,7 +15596,7 @@ chss.intro_western_woods2.sl = () => {
             msg('It\'s better to be safe than sorry.', 'lightyellow');
             msg('You consume the handful of pills.', 'darkgrey');
             for (let a in inv) {
-                if (inv[a] === item.__handfulsp2) {
+                if (inv[a] === item.handful_pills) {
                     amt = inv[a].amount;
                     inv[a].amount = 0;
                     inv[a].use();
@@ -17766,7 +17765,7 @@ chss.rock_path.sl = function() {
         });
     } else {
         achs('=> Enter shack', () => {
-            move_to_area(chss.__home2);
+            move_to_area(chss.home);
         }, 'green');
     }
 
@@ -17892,7 +17891,7 @@ chss.charintro_riverman.sl = () => {
                         achs('"I\'m not going to die, am I?"', () => {
                             chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on a rest day."');
                             achs('"Thank you." *Take the charm*', () => {
-                                giveItem(acc.__rivercharm);
+                                giveItem(acc.river_charm);
                                 global.flags.gotten_river_charm = true;
                                 move_to_area(chss.river);
                             })
@@ -17936,7 +17935,7 @@ chss.riverman.sl = () => {
             achs('I\'m not going to die, am I?', () => {
                 chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on your worst day."');
                 achs('"Thank you." Take the charm', () => {
-                    giveItem(acc.__rivercharm);
+                    giveItem(acc.river_charm);
                     global.flags.gotten_river_charm = true;
                     move_to_area(chss.river);
                 })
@@ -19786,6 +19785,25 @@ function check_if_money_should_appear() {
 
 function __dbgsp() { // debug : send placeholder message in message log
     msg('PLACEHOLDER : TO BE ADDED', 'red');
+}
+
+function __dbgqs() { // quickstart, reveal all the menus/alter flags to show info that would be revealed after intro
+    appear(dom.d_weather, dom.d_weathert); // show weather
+    appear(dom.location); // show location
+    empty(dom.mscont)     // clear message log
+    appear(dom.d0);       // show player menu
+    appear(dom.gmsgs);    // show message log
+    appear(dom.d1m);
+    appear(dom.d_time);
+    appear(dom.inv_ctx);  // show inventory
+    appear(dom.ct_ctrl);  // center-bottom clickables
+
+    global.flags.aw_u  = true;
+    global.flags.dm1ap = true;
+    global.flags.asbu  = true;
+    global.flags.sklu  = true;
+    global.flags.actsu = true;
+    global.flags.jnlu  = true;
 }
 </script>
 </body>
