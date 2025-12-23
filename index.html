@@ -71,7 +71,7 @@ const GOLD = 10000;
 
 let tempt = new Date();
 
-global.home_loc = 111;
+global.loc_spawn = chss.shack;
 global.lst_sve = '?';
 global.ver = 470;
 global.sm = 1;
@@ -201,6 +201,8 @@ global.flags = {
     ssngaijin: true,
     rptbncgt:  false,
 
+    drop_badge_on_death: false,
+
     show_exit_from_intro_woods1: true,
     show_exit_from_intro_woods2: true,
     show_exit_from_intro_woods3: true,
@@ -324,7 +326,7 @@ function save(lvr) {
         spd:    you.spd,
         spd_r:  you.spd_r,
         luck:   you.luck,
-        stat_p: you.stat_p,
+        stat_per_lvl: you.stat_per_lvl,
         wealth: you.wealth,
         crt:    you.crt,
         res:    you.res,
@@ -715,7 +717,7 @@ function load(dt) {
         you.caff  = yu_s.caff || [0,0,0,0,0,0,0];
         you.cmaff = yu_s.cmaff || [0,0,0,0,0,0,0];
         you.luck  = yu_s.luck;
-        you.stat_p = yu_s.stat_p;
+        you.stat_per_lvl = yu_s.stat_per_lvl;
         you.karma  = yu_s.karma || 0;
         you.wealth = yu_s.wealth;
         you.crt = yu_s.crt;
@@ -3958,7 +3960,7 @@ skl.axc.mlstn = [
 
     {lv:10, f:()=>{
         you.mods.sbonus += 0.02;
-        you.stat_p[1] += 0.05;
+        you.stat_per_lvl[1] += 0.05;
         giveTitle(ttl.axc2)},
         g : false,
         p : "Energy Effectiveness +2%, STR training Potential +5%, New Title"},
@@ -4322,9 +4324,9 @@ skl.walk.mlstn=[{lv:1,f:()=>{you.agla+=1;you.stat_r();giveAction(act.demo)},g:fa
                 {lv:3,f:()=>{giveTitle(ttl.wlk);you.hpa+=5;you.stat_r()},g:false,p:"HP +5, New Title"},
                 {lv:4,f:()=>{you.hpa+=8;you.sata+=6;you.stat_r();dom.d5_3_1.update()},g:false,p:"HP +8, SAT +6"},
                 {lv:5,f:()=>{giveTitle(ttl.jgg);you.hpa+=10;you.sata+=8;you.stat_r();dom.d5_3_1.update()},g:false,p:"HP +10, SAT +8, New Title"},
-                {lv:6,f:()=>{you.exp_t+=0.03;you.hpa+=12;you.stat_r();you.stat_p[0]+=.03;dom.d5_3_1.update()},g:false,p:"HP +12, EXP Gain +3%, HP Training Potential +3%"},
-                {lv:7,f:()=>{skl.tghs.p+=.1;you.exp_t+=0.03;you.sata+=10;you.stat_r();you.stra+=1;you.stat_p[1]+=.03;dom.d5_3_1.update()},g:false,p:"Toughness EXP Gain +10%, STR +1, SAT +10, EXP Gain +3%, STR Training Potential +3%"},
-                {lv:8,f:()=>{skl.evas.p+=.05;you.exp_t+=0.03;you.hpa+=15;you.stat_r();you.agla+=2;you.stat_p[2]+=.03;dom.d5_3_1.update()},g:false,p:"Evasion EXP Gain +5%, HP +15, AGL +2, EXP Gain +3%, AGL Training Potential +3%"},
+                {lv:6,f:()=>{you.exp_t+=0.03;you.hpa+=12;you.stat_r();you.stat_per_lvl[0]+=.03;dom.d5_3_1.update()},g:false,p:"HP +12, EXP Gain +3%, HP Training Potential +3%"},
+                {lv:7,f:()=>{skl.tghs.p+=.1;you.exp_t+=0.03;you.sata+=10;you.stat_r();you.stra+=1;you.stat_per_lvl[1]+=.03;dom.d5_3_1.update()},g:false,p:"Toughness EXP Gain +10%, STR +1, SAT +10, EXP Gain +3%, STR Training Potential +3%"},
+                {lv:8,f:()=>{skl.evas.p+=.05;you.exp_t+=0.03;you.hpa+=15;you.stat_r();you.agla+=2;you.stat_per_lvl[2]+=.03;dom.d5_3_1.update()},g:false,p:"Evasion EXP Gain +5%, HP +15, AGL +2, EXP Gain +3%, AGL Training Potential +3%"},
                 {lv:9,f:()=>{you.exp_t+=0.06;you.hpa+=8;you.sata+=8;you.stat_r();dom.d5_3_1.update()},g:false,p:"HP +8, SAT +8, EXP Gain +6%"},
                 {lv:10,f:()=>{giveTitle(ttl.rnr);you.spda+=1;you.hpa+=10;you.sata+=10;you.stat_r();dom.d5_3_1.update()},g:false,p:"HP +10, SAT 10, SPD +1, New Title"},
                 ];
@@ -4918,7 +4920,7 @@ item.lifedr.desc='A single drop of revitalizing liquid. Consuming even such a me
 item.lifedr.stype=4;
 item.lifedr.rar=2;
 item.lifedr.use=function(){
-  you.stat_p[0]+=.03;you.hpmax+=40;you.hp+=40;you.hpa+=40;dom.d5_1_1.update(); msg('HP increased by +40 permanently','hotpink'); msg('HP potential grows!','pink')
+  you.stat_per_lvl[0]+=.03;you.hpmax+=40;you.hp+=40;you.hpa+=40;dom.d5_1_1.update(); msg('HP increased by +40 permanently','hotpink'); msg('HP potential grows!','pink')
   this.amount-- ;
 }
 
@@ -7221,11 +7223,12 @@ item.sbone.onGet=function(){
   if(this.amount>=50) {giveRcp(rcp.bdl1); this.onGet=function(){}}
 }
 
-item.death_b = new Item(); item.death_b.id = 5001;
-item.death_b.name='Death Badge';
-item.death_b.desc='Awarded by fate for dying. Congratulations';
-item.death_b.stype=5;
-item.death_b.use=function(){msg('Looking at this fills you with bad memories');}
+item.death_badge = new Item();
+item.death_badge.id = 5001;
+item.death_badge.name='Death Badge';
+item.death_badge.desc='Awarded by fate for dying. Congratulations';
+item.death_badge.stype=5;
+item.death_badge.use=function(){msg('Looking at this fills you with bad memories');}
 
 item.sstraw = new Item(); item.sstraw.id = 5002;
 item.sstraw.name='Strand Of Straw';
@@ -8112,7 +8115,7 @@ item.handful_pills.use = function() {
 acc.river_charm = new Chs();
 acc.river_charm.id = 80001;
 acc.river_charm.name = "Water Charm";
-acc.river_charm.desc = "blablablbal";
+acc.river_charm.desc = "<p style='color:red;'>PLACEHOLDER</p>";
 acc.river_charm.slot = 8;
 acc.river_charm.stype = 3;
 acc.river_charm.rar = 2;
@@ -9875,7 +9878,7 @@ function You(){
     this.hp=this.hp_r = 39; 
     this.str=this.str_r=this.agl=this.agl_r=this.int=this.int_r=this.spd=this.spd_r=this.str_d=this.agl_d=this.int_d = 1;
     this.stra=this.agla=this.inta=this.spda=this.hpa=this.sata=0; this.strm=this.intm=this.spdm=this.aglm=this.hpm=this.satm=1
-    this.stat_p=[1,1,1,1];
+    this.stat_per_lvl=[1,1,1,1];
     this.res={poison:1,burn:1,frost:1,paralyze:1,blind:1,sleep:1,curse:1,death:1,bleed:1,ph:1,venom:1,fpoison:1};
     this.cls=[0,0,0];
     this.ccls=[0,0,0];
@@ -9901,13 +9904,18 @@ function You(){
     this.eqp = [eqp.dummy,eqp.dummy,eqp.dummy,eqp.dummy,eqp.dummy,eqp.dummy,eqp.dummy,eqp.dummy,eqp.dummy,eqp.dummy];
     this.eff = [];
     this.skls = [];
-    this.drop=[{item:item.death_b,chance:1}];
-    this.onDeath = function(killer){ 
-        if(you.res.death<1&&random()>=you.res.death){
-            msg('You avoid death...','lightgrey');you.hp=Math.ceil(you.hpmax*.1)
+    this.drop = [];
+
+    this.onDeath = function(killer) { 
+        if (you.res.death < 1) {
+            msg('You avoid death...','lightgrey');
+            you.hp=Math.ceil(you.hpmax*.1)
         }
         else {
-            callback.onDeath.fire(this,killer)
+            callback.onDeath.fire(this, killer);
+            if (global.flags.drop_badge_on_death) {
+                giveItem(item.death_badge);
+            }
             this.alive=false;
             this.hp=1;
             if(!killer) killer=creature.default;
@@ -9915,7 +9923,6 @@ function You(){
             global.flags.work=false
             you.sat/you.satmax>.3?giveSkExp(skl.dth,killer.rnk*10+1):giveSkExp(skl.dth,killer.rnk+1);
             if(this.sat>0)this.sat*=(.55*(1-skl.dth.use()));
-            giveItem(item.death_b);
             dom.d5_1_1.update();
             global.s_l=0;
             global.stat.deadt++; 
@@ -9928,7 +9935,11 @@ function You(){
             for(let o in this.eff) removeEff(this.eff[o])
             global.flags.btl=false;
             global.flags.civil=true;
+
             global.current_z.onDeath();
+            move_to_area(global.loc_spawn);
+            dom.d7m.update();
+            /*
             if(sector.home.data.smkp>0) {
                 move_to_area(chss.village_center,false);
                 msg('You ran out of your smoked up house','grey')
@@ -9937,6 +9948,7 @@ function You(){
                 global.current_z=area.nwh;dom.hit_c();
                 dom.d7m.update()
             }
+            */
         }
     }
     this.onDeathE = function(){}
@@ -9976,16 +9988,21 @@ you.ai = function() {
 //CRT
 ///////////////////////////////////////////
 
-function Creature(){
-    // information about enemy type, stat_p, and cls comes from https://github.com/Skelly-Boi/proto23-clear-base .
-    // thank you for making a cleaner base, I wish I'd checked it out prior to starting this ha 
+function Creature(op={}) {
+    // information about enemy type, stat_per_lvl, and cls comes from https://github.com/Skelly-Boi/proto23-clear-base .
+    // thank you for making a cleaner base, I wish I'd checked it out prior to starting this. hahah 
     this.name = 'Nothing';
     this.desc = 'Empty space';
-    this.type = 3; //human,beast,undead,enemy,phantom,dragon
+    this.type = 3; //0 - human
+                   //1 - beast
+                   //2 - undead
+                   //3 - enemy
+                   //4 - phantom
+                   //5 - dragon
     this.id = 0;
     this.lvl = 1;
     this.exp = 1;  // exp (dependent on level)
-    this.stat_p = [1,1,1,1];     // stats per level (hp, str, agl, int)
+    this.stat_per_lvl = [1,1,1,1];     // stats per level (hp, str, agl, int)
     this.eqp = [eqp.dummy, eqp.dummy];
     this.cls = [0,0,0];          // edge, pierce, blunt, defense
     this.aff = [0,0,0,0,0,0,0];  //elemental defenses (phy air eth fir wtr lgt drk)
@@ -10089,68 +10106,106 @@ function Creature(){
         */
         return attack(x,y);
     };
+
+    Object.assign(this, op);
 }
-creature.default = new Creature();
+
+creature.default = new Creature({});
 global.current_m = creature.default;
 
-creature.bat = new Creature(); 
-creature.bat.name = 'Bat'; creature.bat.id = 101;
-creature.bat.desc = 'Aggressive little bats living in the dark';
-creature.bat.type = 1;
-creature.bat.exp = 8;
-creature.bat.hp_r = 39;
-creature.bat.blood = .0852;
-creature.bat.stat_p=[.5,1,1.5,.5];
-creature.bat.aff = [-5,25,-5,-5,10,-5,5];
-creature.bat.cls = [-4,-7,-3];
-creature.bat.eqp[0].aff = [0,12,-10,0,0,-5,5];
-creature.bat.eqp[0].cls = [1,1,0];
-creature.bat.atype = 1; creature.bat.ctype = 1;
-creature.bat.str_r = 2;
-creature.bat.agl_r = 10;
-creature.bat.spd_r = 2;
-creature.bat.drop =[{item:item.sbone,chance:.1},{item:item.appl,chance:.06}];
-creature.bat.rnk = 3;
-creature.bat.pts = 6;
+creature.intro_beast = new Creature({
+    name: 'Choleric Beastkin',
+    id: 100,
+    desc: 'A beast made powerful and angry by an excess in Qi.',
+    type: 1,
+    exp: 999999,
+    hp_r: 999,
+    stat_per_lvl: [0.8, 1, 1, 0.2],
+    spd_r: 1,
+    // wait here ?
+});
 
-creature.cbat = new Creature(); creature.cbat.id = 109;
-creature.cbat.name = 'Cave bat';
-creature.cbat.desc = 'Large, agile bats that swooop down to strike from the air';
-creature.cbat.drop =[];
+creature.bat = new Creature({
+    name: 'Bat',
+    id: 101,
+    desc: 'Aggressive little bats living in the dark',
+    type: 1,
+    exp: 8,
+    hp_r: 39,
+    blood: 0.0852,
+    stat_per_lvl: [0.5, 1, 1.5, 0.5],
+    aff: [-5, 25, -5, -5, 10, -5, 5],
+    cls: [-4, -7, -3],
+    eqp: [{
+        aff: [0, 12, -10, 0, 0, -5, 5],
+        cls: [1, 1, 0]
+    }],
+    atype: 1,
+    ctype: 1,
+    str_r: 2,
+    agl_r: 10,
+    spd_r: 2,
+    drop: [
+        { item: item.sbone, chance: 0.1 },
+        { item: item.appl, chance: 0.06 }
+    ],
+    rnk: 3,
+    pts: 6
+});
 
-creature.stirge = new Creature(); creature.stirge.id = 110;
-creature.stirge.name = 'Stirge';
-creature.stirge.desc = 'Giant vampire bats rumored to drain a victim\'s life in a single blow';
-creature.stirge.drop =[];
 
-creature.spd1 = new Creature(); 
-creature.spd1.name = 'Attic spider'; creature.spd1.id = 104;
-creature.spd1.desc = 'Small docile spiders who live in damp and dark places';
-creature.spd1.type = 1;
-creature.spd1.exp = 8;
-creature.spd1.hp_r = 26;
-creature.spd1.stat_p=[.6,1.1,1.6,1];
-creature.spd1.aff = [2,5,10,-35,10,-5,15];
-creature.spd1.cls = [4,6,-6];
-creature.spd1.eqp[0].aff = [3,-5,5,0,0,-5,5];
-creature.spd1.eqp[0].cls = [2,1,1];  
-creature.spd1.str_r = 3;
-creature.spd1.agl_r = 8;
-creature.spd1.spd_r = 2;
-creature.spd1.rnk=3;
-creature.spd1.pts = 5;
-creature.spd1.drop =[{item:item.ltcc,chance:.01},{item:item.thrdnl,chance:.1}];
-creature.spd1.battle_ai = function(x,y,z){
-  if(random()<=.3) return attack(x,y,abl.pbite,3);
-  return attack(x,y)
-}
+creature.spd1 = new Creature({
+    name: 'Attic spider',
+    id: 104,
+    desc: 'Small docile spiders who live in damp and dark places',
+    type: 1,
+    exp: 8,
+    hp_r: 26,
+    stat_per_lvl: [0.6, 1.1, 1.6, 1],
+    aff: [2, 5, 10, -35, 10, -5, 15],
+    cls: [4, 6, -6],
+    eqp: [{
+        aff: [3, -5, 5, 0, 0, -5, 5],
+        cls: [2, 1, 1]
+    }],
+    str_r: 3,
+    agl_r: 8,
+    spd_r: 2,
+    rnk: 3,
+    pts: 5,
+    drop: [
+        { item: item.ltcc, chance: 0.01 },
+        { item: item.thrdnl, chance: 0.1 }
+    ],
+    battle_ai: function(x, y, z) {
+        if (random() <= 0.3) return attack(x, y, abl.pbite, 3);
+        return attack(x, y);
+    }
+});
+
+
+creature.cbat = new Creature({ // https://www.youtube.com/watch?v=eN6jkWxxm2Y
+    name: 'Cave bat',
+    id: 109,
+    desc: 'Large, agile bats that swooop down to strike from the air',
+    drop: []
+});
+
+
+creature.stirge = new Creature({
+    name: 'Stirge',
+    id: 110,
+    desc: "Giant vampire bats rumored to drain a victim's life in a single blow",
+    drop: []
+});
+
 
 creature.tdummy = new Creature(); creature.tdummy.id = 103;
 creature.tdummy.name = 'Training dummy';
 creature.tdummy.desc = 'He\'s made of fabric'; 
 creature.tdummy.drop =[{item:wpn.knf1,chance:.01,cond:()=>{return you.lvl<=20}},{item:eqp.brc,chance:.03,cond:()=>{return you.lvl<=20}},{item:item.hrb1,chance:.02}];
 creature.tdummy.aff = [0,0,15,-25,-5,-666,666];
-creature.tdummy.stat_p=[.1,.5,.4,.2]
+creature.tdummy.stat_per_lvl=[.1,.5,.4,.2]
 creature.tdummy.ctype = 2;
 creature.tdummy.int_r = 0;
 creature.tdummy.rnk=1;
@@ -10165,7 +10220,7 @@ creature.sdummy.name = 'Straw dummy';
 creature.sdummy.desc = 'He\'s made of straw';
 creature.sdummy.drop =[{item:item.sstraw,chance:.085},{item:item.hrb1,chance:.02}];
 creature.sdummy.aff = [0,0,15,-25,-5,-666,666];
-creature.sdummy.stat_p=[.25,.6,.3,.2];
+creature.sdummy.stat_per_lvl=[.25,.6,.3,.2];
 creature.sdummy.ctype = 2;
 creature.sdummy.int_r = 0;
 creature.sdummy.rnk=1;
@@ -10178,7 +10233,7 @@ creature.sdummy.onDeathE = function(){};
 creature.wdummy = new Creature(); creature.wdummy.id = 112;
 creature.wdummy.name = 'Wooden dummy';
 creature.wdummy.desc = 'He\'s made of wood';
-creature.wdummy.stat_p=[.4,.8,.12,.2];
+creature.wdummy.stat_per_lvl=[.4,.8,.12,.2];
 creature.wdummy.aff = [0,0,15,-30,20,-666,666];
 creature.wdummy.cls = [-1,2,4];
 creature.wdummy.str_r = 3;
@@ -10255,7 +10310,7 @@ creature.skl.desc = 'Skeletal remains of zombie corpses. They lurk in darkness t
 creature.skl.type = 2;
 creature.skl.exp = 15;
 creature.skl.hp_r = 132;
-creature.skl.stat_p=[1.3,1.15,1.05,.1];
+creature.skl.stat_per_lvl=[1.3,1.15,1.05,.1];
 creature.skl.aff = [12,20,-4,-11,31,-33,51];
 creature.skl.cls = [0,9,-16];
 creature.skl.eqp[0].aff = [8,20,-4,-11,31,-33,51];
@@ -10274,7 +10329,7 @@ creature.slm1.desc = 'Lesser slimes, devoid of any senses. They survive by absor
 creature.slm1.type = 1;
 creature.slm1.exp = 3;
 creature.slm1.hp_r = 65;
-creature.slm1.stat_p=[0.7,.8,1.5,.3];
+creature.slm1.stat_per_lvl=[0.7,.8,1.5,.3];
 creature.slm1.aff = [5,5,15,-20,-15,25,34]
 creature.slm1.cls = [5,5,20];
 creature.slm1.eqp[0].aff = [2,5,0,-2,4,0,0];
@@ -10293,7 +10348,7 @@ creature.slm2.desc = 'Small forest slimes. They hide in leaves and grass';
 creature.slm2.type = 1;
 creature.slm2.exp = 4;
 creature.slm2.hp_r = 70;
-creature.slm2.stat_p=[0.75,.85,1.5,.3];
+creature.slm2.stat_per_lvl=[0.75,.85,1.5,.3];
 creature.slm2.aff = [5,5,15,-20,-15,25,34]
 creature.slm2.cls = [4,4,22];
 creature.slm2.eqp[0].aff = [2,12,5,-12,6,0,0];
@@ -10311,7 +10366,7 @@ creature.rbt1.name = 'Wild Rabbit'; creature.rbt1.id = 123;
 creature.rbt1.desc = 'Docile rabbits, often found in plains and woods. They\'re difficult to catch';
 creature.rbt1.type = 1;
 creature.rbt1.exp = 5;
-creature.rbt1.stat_p=[1,.9,2,.3];
+creature.rbt1.stat_per_lvl=[1,.9,2,.3];
 creature.rbt1.aff = [6,15,15,-10,16,33,2]
 creature.rbt1.cls = [4,-2,5];
 creature.rbt1.eqp[0].aff = [5,6,6,0,2,0,0];
@@ -10332,7 +10387,7 @@ creature.slm3.desc = 'Brightly colored slime. It looks like it can perfectly ref
 creature.slm3.type = 1;
 creature.slm3.exp = 8;
 creature.slm3.hp_r = 120;
-creature.slm3.stat_p=[1.2,1.2,2.9,.8];
+creature.slm3.stat_per_lvl=[1.2,1.2,2.9,.8];
 creature.slm3.aff = [15,5,15,-10,-5,55,34]
 creature.slm3.cls = [9,9,24];
 creature.slm3.eqp[0].aff = [4,6,7,-12,6,0,0];
@@ -10351,7 +10406,7 @@ creature.slm4.desc = 'Weird transparent slime, bearing no distinct color. They c
 creature.slm4.type = 1;
 creature.slm4.exp = 10;
 creature.slm4.hp_r = 95;
-creature.slm4.stat_p=[1.24,1.23,2.97,.82];
+creature.slm4.stat_per_lvl=[1.24,1.23,2.97,.82];
 creature.slm4.aff = [15,5,15,-10,-5,55,34]
 creature.slm4.cls = [12,12,28];
 creature.slm4.eqp[0].aff = [4,9,7,-12,12,0,0];
@@ -10369,7 +10424,7 @@ creature.kksh.name = 'Scarecrow'; creature.kksh.id = 126;
 creature.kksh.desc = 'Once protector of fields, this figure has turned to evil by the influence of Dark. It hangs still in ambush, waiting for unsuspecting passersby';
 creature.kksh.exp = 5;
 creature.kksh.hp_r = 100;
-creature.kksh.stat_p=[1.1,1.2,2.9,.8];
+creature.kksh.stat_per_lvl=[1.1,1.2,2.9,.8];
 creature.kksh.aff = [15,5,15,-10,-5,55,34]
 creature.kksh.cls = [9,9,35];
 creature.kksh.eqp[0].aff = [4,12,7,-12,6,0,0];
@@ -10386,7 +10441,7 @@ creature.golem1.name = 'Straw Golem'; creature.golem1.id = 127;
 creature.golem1.desc = 'Big golem composed of straw. These golems are brittle and weak, their main purpose is to assist newbies in training';
 creature.golem1.exp = 50;
 creature.golem1.hp_r = 500;
-creature.golem1.stat_p=[0.05,0.2,0.2,0.2];
+creature.golem1.stat_per_lvl=[0.05,0.2,0.2,0.2];
 creature.golem1.aff = [10,8,5,-60,-5,15,14]
 creature.golem1.cls = [10,15,10];
 creature.golem1.eqp[0].aff = [9,5,25,6,6,2,13];
@@ -10404,7 +10459,7 @@ creature.golem2.name = 'Reinforced Straw Golem'; creature.golem2.id = 128;
 creature.golem2.desc = 'This golem\'s joints have been binded by the rope, giving it sturdier and more stable frame';
 creature.golem2.exp = 60;
 creature.golem2.hp_r = 700;
-creature.golem2.stat_p=[0.06,0.25,0.2,0.25];
+creature.golem2.stat_per_lvl=[0.06,0.25,0.2,0.25];
 creature.golem2.aff = [11,8,5,-60,-5,15,14]
 creature.golem2.cls = [11,16,11];
 creature.golem2.eqp[0].aff = [10,5,25,6,6,2,13];
@@ -10422,7 +10477,7 @@ creature.golem3.name = 'Paper Golem'; creature.golem3.id = 129;
 creature.golem3.desc = 'Slim golem made of paper-like material. While not as tough as other training golems, it has a light body which allows it to move faster';
 creature.golem3.exp = 80;
 creature.golem3.hp_r = 400;
-creature.golem3.stat_p=[0.06,0.3,0.3,0.3];
+creature.golem3.stat_per_lvl=[0.06,0.3,0.3,0.3];
 creature.golem3.aff = [11,8,5,-60,-5,15,14]
 creature.golem3.cls = [10,20,14];
 creature.golem3.eqp[0].aff = [10,5,25,6,6,2,13];
@@ -10440,7 +10495,7 @@ creature.golem4.name = 'Attack Golem'; creature.golem4.id = 130;
 creature.golem4.desc = 'Golem with implanted martial prowess. Somewhat similar to a trained militant, they pose a dangerous threat to any unprepared opponent';
 creature.golem4.exp = 120;
 creature.golem4.hp_r = 730;
-creature.golem4.stat_p=[0.06,0.3,0.3,0.3];
+creature.golem4.stat_per_lvl=[0.06,0.3,0.3,0.3];
 creature.golem4.aff = [19,8,5,-60,-5,15,14]
 creature.golem4.cls = [20,25,18];
 creature.golem4.eqp[0].aff = [11,5,25,6,6,2,13];
@@ -10462,7 +10517,7 @@ creature.ngtmr1.name = 'Nightmare'; creature.ngtmr1.id = 131;
 creature.ngtmr1.desc = 'Manifestation of your fears';
 creature.ngtmr1.exp = 1;
 creature.ngtmr1.hp_r = 100000000;
-creature.ngtmr1.stat_p=[0,0,0,0];
+creature.ngtmr1.stat_per_lvl=[0,0,0,0];
 creature.ngtmr1.cls = [9999,9999,9999];
 creature.ngtmr1.str_r = 1;
 creature.ngtmr1.agl_r = 1;
@@ -10476,7 +10531,7 @@ creature.lrck.name = 'Locked Rock'; creature.lrck.id = 132;
 creature.lrck.desc = 'A rock shaped monster found in caves and dungeons. It has a habit of closing of paths by mimicking a wall, but it\'s fighting prowess is close to zero.';
 creature.lrck.exp = 123;
 creature.lrck.hp_r = 9000;
-creature.lrck.stat_p=[1.5,1.2,1,1];
+creature.lrck.stat_per_lvl=[1.5,1.2,1,1];
 creature.lrck.cls = [90,120,60];
 creature.lrck.str_r = 90;
 creature.lrck.agl_r = 1;
@@ -10490,7 +10545,7 @@ creature.lsprt.name = 'Lamp Spirit'; creature.lsprt.id = 133;
 creature.lsprt.desc = 'Small fire sprites that manifest inside oil lamps located in mines and other places with low human activity. While not sinister by nature, they enjoy playing pranks on people';
 creature.lsprt.exp = 5;
 creature.lsprt.hp_r = 100;
-creature.lsprt.stat_p=[1.1,1.2,2.9,.8];
+creature.lsprt.stat_per_lvl=[1.1,1.2,2.9,.8];
 creature.lsprt.aff = [15,5,15,-10,-5,55,34]
 creature.lsprt.cls = [9,9,35];
 creature.lsprt.eqp[0].aff = [4,12,7,-12,6,0,0];
@@ -10516,7 +10571,7 @@ creature.wolf1.desc = 'Wolves affected by a disease or other negative influences
 creature.wolf1.type = 1;
 creature.wolf1.exp = 15;
 creature.wolf1.hp_r = 400;
-creature.wolf1.stat_p=[1.3,1.15,1.35,.9];
+creature.wolf1.stat_per_lvl=[1.3,1.15,1.35,.9];
 creature.wolf1.aff = [22,20,-4,-11,31,-33,51];
 creature.wolf1.cls = [36,32,45];
 creature.wolf1.eqp[0].aff = [12,20,-4,-11,31,-33,51];
@@ -10542,7 +10597,7 @@ creature.slm5.desc = 'Slime of a very deep darkblue hue, which looks shiny under
 creature.slm5.type = 1;
 creature.slm5.exp = 12;
 creature.slm5.hp_r = 220;
-creature.slm5.stat_p=[0.5,1.1,2.97,.6];
+creature.slm5.stat_per_lvl=[0.5,1.1,2.97,.6];
 creature.slm5.aff = [19,15,15,3,-5,55,34]
 creature.slm5.cls = [23,23,23];
 creature.slm5.eqp[0].aff = [4,9,7,-12,12,0,0];
@@ -10694,6 +10749,7 @@ function Area(op={}) {
     this.protected=false;
 
     Object.assign(this, op);
+    z_bake(this);
 }
 
 
@@ -10706,7 +10762,6 @@ area.nwh = new Area ({
         { crt: creature.default, lvlmin: 1, lvlmax: 1, c: 1 }
     ]
 });
-z_bake(area.nwh);
 global.current_z = area.nwh;
 
 
@@ -10718,11 +10773,11 @@ area.intro_woods = new Area ({
         { crt: creature.intro_beast, lvlmin: 30, lvlmax: 30, c: 1 }
     ],
     onEnd() {
+        msg("The choleric beast's powers flow into you", 'gold');
         msg("Give me a real challenge.", 'lightyellow');
-        giveExp(999999);
     },
     onDeath() {
-        msg('u ded boi');
+        //
     }
 });
 
@@ -10747,7 +10802,6 @@ area.trn = new Area({
         move_to_area(chss.t3, false);
     }
 });
-z_bake(area.trn);
 
 
 area.trn1 = new Area({
@@ -10769,7 +10823,6 @@ area.trn1 = new Area({
         if (!global.flags.dj1end) global.flags.nbtfail = true;
     }
 });
-z_bake(area.trn1);
 
 
 area.trn2 = new Area({
@@ -10791,7 +10844,6 @@ area.trn2 = new Area({
         if (!global.flags.dj1end) global.flags.nbtfail = true;
     }
 });
-z_bake(area.trn2);
 
 
 area.trn3 = new Area({
@@ -10814,7 +10866,6 @@ area.trn3 = new Area({
         if (!global.flags.dj1end) global.flags.nbtfail = true;
     }
 });
-z_bake(area.trn3);
 
 
 area.clg = new Area({
@@ -10834,8 +10885,6 @@ area.clg = new Area({
         }
     }
 });
-z_bake(area.clg);
-
 
 area.trnf = new Area({
     id: 207,
@@ -10851,7 +10900,6 @@ area.trnf = new Area({
     ],
     protected: true
 });
-z_bake(area.trnf);
 
 
 area.tst = new Area({
@@ -10863,7 +10911,6 @@ area.tst = new Area({
     ],
     onEnd: function () {}
 });
-z_bake(area.tst);
 
 
 area.forestn1a2 = new Area({
@@ -10897,7 +10944,6 @@ area.forestn1a2 = new Area({
         move_to_area(chss.forestn1a2);
     }
 });
-z_bake(area.forestn1a2);
 
 
 area.hmbsmnt = new Area({
@@ -10920,7 +10966,6 @@ area.hmbsmnt = new Area({
         move_to_area(chss.bsmnthm1, false);
     }
 });
-z_bake(area.hmbsmnt);
 
 
 area.trne1 = new Area({
@@ -10940,7 +10985,6 @@ area.trne1 = new Area({
         }
     }
 });
-z_bake(area.trne1);
 
 
 area.forestn2a2 = new Area({
@@ -10984,7 +11028,6 @@ area.forestn2a2 = new Area({
         }
     }
 });
-z_bake(area.forestn2a2);
 
 
 area.trne2 = new Area({
@@ -11004,7 +11047,6 @@ area.trne2 = new Area({
         }
     }
 });
-z_bake(area.trne2);
 
 
 area.trne3 = new Area({
@@ -11024,7 +11066,6 @@ area.trne3 = new Area({
         }
     }
 });
-z_bake(area.trne3);
 
 
 area.forestn1a3 = new Area({
@@ -11054,7 +11095,6 @@ area.forestn1a3 = new Area({
         { item: item.fwd1,   c: 0.0009  }
     ]
 });
-z_bake(area.forestn1a3);
 
 
 area.forestn1a4 = new Area({
@@ -11074,7 +11114,6 @@ area.forestn1a4 = new Area({
         chss.forestn1a4.sl();
     }
 });
-z_bake(area.forestn1a4);
 
 
 area.trne4 = new Area({
@@ -11095,7 +11134,6 @@ area.trne4 = new Area({
         giveTitle(ttl.aptc);
     }
 });
-z_bake(area.trne4);
 
 
 area.forestn9a1 = new Area({
@@ -11123,7 +11161,6 @@ area.forestn9a1 = new Area({
         move_to_area(chss.forestn3main);
     }
 });
-z_bake(area.forestn9a1);
 
 
 function z_bake(area) { // convert pop into weighted prob. range; bake population
@@ -12118,7 +12155,7 @@ dom.d5_2 = addElement(dom.d1,'div',null,'exp');
 dom.d5_3 = addElement(dom.d1,'div',null,'en');
 
 addDesc(dom.d5_1, null, 2, 'Health', function() {
-    return('Physical health points, needed to stay alive. You will probably die if it reaches 0<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[0]*100<<0)+'%</span></small>')
+    return('Physical health points, needed to stay alive. You will probably die if it reaches 0<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_per_lvl[0]*100<<0)+'%</span></small>')
 }, true);
 
 addDesc(dom.d5_2, null, 2, 'Experience', function() {
@@ -12152,9 +12189,9 @@ dom.d4_2 = addElement(dom.d4,'span',null,'dd');
 dom.d4_3 = addElement(dom.d4,'span',null,'dd');
 dom.d4_4 = addElement(dom.d4,'span',null,'dd');
 
-addDesc(dom.d4_1,null,2,'Physical Strength',function(){return('Determines physical damage dealt and received<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[1]*100<<0)+'%</span></small>')},true);
-addDesc(dom.d4_2,null,2,'Agility',function(){return('Determines hit/dodge rate<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[2]*100<<0)+'%</span></small>')},true);
-addDesc(dom.d4_3,null,2,'Mental acuity',function(){return('Determines magic damage dealt and received<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_p[3]*100<<0)+'%</span></small>')},true);
+addDesc(dom.d4_1,null,2,'Physical Strength',function(){return('Determines physical damage dealt and received<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_per_lvl[1]*100<<0)+'%</span></small>')},true);
+addDesc(dom.d4_2,null,2,'Agility',function(){return('Determines hit/dodge rate<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_per_lvl[2]*100<<0)+'%</span></small>')},true);
+addDesc(dom.d4_3,null,2,'Mental acuity',function(){return('Determines magic damage dealt and received<div style="  border-bottom: 1px solid grey;width:100%;height:8px">　</div><br><small>Growth Potential: <span style="color:lime">'+(you.stat_per_lvl[3]*100<<0)+'%</span></small>')},true);
 addDesc(dom.d4_4,null,2,'Speed','Allows for faster attacks and multihit combos');
 
 dom.d7 = addElement(dom.d1,'div','eq_w');
@@ -14812,6 +14849,7 @@ function giveItem(obj, am, ignore, flag, sendMsg=true) {
     return obj;
 }
 
+
 function listen_k(e){
   global.keytarget=e.target; 
   if(e.which===46){
@@ -15763,10 +15801,16 @@ chss.intro = new Chs({
             });
         });
 
-        achs('"DEBUG : Intro Western Woods"', () => {
+        achs('DEBUG : Intro Western Woods', () => {
             __dbgqs();
             move_to_area(chss.intro_western_woods1);
         });
+
+        achs('DEBUG : Intro Beast', () => {
+            __dbgqs();
+            
+            move_to_area(chss.intro_western_woods3);
+        })
     }
 });
 
@@ -15926,10 +15970,10 @@ chss.intro_western_woods2 = new Chs({
 chss.intro_western_woods3 = new Chs({
     id: 108,
     sl: () => {
-        chs('scary bad enemy ow=w spooky');
-
+        u_loc('Deep Forest, Western Woods');
+        chs('A furred creature swiftly approaches. You can barely follow its movements with your eyes. It gives off a sense of pressure that feels crushing. You can barely move.');
         achs("Stand and fight", () => {
-            area_init(area.intro_woods);
+            move_to_area(chss.intro_western_woods_btl);
         });
 
         if (global.flags.show_exit_from_intro_woods3) {
@@ -15946,9 +15990,29 @@ chss.intro_western_woods3 = new Chs({
 chss.intro_western_woods_btl = new Chs({
     id: 109,
     sl: () => {
-        // battle here
+        //global.home_loc = chss.home;
+        area_init(area.intro_woods);
     }
 });
+
+
+chss.intro_shack = new Chs({
+    id: 110,
+    sl: () => {
+        global.flags.inside = true;
+        u_loc('|Shack, ???|')
+        chs()
+    }
+});
+
+
+chss.shack = new Chs({
+    id: 111,
+    sl: () => {
+        global.flags.inside = true;
+        u_loc('|Shack, Training Grounds|');
+    }
+})
 
 
 chss.forestn1main = new Chs();
@@ -17684,7 +17748,7 @@ chss.home_bed.sl=()=>{
         if(global.flags.catget) extra=select(['. Your cat is resting next to you', '. You feel warm']);
         chs('Great way to pass time'+extra,true);
     }
-    achs('"<= Get up"', ()=>{ 
+    achs('<= Get up', ()=>{ 
         move_to_area(chss.home); 
     });
 }
@@ -18778,18 +18842,18 @@ function lvlup(p, t, sendMsg){
     } else {
         t = t || 1
         p.lvl += t;
-        let sb = randf(t*p.stat_p[1],2*t*p.stat_p[1]);
-        let sa = randf(t*p.stat_p[2],2*t*p.stat_p[2]);
-        let si = randf(t*p.stat_p[3],2*t*p.stat_p[3]);
+        let sb = randf(t*p.stat_per_lvl[1],2*t*p.stat_per_lvl[1]);
+        let sa = randf(t*p.stat_per_lvl[2],2*t*p.stat_per_lvl[2]);
+        let si = randf(t*p.stat_per_lvl[3],2*t*p.stat_per_lvl[3]);
         p.str_r += sb;
         p.agl_r += sa;
         p.int_r += si;  
 
         let hpp;
         if (p.id === you.id) {
-            hpp = Math.round(rand(1.4*Math.log(p.lvl)*t*p.stat_p[0],1.8*p.lvl*t*p.stat_p[0]));
+            hpp = Math.round(rand(1.4*Math.log(p.lvl)*t*p.stat_per_lvl[0],1.8*p.lvl*t*p.stat_per_lvl[0]));
         } else {
-            hpp = Math.round(rand(1.8*Math.log(p.lvl)*t*p.stat_p[0],2.2*p.lvl*t*p.stat_p[0]));
+            hpp = Math.round(rand(1.8*Math.log(p.lvl)*t*p.stat_per_lvl[0],2.2*p.lvl*t*p.stat_per_lvl[0]));
         }
         p.hp_r+=hpp;
         p.hpmax+=hpp;
