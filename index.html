@@ -207,12 +207,13 @@ global.flags = {
     show_exit_from_intro_woods2: true,
     show_exit_from_intro_woods3: true,
 
+    know_training_grounds: false,
+
     can_open_wallet: false,
 
     unl_rockpath: true, 
     unl_house: false,
     unl_dojo: false,
-    unl_training_grounds: false,
 
     taken_handfulsp2: false,
     finished_intro: false, 
@@ -8087,14 +8088,22 @@ item.leather_wallet.desc = "A plain, but sturdy leather wallet gifted to by an o
 item.leather_wallet.stype = 4;
 item.leather_wallet.rar = 1;
 item.leather_wallet.use = function() {
-    global.flags.m_un = true;
-    giveItem(item.lcn, 5, false, null, sendMsg=false);
-    giveItem(item.cp,  3, false, null, sendMsg=false);
-    giveItem(item.cn,  6, false, null, sendMsg=false);
-    giveItem(item.cd,  6, false, null, sendMsg=false);
-    giveItem(item.cq,  4, false, null, sendMsg=false);
-    check_if_money_should_appear();
-    this.amount--;
+    if (!global.flags.can_open_wallet) {
+        msg(select([
+            'I don\'t need to do that right now.',
+            'I don\'t have anything to spend it on right now.',
+            'I don\'t see a reason to open that right now.'
+        ]), 'lightyellow');
+    } else {
+        global.flags.m_un = true;
+        giveItem(item.lcn, 5, false, null, sendMsg=false);
+        giveItem(item.cp,  3, false, null, sendMsg=false);
+        giveItem(item.cn,  6, false, null, sendMsg=false);
+        giveItem(item.cd,  6, false, null, sendMsg=false);
+        giveItem(item.cq,  4, false, null, sendMsg=false);
+        check_if_money_should_appear();
+        this.amount--;
+    }
 }
 
 item.handful_pills = new Item();
@@ -8107,7 +8116,7 @@ item.handful_pills.stype = 4;
 item.handful_pills.rar = 1;
 item.handful_pills.use = function() {
     giveExp(11000, true, true, true, false,
-    "You feel as though you've gotten your strength back.");
+    "You feel as though you've gotten your strength back.", 'lightyellow');
     this.amount--;
     global.flags.taken_handfulsp2 = true;
 }
@@ -9915,36 +9924,46 @@ function You(){
     this.onDeath = function(killer) { 
         if (you.res.death < 1) {
             msg('You avoid death...','lightgrey');
-            you.hp=Math.ceil(you.hpmax*.1)
+            you.hp = Math.ceil(you.hpmax * 0.1);
+            return;
         }
         else {
             callback.onDeath.fire(this, killer);
             msg('You have been knocked unconscious...', 'lightgrey');
-            if (global.flags.drop_badge_on_death) {
-                giveItem(item.death_badge);
-            }
-            this.alive=false;
-            this.hp=1;
+            if (global.flags.drop_badge_on_death) giveItem(item.death_badge);
+
+            this.alive = false;
+            this.hp = 1;
             if(!killer) killer=creature.default;
-            if(global.current_a.id!==act.default.id)deactivateAct(global.current_a);
-            global.flags.work=false
-            you.sat/you.satmax>.3?giveSkExp(skl.dth,killer.rnk*10+1):giveSkExp(skl.dth,killer.rnk+1);
-            if(this.sat>0)this.sat*=(.55*(1-skl.dth.use()));
+
+            if (global.current_a.id !== act.default.id) deactivateAct(global.current_a);
+            global.flags.work = false;
+
+            giveSkExp(skl.dth, you.sat / you.satmax > 0.3 ? killer.rnk * 10 + 1 : killer.rnk + 1);
+
+            if (this.sat > 0) this.sat *= 0.55 * (1 - skl.dth.use());
+
             dom.d5_1_1.update();
-            global.s_l=0;
-            global.stat.deadt++; 
+            global.s_l = 0;
+            global.stat.deadt++;
+
             for(let x in global.achchk[0]) global.achchk[0][x](killer);
+
             clearInterval(timers.rdng);
             clearInterval(timers.rdngdots);
-            global.flags.rdng=false;
             clearInterval(timers.job1t);
             clearInterval(timers.bstmonupdate);
+            global.flags.rdng = false;
+
             for(let o in this.eff) removeEff(this.eff[o])
-            global.flags.btl=false;
-            global.flags.civil=true;
+
+            global.flags.btl = false;
+            global.flags.civil = true;
 
             global.current_z.onDeath();
-            move_to_area(global.loc_spawn);
+            //move_to_area(global.loc_spawn);
+            move_to_area(chss.shack_bed);
+
             dom.d7m.update();
             /*
             if(sector.home.data.smkp>0) {
@@ -10127,8 +10146,7 @@ creature.intro_beast = new Creature({
     exp: 999999,
     hp_r: 999,
     stat_per_lvl: [0.8, 1, 1, 0.2],
-    spd_r: 1,
-    // wait here ?
+    spd_r: 1
 });
 
 creature.bat = new Creature({
@@ -10784,7 +10802,8 @@ area.intro_woods = new Area ({
         msg("Give me a real challenge.", 'lightyellow');
     },
     onDeath() {
-        //
+        global.time += 5*HOUR;
+        global.flags.can_open_wallet = true;
     }
 });
 
@@ -11228,7 +11247,7 @@ sector.home = new Sector({
     id: 1,
     inside: true,
     default_data: {},
-    onEnter: () => {
+    onEnter: function () {
         let fire = findbyid(furn, furniture.frplc.id);
         for (let f in furn) {
             activatef(furn[f])
@@ -11239,7 +11258,15 @@ sector.home = new Sector({
             this.data.smkp-=re;
         }
     },
-    data: { scoutm: 100, scout: 0, scoutf: false, gets: [false], gotmod: 0, smkp: 0, ctlt: [] },
+    data: {
+        scoutm: 100,
+        scout:  0,
+        scoutf: false,
+        gets:   [false],
+        gotmod: 0,
+        smkp:   0,
+        ctlt:   []
+    },
     scout: [
         {
             c:  0.1,
@@ -11261,21 +11288,21 @@ sector.home = new Sector({
             exp:2
         },
     ],
-    onScout: () => {
+    onScout: function () {
         scoutGeneric(this);
     },
-    onMove: () => {
+    onMove: function () {
         if(this.data.smkp>0){
             dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>';
         }
     },
-    onLeave: () => {
+    onLeave: function () {
         global.stat.athmec=0;
       if (effect.fplc.active===true) removeEff(effect.fplc);
       this.data.smkt = time.minute;
       for(let f in furn) deactivatef(furn[f]);
     },
-    onStay: () => {
+    onStay: function () {
         if (this.data.smkp>0) {
             if(effect.smoke.active) effect.smoke.duration=26;
             else giveEff(you,effect.smoke,26);
@@ -11297,14 +11324,13 @@ sector.home = new Sector({
             }
         }   
     }
-
 });
 /*
 sector.home = new Sector({
     id: 1,
     inside: true,
     default_data: {},
-    onEnter: () => {
+    onEnter: function () {
         let fire = findbyid(furn, furniture.frplc.id);
         for (let f in furn) {
             activatef(furn[f])
@@ -11345,13 +11371,13 @@ sector.home = new Sector({
             dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>';
         }
     },
-    onLeave: () => {
+    onLeave: function () {
         global.stat.athmec=0;
       if (effect.fplc.active===true) removeEff(effect.fplc);
       this.data.smkt = time.minute;
       for(let f in furn) deactivatef(furn[f]);
     },
-    onStay: () => {
+    onStay: function () {
         if (this.data.smkp>0) {
             if(effect.smoke.active) effect.smoke.duration=26;
             else giveEff(you,effect.smoke,26);
@@ -11380,7 +11406,7 @@ sector.home = new Sector({
 
 sector.vcent = new Sector({
     id: 2,
-    onStay: () => {
+    onStay: function () {
         if (random() < 0.03 && 
             !isWeather(weather.sstorm) && 
             !isWeather(weather.heavyrain) && 
@@ -11410,7 +11436,7 @@ sector.vcent = new Sector({
 sector.forest1 = new Sector({
     id: 3,
     data: { scoutm: 7000, scout: 0, scoutf: false },
-    onStay: () => {
+    onStay: function () {
         if (!this.data.scoutf) {
             if (this.data.scout <= this.data.scoutm) {
                 if (global.flags.btl || act.scout.active === true) {
@@ -16013,9 +16039,15 @@ chss.intro = new Chs({
 
         achs('DEBUG : Intro Beast', () => {
             __dbgqs();
-            
+            useItem(item.handful_pills);
             move_to_area(chss.intro_western_woods3);
-        })
+        });
+
+        achs('DEBUG : Wake Up', () => {
+            __dbgqs();
+            useItem(item.handful_pills);
+            move_to_area(chss.shack);
+        });
     }
 });
 
@@ -16085,6 +16117,7 @@ chss.intro_village_outskirts = new Chs({
         
         achs('=> Enter Western Woods', () => {
             msg('I better watch myself in here.', 'lightyellow');
+            global.time += HOUR;
             move_to_area(chss.intro_western_woods1);
         });
 
@@ -16102,10 +16135,12 @@ chss.intro_western_woods1 = new Chs({
         chs('The woods are silent. You spot an old lodge. Walking up a little closer, you see a handwritten note posted to the front door.');
 
         achs("Read the handwritten note", () => {
+            global.time += 5;
             move_to_area(chss.intro_western_woods_note);
         });
 
         achs("Go deeper into the woods =>", () => {
+            global.time += HOUR;
             move_to_area(chss.intro_western_woods2);
         });
 
@@ -16156,6 +16191,7 @@ chss.intro_western_woods2 = new Chs({
             } else {
                 msg('I took those spirit pills. I should be fine...', 'lightyellow');
             }
+            global.time += HOUR;
             move_to_area(chss.intro_western_woods3)
         });
 
@@ -16193,18 +16229,7 @@ chss.intro_western_woods3 = new Chs({
 chss.intro_western_woods_btl = new Chs({
     id: 109,
     sl: () => {
-        //global.home_loc = chss.home;
         area_init(area.intro_woods);
-    }
-});
-
-
-chss.intro_shack = new Chs({
-    id: 110,
-    sl: () => {
-        global.flags.inside = true;
-        u_loc('Shack, ???')
-        chs()
     }
 });
 
@@ -16213,16 +16238,30 @@ chss.shack = new Chs({
     id: 111,
     sl: () => {
         global.flags.inside = true;
-        u_loc('Shack, Training Grounds');
+        if (global.flags.know_training_grounds) {
+            u_loc('Shack, Training Grounds');
+        } else {
+            u_loc('Shack, ???');
+        }
+
+        chs('You\'re in a small wooden shack. There\'s a bed here, a small kitchenette, and a small desk. So very humble.');
+
+        achs('<= Go outside', () => {
+            if (!global.flags.know_training_grounds) global.flags.know_training_grounds = true;
+            move_to_area(chss.training_grounds);
+        });
     }
 })
+add_to_sector(sector.home, chss.shack);
 
 chss.shack_bed = new Chs({
     id: 112,
     sl: () => {
-        u_loc('In bed, Shack');
+        global.flags.inside = true;
+        u_loc('Bed, Shack');
         if (you.alive === false) {
-            chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']));
+            chs('You sink deeply into unconsciousness...');
+            //chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']));
             you.alive = true;
         } else {
             chs('You attempt to take a quick nap to sleep meditation however, you\'re not tired enough to get some quality sleep.');
@@ -16233,19 +16272,19 @@ chss.shack_bed = new Chs({
             move_to_area(chss.shack);
         })
     },
-    onStay: () => {
+    onStay: function () {
         let hpr = (skl.sleep.use(home.bed)+(global.flags.catget ? 5 : 1)+1) << 0;
         if (!effect.fei1.active && you.hp < you.hpmax) {
             you.hp + hpr <= you.hpmax ? you.hp += hpr : you.hp = you.hpmax;
             dom.d5_1_1.update();
         }
     },
-    onEnter: () => {
+    onEnter: function () {
         global.flags.sleepmode = true;
         if (effect.slep.active === false) giveEff(you,effect.slep);
         global.timescale = you.timescale_sleeping;
     },
-    onLeave: () => {
+    onLeave: function () {
         global.flags.sleepmode = false;
         global.timescale = 1;
         removeEff(effect.slep); 
@@ -17978,7 +18017,7 @@ chss.home_bed = new Chs();
 chss.home_bed.id = 112;
 add_to_sector(sector.home, chss.home_bed)
 chss.home_bed.sl=()=>{
-    u_loc('Your Home, Bed');
+    u_loc('Bed, Your Home');
     let extra='';
     if(you.alive===false) {
         chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']),true);
@@ -18377,11 +18416,9 @@ chss.rock_path.sl = function() {
         }, 'green');
     }
 
-    if (global.flags.unl_training_grounds) {
-        achs('=> Enter Hidden Grounds', () => {
-            move_to_area(chss.training_grounds);
-        }, 'yellow');
-    }
+    achs('=> Enter Training Grounds', () => {
+        move_to_area(chss.training_grounds);
+    }, 'yellow');
 
     if (!global.flags.catget && (global.flags.rockpath_showcat)) {
         achs('Approach the cat', () => {
