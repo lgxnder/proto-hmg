@@ -71,7 +71,7 @@ const GOLD = 10000;
 
 let tempt = new Date();
 
-global.loc_spawn = chss.shack;
+global.loc_spawn = chss.shack_bed;
 global.lst_sve = '?';
 global.ver = 470;
 global.sm = 1;
@@ -466,7 +466,7 @@ function save(lvr) {
         if (expectedIndex === 0) { 
             a3[0].push({
                 id : inv[obj].id,
-                am : inv[obj].amount,
+                amt : inv[obj].amount,
                 data : inv[obj].data }); 
         }
         else {
@@ -579,7 +579,7 @@ function save(lvr) {
         for (let a in container[obj].c) {
             cont.push({ id : container[obj].c[a].item.id,
                       data : container[obj].c[a].data,
-                        am : container[obj].c[a].am,
+                        amt : container[obj].c[a].amt,
                         dp : container[obj].c[a].dp });
         }
         a18.push({ id : container[obj].id,
@@ -982,7 +982,7 @@ function load(dt) {
             for (let o = 0; o < a3[0].length; o++) {
                 for (let obj in item) {
                     if (item[obj].id === a3[0][o].id) {
-                        giveItem(item[obj], a3[0][o].am, true, {
+                        giveItem(item[obj], a3[0][o].amt, true, {
                             fi: true
                         });
                         inv[o].new = false;
@@ -1281,8 +1281,8 @@ function load(dt) {
                         for (let a in a16[obj].data) {
                             sector[q].data[a] = a16[obj].data[a];
                         }
-                    } else if (sector[q].ddata) {
-                        sector[q].data = sector[q].ddata;
+                    } else if (sector[q].default_data) {
+                        sector[q].data = sector[q].default_data;
                     }
                 }
             }
@@ -1316,7 +1316,7 @@ function load(dt) {
                                 let ni = {
                                     item: k[b],
                                     data: a17[a].c[c].data,
-                                    am: a17[a].c[c].am,
+                                    amt: a17[a].c[c].amt,
                                     dp: a17[a].c[c].dp
                                 };
                                 container[d].c.push(ni);
@@ -9857,8 +9857,14 @@ function You(){
     this.desc = 'This is you';
     this.id = -1;
     this.type = 0;
-    this.rank = function(){
-        return Math.ceil(50000000000000*(1/(((this.agl+this.str+(you.eqp[0].str)+this.spd+this.int)**2) / Math.sqrt((this.agl+this.str+this.int+(this.spd/this.lvl))*512/(this.luck*.1+1)))))
+    this.rank = function() {
+        const stat_sum = this.agl + this.str + this.int + this.spd + you.eqp[0].str;
+        const sum_spd_level_weight = this.agl + this.str + this.int + (this.spd / this.lvl);
+        const luck_weight = this.luck * 0.1 + 1;
+        const scale_factor = 850727696967670912
+        // base game's scale factor is 50000000000000 ;o;
+
+        return Math.ceil(scale_factor * ( 1 / ( ((stat_sum)**2) / Math.sqrt((sum_spd_level_weight) * 512 / luck_weight))));
     };
     this.rnk = 0;
     this.lvl = 1;
@@ -9913,6 +9919,7 @@ function You(){
         }
         else {
             callback.onDeath.fire(this, killer);
+            msg('You have been knocked unconscious...', 'lightgrey');
             if (global.flags.drop_badge_on_death) {
                 giveItem(item.death_badge);
             }
@@ -9938,6 +9945,7 @@ function You(){
 
             global.current_z.onDeath();
             move_to_area(global.loc_spawn);
+            dom.hit_c();
             dom.d7m.update();
             /*
             if(sector.home.data.smkp>0) {
@@ -10744,6 +10752,7 @@ function Area(op={}) {
     this.size=10;
     this.pop=[];
     this.drop=[];
+    this.effectors=[];
     this.onEnd=function(){};
     this.onDeath=function(){};
     this.protected=false;
@@ -11183,8 +11192,10 @@ function z_bake(area) { // convert pop into weighted prob. range; bake populatio
 ///////////////////////////////////////////
 //ZNE SECTOR
 ///////////////////////////////////////////
-function Sector(){
+function Sector(op={}){
     this.id=0
+    this.inside=false,
+    this.default_data={},
     this.group=[0];
     this.data={};
     this.active=false;
@@ -11193,91 +11204,271 @@ function Sector(){
     this.onStay=function(){}
     this.onMove=function(){}
     this.onScout=function(){}
+
+    Object.assign(this, op);
 }
 
-function addtosector(sector, loc){
-  sector.group.push(loc.id);
-  loc.sector.push(sector);
+function add_to_sector(sector, loc){
+    sector.group.push(loc.id);
+    loc.sector.push(sector);
 }
 
 function inSector(sector){
-  for(let a in global.current_location.sector) if(global.current_location.sector[a].id===sector.id) return true
+    for(let a in global.current_location.sector) {
+        if(global.current_location.sector[a].id===sector.id) {
+            return true;
+        }
+    }
 }
 
-sector.home = new Sector(); sector.home.id = 1; sector.home.inside=true; sector.home.ddata={}
-sector.home.onEnter=function(){ let fire = findbyid(furn,furniture.frplc.id);
-  for(let f in furn) activatef(furn[f])
-    if(this.data.smkp>0){
-    dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
-    let re = time.minute-this.data.smkt; this.data.smkp-=re;
-  }
+function giveCrExp(skl, amt, lvl){
+  if(!lvl || skl.lvl < lvl) giveSkExp(skl, amt);
 }
 
-sector.home.data={scoutm:100,scout:0,scoutf:false,gets:[false],gotmod:0,smkp:0,ctlt:[]}
-sector.home.scout=[
-  {c:.1,cond:()=>{if(sector.home.data.ctlt.length!=0)return true},f:()=>{let i = select(sector.home.data.ctlt);msg(select(['Your cat found something for you','Another one of your cat\'s gifts','Something was lying in the corner of the room. Probably cat\'s','Your cat dropped something before you']),'lime'); let k = itemgroup[(i+1)/10000<<0]; for(let v in k) if(k[v].id===i) giveItem(k[v]);sector.home.data.ctlt.splice(sector.home.data.ctlt.indexOf(i),1);},exp:2},
-]; 
-sector.home.onScout=function(){scoutGeneric(this)}
 
-sector.home.onMove=function(){
-  if(this.data.smkp>0){
-    dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
-  }
-}
+sector.home = new Sector({
+    id: 1,
+    inside: true,
+    default_data: {},
+    onEnter: () => {
+        let fire = findbyid(furn, furniture.frplc.id);
+        for (let f in furn) {
+            activatef(furn[f])
+        }
+        if (this.data.smkp>0) {
+            dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
+            let re = time.minute-this.data.smkt;
+            this.data.smkp-=re;
+        }
+    },
+    data: { scoutm: 100, scout: 0, scoutf: false, gets: [false], gotmod: 0, smkp: 0, ctlt: [] },
+    scout: [
+        {
+            c:  0.1,
+            cond: () => {
+                if (sector.home.data.ctlt.length!=0) return true
+            },
+            f: ()=> {
+                let i = select(sector.home.data.ctlt);
+                msg(select([
+                    'Your cat found something for you',
+                    'Another one of your cat\'s gifts',
+                    'Something was lying in the corner of the room. Probably cat\'s',
+                    'Your cat dropped something before you']),
+                'lime');
+                let k = itemgroup[(i+1)/10000<<0];
+                for(let v in k) if(k[v].id===i) giveItem(k[v]);
+                sector.home.data.ctlt.splice(sector.home.data.ctlt.indexOf(i),1);
+            },
+            exp:2
+        },
+    ],
+    onScout: () => {
+        scoutGeneric(this);
+    },
+    onMove: () => {
+        if(this.data.smkp>0){
+            dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>';
+        }
+    },
+    onLeave: () => {
+        global.stat.athmec=0;
+      if (effect.fplc.active===true) removeEff(effect.fplc);
+      this.data.smkt = time.minute;
+      for(let f in furn) deactivatef(furn[f]);
+    },
+    onStay: () => {
+        if (this.data.smkp>0) {
+            if(effect.smoke.active) effect.smoke.duration=26;
+            else giveEff(you,effect.smoke,26);
+            if(--this.data.smkp<=0) move_to_area(global.current_location);
+        }
+        if(global.flags.catget) giveSkExp(skl.pet,you.mods.petxp);
+        global.stat.athme  += global.timescale;
+        global.stat.athmec += global.timescale; 
+        for(let x in global.nethmchk) global.nethmchk[x]();
+        let fire = findbyid(furn,furniture.frplc.id);
+        
+        if (effect.fplc.active === false && fire.data.fuel > 0) giveEff(you,effect.fplc,fire.data.fuel);
+        if(fire.data.fuel>0) {
+            if (effect.fplc.active === false) giveEff(you,effect.fplc,2);
+            let afire = findbyid(furn,furniture.fwdpile.id);
+            if (afire && fire.data.fuel <= 2 && afire.data.fuel > 0) {
+                fire.data.fuel += 30;
+                afire.data.fuel --;
+            }
+        }   
+    }
 
-sector.home.onLeave=function(){
-  global.stat.athmec=0;
-  if(effect.fplc.active===true)removeEff(effect.fplc);
-  this.data.smkt = time.minute;
-  for(let f in furn) deactivatef(furn[f])
-}
+});
+/*
+sector.home = new Sector({
+    id: 1,
+    inside: true,
+    default_data: {},
+    onEnter: () => {
+        let fire = findbyid(furn, furniture.frplc.id);
+        for (let f in furn) {
+            activatef(furn[f])
+        }
+        if (this.data.smkp>0) {
+            dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
+            let re = time.minute-this.data.smkt;
+            this.data.smkp-=re;
+        }
+    },
+    data: { scoutm: 100, scout: 0, scoutf: false, gets: [false], gotmod: 0, smkp: 0, ctlt: [] },
+    scout: [
+        {
+            c:  0.1,
+            cond: () => {
+                if (sector.home.data.ctlt.length!=0) return true
+            },
+            f: ()=> {
+                let i = select(sector.home.data.ctlt);
+                msg(select([
+                    'Your cat found something for you',
+                    'Another one of your cat\'s gifts',
+                    'Something was lying in the corner of the room. Probably cat\'s',
+                    'Your cat dropped something before you']),
+                'lime');
+                let k = itemgroup[(i+1)/10000<<0];
+                for(let v in k) if(k[v].id===i) giveItem(k[v]);
+                sector.home.data.ctlt.splice(sector.home.data.ctlt.indexOf(i),1);
+            },
+            exp:2
+        },
+    ],
+    onScout: () => {
+        scoutGeneric(this);
+    },
+    onMove: () => {
+        if(this.data.smkp>0){
+            dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>';
+        }
+    },
+    onLeave: () => {
+        global.stat.athmec=0;
+      if (effect.fplc.active===true) removeEff(effect.fplc);
+      this.data.smkt = time.minute;
+      for(let f in furn) deactivatef(furn[f]);
+    },
+    onStay: () => {
+        if (this.data.smkp>0) {
+            if(effect.smoke.active) effect.smoke.duration=26;
+            else giveEff(you,effect.smoke,26);
+            if(--this.data.smkp<=0) move_to_area(global.current_location);
+        }
+        if(global.flags.catget) giveSkExp(skl.pet,you.mods.petxp);
+        global.stat.athme  += global.timescale;
+        global.stat.athmec += global.timescale; 
+        for(let x in global.nethmchk) global.nethmchk[x]();
+        let fire = findbyid(furn,furniture.frplc.id);
+        
+        if (effect.fplc.active === false && fire.data.fuel > 0) giveEff(you,effect.fplc,fire.data.fuel);
+        if(fire.data.fuel>0) {
+            if (effect.fplc.active === false) giveEff(you,effect.fplc,2);
+            let afire = findbyid(furn,furniture.fwdpile.id);
+            if (afire && fire.data.fuel <= 2 && afire.data.fuel > 0) {
+                fire.data.fuel += 30;
+                afire.data.fuel --;
+            }
+        }   
+    }
 
-sector.home.onStay=function(){
-  if(this.data.smkp>0){
-    if(effect.smoke.active) effect.smoke.duration=26;else giveEff(you,effect.smoke,26)
-    if(--this.data.smkp<=0) move_to_area(global.current_location)
-  }
-  if(global.flags.catget) giveSkExp(skl.pet,you.mods.petxp);
-  global.stat.athme+=global.timescale;global.stat.athmec+=global.timescale; 
-  for(let x in global.nethmchk) global.nethmchk[x]();
-  let fire = findbyid(furn,furniture.frplc.id);
-  
-  if(effect.fplc.active===false&&fire.data.fuel>0) giveEff(you,effect.fplc,fire.data.fuel)
-  if(fire.data.fuel>0) {
-    if(effect.fplc.active===false) giveEff(you,effect.fplc,2)  
-    let afire = findbyid(furn,furniture.fwdpile.id); if(afire&&fire.data.fuel<=2&&afire.data.fuel>0) {fire.data.fuel += 30;afire.data.fuel--}
-  }
-}
+});
+*/
 
-sector.vcent = new Sector(); sector.vcent.id = 2;
-sector.vcent.onStay = function(){
-  if(random()<.03&&!isWeather(weather.sstorm)&&!isWeather(weather.heavyrain)&&!isWeather(weather.thunder)&&(getHour()>8&&getHour()<20)){;if(!global.text.vlg1) global.text.vlg1=['\"♪La, laaaah, la, la-la. Lah, la-la,la la....♪\"','\"Eat flowers evil-doer!♪\"','\"Oh my! Such pretty flowers♪\"','\"Can I tag along? I won\'t be a bother♪\"'];
-  if(!global.text.vlg1s) global.text.vlg1s=['\"Let\'s build a snowman!♪\"','\"Yey, snow!♪\"','\"Everything is so white and beautiful♪\"','A snowball lands on you. Hey!'];
-  msg(getSeason()===4?select(global.text.vlg1s):select(global.text.vlg1),'yellow');}
-}
 
-sector.forest1 = new Sector(); sector.forest1.id = 3;
-sector.forest1.data={scoutm:7000,scout:0,scoutf:false}
-sector.forest1.onStay=function(){
-  if(!this.data.scoutf) {if(this.data.scout<=this.data.scoutm) {if(global.flags.btl||act.scout.active===true) {this.data.scout+=.1;giveSkExp(skl.tpgrf,.001)}} else {
-   msg('Area Explored!','lime'); this.data.scoutf=true; giveExp(7000,true,true,true); 
-  }}
-}
+sector.vcent = new Sector({
+    id: 2,
+    onStay: () => {
+        if (random() < 0.03 && 
+            !isWeather(weather.sstorm) && 
+            !isWeather(weather.heavyrain) && 
+            !isWeather(weather.thunder) && 
+            (getHour() > 8 &&
+             getHour() < 20)) {
+            if (!global.text.vlg1) {
+                global.text.vlg1 = [
+                    '\"♪La, laaaah, la, la-la. Lah, la-la,la la....♪\"',
+                    '\"Eat flowers evil-doer!♪\"',
+                    '\"Oh my! Such pretty flowers♪\"',
+                    '\"Can I tag along? I won\'t be a bother♪\"'];
+            }
+            if (!global.text.vlg1s) {
+                  global.text.vlg1s=[
+                    '\"Let\'s build a snowman!♪\"',
+                    '\"Yey, snow!♪\"',
+                    '\"Everything is so white and beautiful♪\"',
+                    'A snowball lands on you. Hey!'];
+            }
+            msg(getSeason()  === 4 ? select(global.text.vlg1s) : select(global.text.vlg1), 'yellow');
+        }
+    }
+});
 
-sector.cata1 = new Sector(); sector.cata1.id = 4; sector.cata1.inside=true; sector.cata1.effectors=[{e:effector.dark}]
-sector.cata1.data={scoutm:11000,scout:0,scoutf:false}
 
-sector.vmain1 = new Sector(); sector.vmain1.id = 5;/*
-sector.vmain1.data={scoutm:400,scout:0,scoutf:false,gets:[false],gotmod:0}
-sector.vmain1.scout=[
-  {c:.11,f:()=>{msg(select(['You notice a coin on the ground!','You pick a coin from under the counter','You snatch a coin while no one is looking']),'lime');giveItem(select([item.cp,item.cn,item.cq,item.cd]));sector.vmain1.data.gets[0]=true},exp:5},
-  {c:.05,f:()=>{msg(select(['You notice a coin on the ground!','You pick a coin from under the counter','You snatch a coin while no one is looking']),'lime');giveItem(select([item.cp,item.cn,item.cq,item.cd]));sector.vmain1.data.gets[1]=true},exp:5},
-]
-sector.vmain1.onScout=function(){scoutGeneric(this)}*/
+sector.forest1 = new Sector({
+    id: 3,
+    data: { scoutm: 7000, scout: 0, scoutf: false },
+    onStay: () => {
+        if (!this.data.scoutf) {
+            if (this.data.scout <= this.data.scoutm) {
+                if (global.flags.btl || act.scout.active === true) {
+                    this.data.scout += 0.1;
+                    giveSkExp(skl.tpgrf, 0.001);
+                }
+            } else {
+                msg('Area Explored!','lime');
+                this.data.scoutf = true;
+                giveExp(7000, true, true, true); 
+            }
+        }    
+    }
+});
 
-function giveCrExp(skl,am,lvl){
-  if(!lvl||skl.lvl<lvl) giveSkExp(skl,am);
-}
+
+sector.cata1 = new Sector({
+    id: 4,
+    inside: true,
+    effectors: [{ e: effector.dark }],
+    data: { scoutm: 11000, scout: 0, scoutf: false }
+});
+
+
+sector.vmain1 = new Sector({
+    id: 5,
+    /*
+    data: { scoutm: 400, scout: 0, scoutf: false, gets: [false], gotmod: 0 },
+    scout: [
+        {c: 0.11, f:()=>{
+            msg(select([
+                'You notice a coin on the ground!',
+                'You pick a coin from under the counter',
+                'You snatch a coin while no one is looking']
+            ),'lime');
+            giveItem(select([item.cp,item.cn,item.cq,item.cd]));
+            sector.vmain1.data.gets[0] = true},
+            exp:5
+        },
+        {c: 0.05, f:()=>{
+            msg(select([
+                'You notice a coin on the ground!',
+                'You pick a coin from under the counter',
+                'You snatch a coin while no one is looking']
+            ),'lime');
+            giveItem(select([item.cp,item.cn,item.cq,item.cd]));
+            sector.vmain1.data.gets[1] = true},
+            exp:5
+        },
+    ],
+    onScout: () => {
+        scoutGeneric(this);
+    }
+    */
+});
+
 
 ///////////////////////////////////////////
 //CONT
@@ -11827,9 +12018,9 @@ function evaluateSpecialRequirementsForRecipe(recipe) {
 }
 
 
-function findItemQuantity(arr, val, am){
+function findItemQuantity(arr, val, amt){
     for (let o =0; o<arr.length; o++) {
-        if(arr[o].id === val.id && arr[o].amount >= am) {
+        if(arr[o].id === val.id && arr[o].amount >= amt) {
             return { a: true, b: arr[o] };
         }
     }
@@ -14732,11 +14923,11 @@ function spend(m) {
     m_update();
 }
 
-function giveItem(obj, am, ignore, flag, sendMsg=true) {
-    am = am || 1;
+function giveItem(obj, amt, ignore, flag, sendMsg=true) {
+    amt = amt || 1;
     if (!!obj.slot) {
         let nitm;
-        for (let p = 0; p < am; p++) {
+        for (let p = 0; p < amt; p++) {
             obj.new = true;
             obj.data.uid = ++global.uid;
             let tmp = obj;
@@ -14769,7 +14960,7 @@ function giveItem(obj, am, ignore, flag, sendMsg=true) {
                 iftrunkopenc(1);
             }
             if (!global.flags.loadstate && !ignore) {
-                global.stat.igtttl += am;
+                global.stat.igtttl += amt;
             }
         }
         return nitm;
@@ -14793,9 +14984,9 @@ function giveItem(obj, am, ignore, flag, sendMsg=true) {
         obj.have = true;
         obj.data.dscv = true;
         inv.push(obj);
-        obj.amount += am;
+        obj.amount += amt;
         if (sendMsg) {
-            msg('New item obtained: <span style="color:coral">' + obj.name + '</span><span style="color:lime"> x' + am + '</span>', 'cyan', obj);
+            msg('New item obtained: <span style="color:coral">' + obj.name + '</span><span style="color:lime"> x' + amt + '</span>', 'cyan', obj);
         }
         obj.onGet();
         if (global.sm === obj.stype) {
@@ -14805,9 +14996,9 @@ function giveItem(obj, am, ignore, flag, sendMsg=true) {
             renderItem(obj);
         }
     } else {
-        obj.amount += am;
+        obj.amount += amt;
         if (sendMsg) {
-            msg('Item Acquired: <span style="color:chartreuse">' + obj.name + '</span><span style="color:lime"> x' + am + '</span>', 'cyan', obj);
+            msg('Item Acquired: <span style="color:chartreuse">' + obj.name + '</span><span style="color:lime"> x' + amt + '</span>', 'cyan', obj);
         }
         if (global.sm === 1) {
             updateInv(inv.indexOf(obj));
@@ -14821,7 +15012,7 @@ function giveItem(obj, am, ignore, flag, sendMsg=true) {
         dar[g].push(obj.id);
     }
     if (obj.multif) {
-        for (let a = 0; a < am; a++) {
+        for (let a = 0; a < amt; a++) {
             obj.multif();
         }
     }
@@ -14844,11 +15035,27 @@ function giveItem(obj, am, ignore, flag, sendMsg=true) {
         iftrunkopenc(1);
     }
     if (!global.flags.loadstate && !ignore) {
-        global.stat.igtttl += am;
+        global.stat.igtttl += amt;
     }
     return obj;
 }
 
+function useItem(obj, amt=1) {
+    const item = inv.find(i => i === obj && i.amount >= amt);
+
+    if (!item) return false;
+
+    item.amount -= amt;
+    item.use();
+
+    if (item.amount <= 0) removeItem(item);
+
+    return true;
+}
+
+function hasItem(obj, amt=1) {
+    return inv.some(i => i === obj && i.amount >= amt);
+}
 
 function listen_k(e){
   global.keytarget=e.target; 
@@ -14991,11 +15198,11 @@ function renderItem(obj){
   if(obj.dss&&item.toolbx.have){ 
     dom.inv_dss = addElement(inv_slot_c,'span',null,'dss_b'); dom.inv_dss.innerHTML = '∥'; if(!obj.slot) dom.inv_dss.style.left=242; else if(obj.slot===5||obj.slot===6) dom.inv_dss.style.left=208
     let t=''; for(let a in obj.dss) {
-      let am = obj.dss[a].amount;
-      if(obj.dss[a].q) am = (am+am*(obj.dss[a].q*skl.dssmb.lvl))<<0
-      if(obj.dss[a].max) if(am>obj.dss[a].max) am = obj.dss[a].max;
-      let c = 1; if(obj.slot) c = obj.dp/obj.dpmax; am=Math.ceil(am/(2-c)); 
-      t+='<br><span style="color:orange">'+obj.dss[a].item.name+': <span style="color:'+(obj.dss[a].max&&obj.dss[a].max===am?'lime':'lightblue')+'">'+am+'</span></span>'
+      let amt = obj.dss[a].amount;
+      if(obj.dss[a].q) amt = (amt+amt*(obj.dss[a].q*skl.dssmb.lvl))<<0
+      if(obj.dss[a].max) if(amt>obj.dss[a].max) amt = obj.dss[a].max;
+      let c = 1; if(obj.slot) c = obj.dp/obj.dpmax; amt=Math.ceil(amt/(2-c)); 
+      t+='<br><span style="color:orange">'+obj.dss[a].item.name+': <span style="color:'+(obj.dss[a].max&&obj.dss[a].max===amt?'lime':'lightblue')+'">'+amt+'</span></span>'
     }
     addDesc(dom.inv_dss,null,2,'Disassemble','Deconstruct <span style="color:cyan">\"'+obj.name+'\"</span> into:<br>'+t);
     dom.inv_dss.addEventListener('click',()=>{
@@ -15233,7 +15440,7 @@ function chs_spec(type,x){
                 rendertrunkitem(dom.invp1,inv[obj]);
             }
             for(let obj in x.c) {
-                rendertrunkitem(dom.invp2,x.c[obj].item,{right:true,nit:{item:x.c[obj].item,data:x.c[obj].data,am:x.c[obj].am,dp:x.c[obj].dp}});
+                rendertrunkitem(dom.invp2,x.c[obj].item,{right:true,nit:{item:x.c[obj].item,data:x.c[obj].data,amt:x.c[obj].amt,dp:x.c[obj].dp}});
             }
             if(x.c.length>0) {
                 dom.invp2noth.style.display='none';
@@ -15433,7 +15640,7 @@ function rendertrunkitem(root,item,ni){if(!ni) {ni=new Object(); ni.right=false}
     dom.invp1_s = addElement(dom.invp1_con,'small'); 
     dom.invp2_s = addElement(dom.invp1_con,'small');
     dom.invp1_s.style.marginLeft=ni.right?23:3;dom.invp1_s.innerHTML=item.name;
-    dom.invp2_s.style.right=ni.right?3:20;dom.invp2_s.innerHTML=!item.slot?('x'+(ni.right===true?ni.nit.am:item.amount)):'';
+    dom.invp2_s.style.right=ni.right?3:20;dom.invp2_s.innerHTML=!item.slot?('x'+(ni.right===true?ni.nit.amt:item.amount)):'';
     dom.invp2_s.style.position='absolute';
     if(!!item.c||!!item.bc){
         if(!!item.c) dom.invp1_s.style.color=item.c;
@@ -15459,18 +15666,18 @@ function rendertrunkitem(root,item,ni){if(!ni) {ni=new Object(); ni.right=false}
             let nit=addToContainer(trunk,item,item.amount); item.amount=0; titem=nit; 
             if (item.amount<=0||item.slot) {dom.invp1.removeChild(dom.invp1.children[inv.indexOf(item)]);removeItem(item,{fl:true})} else if(global.sm===1) updateInv(inv.indexOf(item)); else if(global.sm===item.stype) updateInv(global.sinv.indexOf(item));
             } else { 
-            titem.am+=item.amount; item.amount=0; 
+            titem.amt+=item.amount; item.amount=0; 
             if (item.amount<=0) {dom.invp1.removeChild(dom.invp1.children[inv.indexOf(item)]);removeItem(item,{fl:true});} else if(global.sm===1) updateInv(inv.indexOf(item)); else if(global.sm===item.stype) updateInv(global.sinv.indexOf(item));
             }  if (titem.item.onTIn) titem.item.onTIn(trunk,titem); //  big stack moves into container
         } else {
             for(let a in inv) {if(inv[a].id===item.id&&!item.slot) {scann=true; titem=inv[a];break}}
             if(scann===false) { let fin; if(ni.nit.item.slot){for(let a in trunk.c){if(trunk.c[a].data.uid===ni.nit.data.uid){fin = trunk.c[a];break}}}else{for(let a in trunk.c){if(trunk.c[a].item.id===ni.nit.item.id){fin = trunk.c[a];break}}}
-            let g = giveItem(ni.nit.item,ni.nit.am,true,{fl:true});g.data=ni.nit.data;g.dp=ni.nit.dp; 
+            let g = giveItem(ni.nit.item,ni.nit.amt,true,{fl:true});g.data=ni.nit.data;g.dp=ni.nit.dp; 
             dom.invp2.removeChild(dom.invp2.children[trunk.c.indexOf(fin)]); removeFromContainer(trunk,fin); rendertrunkitem(dom.invp1,g); 
             if(trunk.c.length===0) global.dscr.style.display='none'
             }
             else { 
-            titem.amount+=ni.nit.am; let fin; for(let a in trunk.c){if(trunk.c[a].item.id===ni.nit.item.id){fin = trunk.c[a];break}}
+            titem.amount+=ni.nit.amt; let fin; for(let a in trunk.c){if(trunk.c[a].item.id===ni.nit.item.id){fin = trunk.c[a];break}}
             dom.invp2.removeChild(dom.invp2.children[trunk.c.indexOf(fin)]); removeFromContainer(trunk,fin); if(trunk.c.length===0) global.dscr.style.display='none'
             if(global.sm===1) updateInv(inv.indexOf(item)); else if(global.sm===item.stype) updateInv(global.sinv.indexOf(item));
             } if (ni.nit.item.onTOut) ni.nit.item.onTOut(trunk,ni.nit); //  big stack moves out of container
@@ -15488,24 +15695,24 @@ function rendertrunkitem(root,item,ni){if(!ni) {ni=new Object(); ni.right=false}
             if (item.amount<=0) {dom.invp1.removeChild(dom.invp1.children[inv.indexOf(item)]);removeItem(item,{fl:true});} else if(global.sm===1) updateInv(inv.indexOf(item)); else if(global.sm===item.stype) updateInv(global.sinv.indexOf(item));
             
         } else {
-            titem.am++; item.amount--; 
+            titem.amt++; item.amount--; 
             if (item.amount<=0||item.slot) {dom.invp1.removeChild(dom.invp1.children[inv.indexOf(item)]);removeItem(item,{fl:true})} else if(global.sm===1) updateInv(inv.indexOf(item)); else if(global.sm===item.stype) updateInv(global.sinv.indexOf(item));
         } if (titem.item.onTIn) titem.item.onTIn(trunk,titem); //  1 item moves into container
         } else {
             for(let a in inv) {if(inv[a].id===item.id&&!item.slot) {scann=true; titem=inv[a];break}}
             if(scann===false) { let fin; if(ni.nit.item.slot){for(let a in trunk.c){if(trunk.c[a].data.uid===ni.nit.data.uid){fin = trunk.c[a];break}}}else{for(let a in trunk.c){if(trunk.c[a].item.id===ni.nit.item.id){fin = trunk.c[a];break}}}
-            let g = giveItem(ni.nit.item,1,true,{fl:true});g.data=ni.nit.data;g.dp=ni.nit.dp;rendertrunkitem(dom.invp1,g);if(--fin.am<=0){ dom.invp2.removeChild(dom.invp2.children[trunk.c.indexOf(fin)]);removeFromContainer(trunk,fin)} if(trunk.c.length===0) global.dscr.style.display='none'
+            let g = giveItem(ni.nit.item,1,true,{fl:true});g.data=ni.nit.data;g.dp=ni.nit.dp;rendertrunkitem(dom.invp1,g);if(--fin.amt<=0){ dom.invp2.removeChild(dom.invp2.children[trunk.c.indexOf(fin)]);removeFromContainer(trunk,fin)} if(trunk.c.length===0) global.dscr.style.display='none'
             }
         else {
             titem.amount++ ;  let fin; for(let a in trunk.c){if(trunk.c[a].item.id===ni.nit.item.id){fin = trunk.c[a];break}}
-            if(--fin.am<=0) {dom.invp2.removeChild(dom.invp2.children[trunk.c.indexOf(fin)]);removeFromContainer(trunk,fin)}if(trunk.c.length===0) global.dscr.style.display='none';
+            if(--fin.amt<=0) {dom.invp2.removeChild(dom.invp2.children[trunk.c.indexOf(fin)]);removeFromContainer(trunk,fin)}if(trunk.c.length===0) global.dscr.style.display='none';
             if(global.sm===1) updateInv(inv.indexOf(item)); else if(global.sm===item.stype) updateInv(global.sinv.indexOf(item));
         } if (ni.nit.item.onTOut) ni.nit.item.onTOut(trunk,ni.nit); //  1 item moves out of container
         } iftrunkopen() }});
 }
 
-function updateTrunkItem(root, idx, item, am){ 
-    if(root.children[idx]) root.children[idx].children[1].innerHTML = item.slot?'':'x'+am;
+function updateTrunkItem(root, idx, item, amt){ 
+    if(root.children[idx]) root.children[idx].children[1].innerHTML = item.slot?'':'x'+amt;
 }
 
 function updateTrunkLeftItem(item, kill) {
@@ -15525,7 +15732,7 @@ function updateTrunkLeftItem(item, kill) {
 function iftrunkopen(side){ 
     if(global.menuo===3) { let trunk = global.cchest;
         if(!side||side===1)for(let obj in inv)updateTrunkItem(dom.invp1,obj,inv[obj],inv[obj].amount);
-        if(!side||side===2)for(let obj in trunk.c)updateTrunkItem(dom.invp2,obj,trunk.c[obj].item,trunk.c[obj].am);
+        if(!side||side===2)for(let obj in trunk.c)updateTrunkItem(dom.invp2,obj,trunk.c[obj].item,trunk.c[obj].amt);
         if(trunk.length===0) dom.invp2noth.style.display=''; else dom.invp2noth.style.display='none'
     }
 }
@@ -15533,23 +15740,23 @@ function iftrunkopen(side){
 function iftrunkopenc(side){
   if(global.menuo===3) { let trunk = global.cchest;
       if(!side||side===1){empty(dom.invp1);for(let obj in inv)rendertrunkitem(dom.invp1,inv[obj]);}
-      if(!side||side===2){empty(dom.invp2);for(let obj in trunk.c)rendertrunkitem(dom.invp2,trunk.c[obj].item,{right:true,nit:{item:trunk.c[obj].item,data:trunk.c[obj].data,am:trunk.c[obj].am,dp:trunk.c[obj].dp}});}
+      if(!side||side===2){empty(dom.invp2);for(let obj in trunk.c)rendertrunkitem(dom.invp2,trunk.c[obj].item,{right:true,nit:{item:trunk.c[obj].item,data:trunk.c[obj].data,amt:trunk.c[obj].amt,dp:trunk.c[obj].dp}});}
     if(trunk.length===0) dom.invp2noth.style.display=''; else dom.invp2noth.style.display='none'
   }
 }
 
-function addToContainer(cont, thing, am, data){
+function addToContainer(cont, thing, amt, data){
     let it = thing;
     if(thing.slot) it=deepCopy(thing);
     let r = {
         item : it,
-        am : am || 1,
+        amt : amt || 1,
         data : data || thing.data,
         dp : thing.slot ? thing.dp : 0
     };
     if (r.item.slot) r.data.uid =++ global.uid;
     cont.c.push(r);
-    if(global.menuo == 3) rendertrunkitem(dom.invp2,r.item,{right:true,nit:{item:r.item,data:r.data,am:r.am,dp:r.dp}});
+    if(global.menuo == 3) rendertrunkitem(dom.invp2,r.item,{right:true,nit:{item:r.item,data:r.data,amt:r.amt,dp:r.dp}});
     return r;
 }
 
@@ -15759,7 +15966,7 @@ chss.intro = new Chs({
             appear(dom.d_weather, dom.d_weathert); // show weather
 
             chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
-            achs('"Where am I..?"', () => {
+            achs('"Where amt I..?"', () => {
 
                 appear(dom.location); // show location
                 chs('???: "You\'re outside the village dojo... I found you here unconscious. Do you remember how you first arrived here?"');
@@ -15939,17 +16146,15 @@ chss.intro_western_woods2 = new Chs({
 
         achs("Continue deeper into the woods =>", () => {
             if (!global.flags.mountain_pills_taken) {
-                msg('It\'s better to be safe than sorry.', 'lightyellow');
-                msg('You consume the handful of pills.', 'darkgrey');
-                for (let a in inv) {
-                    if (inv[a] === item.handful_pills) {
-                        amt = inv[a].amount;
-                        inv[a].amount = 0;
-                        inv[a].use();
-                        removeItem(inv[a]);
-                    }
+                if (hasItem(item.handful_pills)) {
+                    msg('It\'s better to be safe than sorry.', 'lightyellow');
+                    msg('You consume the handful of pills.', 'darkgrey');     
+                    useItem(item.handful_pills)
+                    global.flags.mountain_pills_taken = true;               
+                } else {
+                  msg('It\'s better to be safe than sorry.', 'lightyellow');
+                  global.flags.mountain_pills_taken = true;
                 }
-                global.flags.mountain_pills_taken = true;
             } else {
                 msg('I took those spirit pills. I should be fine...', 'lightyellow');
             }
@@ -16000,7 +16205,7 @@ chss.intro_shack = new Chs({
     id: 110,
     sl: () => {
         global.flags.inside = true;
-        u_loc('|Shack, ???|')
+        u_loc('Shack, ???')
         chs()
     }
 });
@@ -16010,9 +16215,45 @@ chss.shack = new Chs({
     id: 111,
     sl: () => {
         global.flags.inside = true;
-        u_loc('|Shack, Training Grounds|');
+        u_loc('Shack, Training Grounds');
     }
 })
+
+chss.shack_bed = new Chs({
+    id: 112,
+    sl: () => {
+        u_loc('In bed, Shack');
+        if (you.alive === false) {
+            chs(select(['You lost consciousness...','You have been knocked out...','You passed out...']));
+            you.alive = true;
+        } else {
+            chs('You attempt to take a quick nap to sleep meditation however, you\'re not tired enough to get some quality sleep.');
+            //you fear the dangers of oversleeping
+        }
+
+        achs('<= Get up', () => {
+            move_to_area(chss.shack);
+        })
+    },
+    onStay: () => {
+        let hpr = (skl.sleep.use(home.bed)+(global.flags.catget ? 5 : 1)+1) << 0;
+        if (!effect.fei1.active && you.hp < you.hpmax) {
+            you.hp + hpr <= you.hpmax ? you.hp += hpr : you.hp = you.hpmax;
+            dom.d5_1_1.update();
+        }
+    },
+    onEnter: () => {
+        global.flags.sleepmode = true;
+        if (effect.slep.active === false) giveEff(you,effect.slep);
+        global.timescale = you.timescale_sleeping;
+    },
+    onLeave: () => {
+        global.flags.sleepmode = false;
+        global.timescale = 1;
+        removeEff(effect.slep); 
+    }
+})
+add_to_sector(sector.home, chss.shack_bed);
 
 
 chss.forestn1main = new Chs();
@@ -16043,7 +16284,7 @@ chss.forestn1main.sl = () => {
 
 chss.home = new Chs();
 chss.home.id = 111;
-addtosector(sector.home,chss.home); 
+add_to_sector(sector.home,chss.home); 
 chss.home.sl = () => {
     u_loc('Your Home');
 
@@ -16212,8 +16453,8 @@ chss.home.onScout=function(){scoutGeneric(this)}
 
 chss.village_center = new Chs();
 chss.village_center.id = 106;
-addtosector(sector.vcent,chss.village_center);
-addtosector(sector.vmain1,chss.village_center)
+add_to_sector(sector.vcent,chss.village_center);
+add_to_sector(sector.vmain1,chss.village_center)
 chss.village_center.sl = () => {
     global.flags.inside = false;
     u_loc('Village Center');
@@ -16655,7 +16896,7 @@ chss.forestn1main.sl = () => {
 
 chss.forestn1a3 = new Chs();
 chss.forestn1a3.id = 130;
-addtosector(sector.forest1,chss.forestn1a3);
+add_to_sector(sector.forest1,chss.forestn1a3);
 chss.forestn1a3.sl = () => {
     global.flags.inside=false;
     u_loc('Western Woods, They\'re Nearby');
@@ -16668,7 +16909,7 @@ chss.forestn1a3.onEnter=function(){
     area_init(area.forestn1a3);
 }
 
-chss.forestn1a4 = new Chs(); chss.forestn1a4.id = 161; addtosector(sector.forest1,chss.forestn1a4)
+chss.forestn1a4 = new Chs(); chss.forestn1a4.id = 161; add_to_sector(sector.forest1,chss.forestn1a4)
 chss.forestn1a4.sl=()=>{global.flags.inside=false; u_loc('Western Woods, Round Branches');  
   if(area.forestn1a4.size>0){
   chs('Something ambushes you!',true,'red');
@@ -16946,7 +17187,7 @@ chss.forestn1b1j.sl=()=>{  global.flags.inside=true;
   });
 }
 
-chss.forestn1a1 = new Chs(); chss.forestn1a1.id = 114; addtosector(sector.forest1,chss.forestn1a1)
+chss.forestn1a1 = new Chs(); chss.forestn1a1.id = 114; add_to_sector(sector.forest1,chss.forestn1a1)
 chss.forestn1a1.sl=()=>{global.flags.inside=false; u_loc('Western Woods, The Yellow Path');  
   chs('The woods are silent.',true);
   chs('"<= Return back"',false).addEventListener('click',()=>{
@@ -16957,7 +17198,7 @@ chss.forestn1a1.onEnter=function(){
   area_init(area.forestn1a2);
 }
 
-chss.forestn1a2 = new Chs(); chss.forestn1a2.id = 115; addtosector(sector.forest1,chss.forestn1a2)
+chss.forestn1a2 = new Chs(); chss.forestn1a2.id = 115; add_to_sector(sector.forest1,chss.forestn1a2)
 chss.forestn1a2.sl=()=>{
   global.flags.inside=false;
   u_loc('Western Woods, The Underbushes'); 
@@ -16979,7 +17220,7 @@ chss.forestn1a2.scout=[
 chss.forestn1a2.onScout=function(){scoutGeneric(this)}
 
 
-chss.forestn2a1 = new Chs(); chss.forestn2a1.id = 120;  addtosector(sector.forest1,chss.forestn2a1)
+chss.forestn2a1 = new Chs(); chss.forestn2a1.id = 120;  add_to_sector(sector.forest1,chss.forestn2a1)
 chss.forestn2a1.sl=()=>{global.flags.inside=false; u_loc('Western Woods, The Shaded Path');  
   chs('The woods are .',true);
   chs('"<= Return back"',false).addEventListener('click',()=>{
@@ -17016,7 +17257,7 @@ chss.forestn9a1m.onEnter=function(){
 
 chss.marketplace = new Chs();
 chss.marketplace.id = 127;
-addtosector(sector.vmain1,chss.marketplace);
+add_to_sector(sector.vmain1,chss.marketplace);
 chss.marketplace.sl = () => {
     u_loc('Village Center, Marketplace');
     chs('The marketplace feels busy');
@@ -17167,7 +17408,7 @@ chss.jbgd1.onLeave=function(){
 chss.fdwrg1qt = new Chs(); chss.fdwrg1qt.id = 165; 
 chss.fdwrg1qt.sl=()=>{
     u_loc('Marketplace, Stalls'); 
-    chs('"<span style="color:cyan">Nervous Guy:</span> Argh, what am I gonna do now! How could this... Uh? S-sorry, can\'t talk right now, please leave me be. Ahh damn it..."<div style="color: darkgrey">The man then proceeds to fidget in unrest</div>',true)
+    chs('"<span style="color:cyan">Nervous Guy:</span> Argh, what amt I gonna do now! How could this... Uh? S-sorry, can\'t talk right now, please leave me be. Ahh damn it..."<div style="color: darkgrey">The man then proceeds to fidget in unrest</div>',true)
     chs('"<= Walk away"',false).addEventListener('click',()=>{ 
         move_to_area(chss.marketplace,false);
     });
@@ -17314,8 +17555,8 @@ chss.pha1.onScout = function() {
 chss.vendor1 = new Chs();
 chss.vendor1.id = 116;
 chss.vendor1.effectors=[{e:effector.shop}];
-addtosector(sector.vcent,chss.vendor1);
-addtosector(sector.vmain1,chss.vendor1)
+add_to_sector(sector.vcent,chss.vendor1);
+add_to_sector(sector.vmain1,chss.vendor1)
 chss.vendor1.sl=()=>{
     u_loc('Village Center, Street Food Stand');
 
@@ -17345,7 +17586,7 @@ chss.vendor1.sl=()=>{
     });    
 }
 
-chss.vendorkid1 = new Chs(); chss.vendorkid1.id = 123; chss.vendorkid1.shop=true; addtosector(sector.vcent,chss.vendorkid1); addtosector(sector.vmain1,chss.vendorkid1)
+chss.vendorkid1 = new Chs(); chss.vendorkid1.id = 123; chss.vendorkid1.shop=true; add_to_sector(sector.vcent,chss.vendorkid1); add_to_sector(sector.vmain1,chss.vendorkid1)
 chss.vendorkid1.sl=()=>{ u_loc('Village Center, Child Trader'); 
   vendor.kid1.restocked=false; clearInterval(timers.vndrstkchk); timers.vndrstkchk=setInterval(function(){if(vendor.kid1.restocked===true){clearInterval(timers.vndrstkchk);vendor.kid1.restocked=false;msg('You, step out for a moment, I\'m getting new stuff');move_to_area(chss.village_center,false);}});
   let hi = 'Hey, I\'ve got some good stuff for you'; dom.vndr1 = chs(hi,true);
@@ -17432,8 +17673,8 @@ chss.tst.sl=()=>{ u_loc('Test');
 
 chss.cat1 = new Chs();
 chss.cat1.id = 107;
-addtosector(sector.vcent,chss.cat1);
-addtosector(sector.vmain1,chss.cat1)
+add_to_sector(sector.vcent,chss.cat1);
+add_to_sector(sector.vmain1,chss.cat1)
 chss.cat1.sl = () => {
     u_loc('Rock Path, Cat');
     let w = !global.stat.cat_c ? chs('There is a cat.', true) : chs('There is a cat. Pets: ' + global.stat.cat_c, true);
@@ -17532,8 +17773,8 @@ global.text.mbrdtt = [
 
 chss.message_board = new Chs();
 chss.message_board.id = 108;
-addtosector(sector.vcent,chss.message_board);
-addtosector(sector.vmain1,chss.message_board);
+add_to_sector(sector.vcent,chss.message_board);
+add_to_sector(sector.vmain1,chss.message_board);
 chss.message_board.sl=()=>{
     u_loc('Village Center, Message Board');
 
@@ -17587,8 +17828,8 @@ chss.message_board.sl=()=>{
 
 chss.xpgdqt1 = new Chs();
 chss.xpgdqt1.id = 167;
-addtosector(sector.vcent,chss.xpgdqt1);
-addtosector(sector.vmain1,chss.xpgdqt1)
+add_to_sector(sector.vcent,chss.xpgdqt1);
+add_to_sector(sector.vmain1,chss.xpgdqt1)
 chss.xpgdqt1.sl=()=>{ 
     u_loc('Village Center, Message Board');
     chs('<span style="color:lime">Xiao Xiao</span>: "What is it what is it?"',true);
@@ -17686,7 +17927,7 @@ chss.trd.sl=function(b, x, last_location_id){
 global.text.bssel = ['Ack! There\'s dust and cobweb everywhere in this place','Spiderweb lands on your face as you enter','Various broken garbage is littered around','You step on some glass shards and crush them']
 global.text.bsseldark = ['Ack! Something touches you from the darkness','You step in and something crunches underneath','You feel like something moved in front of you','You touched cobweb and felt gross']
 
-chss.bsmnthm1 = new Chs(); chss.bsmnthm1.id = 158; addtosector(sector.home,chss.bsmnthm1); chss.bsmnthm1.effectors=[{e:effector.dark}]
+chss.bsmnthm1 = new Chs(); chss.bsmnthm1.id = 158; add_to_sector(sector.home,chss.bsmnthm1); chss.bsmnthm1.effectors=[{e:effector.dark}]
 chss.bsmnthm1.sl=()=>{u_loc('Your Home, Basement'); 
   if(area.hmbsmnt.size>0) {
     chs('Argh! This place is infested!',true,'red');
@@ -17737,7 +17978,7 @@ chss.bsmnthm1.onScout=function(){scoutGeneric(this)}
 
 chss.home_bed = new Chs();
 chss.home_bed.id = 112;
-addtosector(sector.home, chss.home_bed)
+add_to_sector(sector.home, chss.home_bed)
 chss.home_bed.sl=()=>{
     u_loc('Your Home, Bed');
     let extra='';
@@ -17777,7 +18018,7 @@ chss.home_bed.onLeave=function(){
     removeEff(effect.slep); 
 }
 
-chss.ofrplc = new Chs(); chss.ofrplc.id = 117; addtosector(sector.home,chss.ofrplc)
+chss.ofrplc = new Chs(); chss.ofrplc.id = 117; add_to_sector(sector.home,chss.ofrplc)
     chss.ofrplc.sl=()=>{u_loc('Your Home, Fireplace'); let fire = findbyid(furn,furniture.frplc.id); 
     //dom.location_text.innerHTML+='<span style="color:orange;font-size:1.2em">&nbspⓞ<span>'
     let its = []
@@ -17817,7 +18058,7 @@ chss.ofrplc = new Chs(); chss.ofrplc.id = 117; addtosector(sector.home,chss.ofrp
   
 }
 
-chss.sboxhm = new Chs(); chss.sboxhm.id = 131; addtosector(sector.home,chss.sboxhm)
+chss.sboxhm = new Chs(); chss.sboxhm.id = 131; add_to_sector(sector.home,chss.sboxhm)
 chss.sboxhm.sl=()=>{ u_loc('Your Home, Storage Box'); 
 //  chs('"Your botomless storage container, full of your belongings"',true)
   chs_spec(3,home.trunk)
@@ -17830,7 +18071,7 @@ global.text.catasound=['You are hearing weird sounds','Crunching sound echoes','
 'Something growls in the distance','Damp stagnant air of the underground makes it difficult to breathe','You hear bones','You notice something move in the darkness',
 'You feel sinister aura','Aged walls have something written on them, but you are unable to decipher what it is','Bone bits are littered on the ground','Old rotting cloth is hanging from the walls','Something rusty sparkes from below','old stale air fills your lungs'];
 
-chss.catamn = new Chs(); chss.catamn.id = 132; addtosector(sector.cata1,chss.catamn); 
+chss.catamn = new Chs(); chss.catamn.id = 132; add_to_sector(sector.cata1,chss.catamn); 
 chss.catamn.sl=()=>{ u_loc('Catacombs, The Entryway'); 
   chs('"You have entered the Catacombs"',true,'lightgrey','black')
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -17841,7 +18082,7 @@ chss.catamn.sl=()=>{ u_loc('Catacombs, The Entryway');
   });
 }
 
-chss.cata1 = new Chs(); chss.cata1.id = 133; addtosector(sector.cata1,chss.cata1)
+chss.cata1 = new Chs(); chss.cata1.id = 133; add_to_sector(sector.cata1,chss.cata1)
 chss.cata1.sl=()=>{ u_loc('Catacombs, The Casket Service');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"← Move West"',false).addEventListener('click',()=>{ 
@@ -17855,7 +18096,7 @@ chss.cata1.sl=()=>{ u_loc('Catacombs, The Casket Service');
   });
 }
 
-chss.cata2 = new Chs(); chss.cata2.id = 134; addtosector(sector.cata1,chss.cata2)
+chss.cata2 = new Chs(); chss.cata2.id = 134; add_to_sector(sector.cata1,chss.cata2)
 chss.cata2.sl=()=>{ u_loc('Catacombs, The Mourning Hall');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"← Move West"',false).addEventListener('click',()=>{ 
@@ -17866,7 +18107,7 @@ chss.cata2.sl=()=>{ u_loc('Catacombs, The Mourning Hall');
   });
 }
 
-chss.cata3 = new Chs(); chss.cata3.id = 135; addtosector(sector.cata1,chss.cata3)
+chss.cata3 = new Chs(); chss.cata3.id = 135; add_to_sector(sector.cata1,chss.cata3)
 chss.cata3.sl=()=>{ u_loc('Catacombs, The Last Breath');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -17877,7 +18118,7 @@ chss.cata3.sl=()=>{ u_loc('Catacombs, The Last Breath');
   });
 }
 
-chss.cata4 = new Chs(); chss.cata4.id = 136; addtosector(sector.cata1,chss.cata4)
+chss.cata4 = new Chs(); chss.cata4.id = 136; add_to_sector(sector.cata1,chss.cata4)
 chss.cata4.sl=()=>{ u_loc('Catacombs, Tunnel of the Dead');  
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -17888,7 +18129,7 @@ chss.cata4.sl=()=>{ u_loc('Catacombs, Tunnel of the Dead');
   });
 }
 
-chss.cata5 = new Chs(); chss.cata5.id = 137; addtosector(sector.cata1,chss.cata5)
+chss.cata5 = new Chs(); chss.cata5.id = 137; add_to_sector(sector.cata1,chss.cata5)
 chss.cata5.sl=()=>{ u_loc('Catacombs, Movement Below');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -17902,7 +18143,7 @@ chss.cata5.sl=()=>{ u_loc('Catacombs, Movement Below');
   });
 }
 
-chss.cata6 = new Chs(); chss.cata6.id = 138; addtosector(sector.cata1,chss.cata6)
+chss.cata6 = new Chs(); chss.cata6.id = 138; add_to_sector(sector.cata1,chss.cata6)
 chss.cata6.sl=()=>{ u_loc('Catacombs, The Web Corridor');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -17913,7 +18154,7 @@ chss.cata6.sl=()=>{ u_loc('Catacombs, The Web Corridor');
   });
 }
 
-chss.cata7 = new Chs(); chss.cata7.id = 139; addtosector(sector.cata1,chss.cata7)
+chss.cata7 = new Chs(); chss.cata7.id = 139; add_to_sector(sector.cata1,chss.cata7)
 chss.cata7.sl=()=>{ u_loc('Catacombs, Grievance'); 
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"← Move West"',false).addEventListener('click',()=>{ 
@@ -17924,7 +18165,7 @@ chss.cata7.sl=()=>{ u_loc('Catacombs, Grievance');
   });
 }
 
-chss.cata8 = new Chs(); chss.cata8.id = 140; addtosector(sector.cata1,chss.cata8)
+chss.cata8 = new Chs(); chss.cata8.id = 140; add_to_sector(sector.cata1,chss.cata8)
 chss.cata8.sl=()=>{ u_loc('Catacombs, Forgotten Post');  
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"← Move West"',false).addEventListener('click',()=>{ 
@@ -17935,7 +18176,7 @@ chss.cata8.sl=()=>{ u_loc('Catacombs, Forgotten Post');
   });
 }
 
-chss.cata9 = new Chs(); chss.cata9.id = 141; addtosector(sector.cata1,chss.cata9)
+chss.cata9 = new Chs(); chss.cata9.id = 141; add_to_sector(sector.cata1,chss.cata9)
 chss.cata9.sl=()=>{ u_loc('Catacombs, Withered Hand');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"→ Move East"',false).addEventListener('click',()=>{ 
@@ -17946,7 +18187,7 @@ chss.cata9.sl=()=>{ u_loc('Catacombs, Withered Hand');
   });
 }
 
-chss.cata10 = new Chs(); chss.cata10.id = 142; addtosector(sector.cata1,chss.cata10)
+chss.cata10 = new Chs(); chss.cata10.id = 142; add_to_sector(sector.cata1,chss.cata10)
 chss.cata10.sl=()=>{ u_loc('Catacombs, The Rusted Arc');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -17957,7 +18198,7 @@ chss.cata10.sl=()=>{ u_loc('Catacombs, The Rusted Arc');
   });
 }
 
-chss.cata11 = new Chs(); chss.cata11.id = 143; addtosector(sector.cata1,chss.cata11)
+chss.cata11 = new Chs(); chss.cata11.id = 143; add_to_sector(sector.cata1,chss.cata11)
 chss.cata11.sl=()=>{ u_loc('Catacombs, Old One\'s Destination');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -17968,7 +18209,7 @@ chss.cata11.sl=()=>{ u_loc('Catacombs, Old One\'s Destination');
   });
 }
 
-chss.cata12 = new Chs(); chss.cata12.id = 144; addtosector(sector.cata1,chss.cata12)
+chss.cata12 = new Chs(); chss.cata12.id = 144; add_to_sector(sector.cata1,chss.cata12)
 chss.cata12.sl=()=>{ u_loc('Catacombs, Thawing Candles'); 
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"← Move West"',false).addEventListener('click',()=>{ 
@@ -17979,7 +18220,7 @@ chss.cata12.sl=()=>{ u_loc('Catacombs, Thawing Candles');
   });
 }
 
-chss.cata13 = new Chs(); chss.cata13.id = 145; addtosector(sector.cata1,chss.cata13)
+chss.cata13 = new Chs(); chss.cata13.id = 145; add_to_sector(sector.cata1,chss.cata13)
 chss.cata13.sl=()=>{ u_loc('Catacombs, The Endless Echoes'); 
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"← Move West"',false).addEventListener('click',()=>{ 
@@ -17990,7 +18231,7 @@ chss.cata13.sl=()=>{ u_loc('Catacombs, The Endless Echoes');
   });
 }
 
-chss.cata14 = new Chs(); chss.cata14.id = 146; addtosector(sector.cata1,chss.cata14)
+chss.cata14 = new Chs(); chss.cata14.id = 146; add_to_sector(sector.cata1,chss.cata14)
 chss.cata14.sl=()=>{ u_loc('Catacombs, The Dusty Underpass');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -18001,7 +18242,7 @@ chss.cata14.sl=()=>{ u_loc('Catacombs, The Dusty Underpass');
   });
 }
 
-chss.cata15 = new Chs(); chss.cata15.id = 147; addtosector(sector.cata1,chss.cata15)
+chss.cata15 = new Chs(); chss.cata15.id = 147; add_to_sector(sector.cata1,chss.cata15)
 chss.cata15.sl=()=>{ u_loc('Catacombs, Light\'s Corner');  
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -18012,7 +18253,7 @@ chss.cata15.sl=()=>{ u_loc('Catacombs, Light\'s Corner');
   });
 }
 
-chss.cata16 = new Chs(); chss.cata16.id = 148; addtosector(sector.cata1,chss.cata16)
+chss.cata16 = new Chs(); chss.cata16.id = 148; add_to_sector(sector.cata1,chss.cata16)
 chss.cata16.sl=()=>{ u_loc('Catacombs, Son\'s Last Visit');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -18023,7 +18264,7 @@ chss.cata16.sl=()=>{ u_loc('Catacombs, Son\'s Last Visit');
   });
 }
 
-chss.cata17 = new Chs(); chss.cata17.id = 149; addtosector(sector.cata1,chss.cata17)
+chss.cata17 = new Chs(); chss.cata17.id = 149; add_to_sector(sector.cata1,chss.cata17)
 chss.cata17.sl=()=>{ u_loc('Catacombs, The Stone Plate');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -18034,7 +18275,7 @@ chss.cata17.sl=()=>{ u_loc('Catacombs, The Stone Plate');
   });
 }
 
-chss.cata18 = new Chs(); chss.cata18.id = 150; addtosector(sector.cata1,chss.cata18)
+chss.cata18 = new Chs(); chss.cata18.id = 150; add_to_sector(sector.cata1,chss.cata18)
 chss.cata18.sl=()=>{ u_loc('Catacombs, Cracked Passageway');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"← Move West"',false).addEventListener('click',()=>{ 
@@ -18045,7 +18286,7 @@ chss.cata18.sl=()=>{ u_loc('Catacombs, Cracked Passageway');
   });
 }
 
-chss.cata19 = new Chs(); chss.cata19.id = 151; addtosector(sector.cata1,chss.cata19)
+chss.cata19 = new Chs(); chss.cata19.id = 151; add_to_sector(sector.cata1,chss.cata19)
 chss.cata19.sl=()=>{ u_loc('Catacombs, The Limited Leeway'); 
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"← Move West"',false).addEventListener('click',()=>{ 
@@ -18056,7 +18297,7 @@ chss.cata19.sl=()=>{ u_loc('Catacombs, The Limited Leeway');
   });
 }
 
-chss.cata20 = new Chs(); chss.cata20.id = 152; addtosector(sector.cata1,chss.cata20)
+chss.cata20 = new Chs(); chss.cata20.id = 152; add_to_sector(sector.cata1,chss.cata20)
 chss.cata20.sl=()=>{ u_loc('Catacombs, The Brittle Turn');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"→ Move East"',false).addEventListener('click',()=>{ 
@@ -18067,7 +18308,7 @@ chss.cata20.sl=()=>{ u_loc('Catacombs, The Brittle Turn');
   });
 }
 
-chss.cata21 = new Chs(); chss.cata21.id = 153; addtosector(sector.cata1,chss.cata21)
+chss.cata21 = new Chs(); chss.cata21.id = 153; add_to_sector(sector.cata1,chss.cata21)
 chss.cata21.sl=()=>{ u_loc('Catacombs, Bright Ray Above');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -18078,7 +18319,7 @@ chss.cata21.sl=()=>{ u_loc('Catacombs, Bright Ray Above');
   });
 }
 
-chss.cata22 = new Chs(); chss.cata22.id = 154; addtosector(sector.cata1,chss.cata22)
+chss.cata22 = new Chs(); chss.cata22.id = 154; add_to_sector(sector.cata1,chss.cata22)
 chss.cata22.sl=()=>{ u_loc('Catacombs, Nowhere To Run');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -18089,7 +18330,7 @@ chss.cata22.sl=()=>{ u_loc('Catacombs, Nowhere To Run');
   });
 }
 
-chss.cata23 = new Chs(); chss.cata23.id = 155; addtosector(sector.cata1,chss.cata23)
+chss.cata23 = new Chs(); chss.cata23.id = 155; add_to_sector(sector.cata1,chss.cata23)
 chss.cata23.sl=()=>{ u_loc('Catacombs, The Aging Room'); 
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -18100,7 +18341,7 @@ chss.cata23.sl=()=>{ u_loc('Catacombs, The Aging Room');
   });
 }
 
-chss.cata24 = new Chs(); chss.cata24.id = 156; addtosector(sector.cata1,chss.cata24)
+chss.cata24 = new Chs(); chss.cata24.id = 156; add_to_sector(sector.cata1,chss.cata24)
 chss.cata24.sl=()=>{ u_loc('Catacombs, Eleven Wisemen');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"↑ Move North"',false).addEventListener('click',()=>{ 
@@ -18111,7 +18352,7 @@ chss.cata24.sl=()=>{ u_loc('Catacombs, Eleven Wisemen');
   });
 }
 
-chss.cata25 = new Chs(); chss.cata25.id = 157; addtosector(sector.cata1,chss.cata25)
+chss.cata25 = new Chs(); chss.cata25.id = 157; add_to_sector(sector.cata1,chss.cata25)
 chss.cata25.sl=()=>{ u_loc('Catacombs, The End Of Journey');
   chs(select(global.text.catasound),true,'lightgrey','black');
   chs('"→ Move East"',false).addEventListener('click',()=>{ 
@@ -18257,7 +18498,7 @@ chss.charintro_riverman.sl = () => {
                     chs('Old Man: "Heh... I remember it being like this for a little while when I was young, too. The energy present in all things in nature runs its course and finds its cycle disrupted. Nature mutates and evolves on its own, and sometimes it gives rise to something like this contamination. There are different things that can spur it on... its effects started getting stronger a couple months ago."');
                     achs('"Is there any way to stop it?"', () => {
                         chs('Old Man: "Why yes but, an endeavour like that might take the peace of living out of a young person with potential like yourself. Nature will run its course, and it\'ll all dissipate eventually, I\'m sure. For now, focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water."');
-                        achs('"I\'m not going to die, am I?"', () => {
+                        achs('"I\'m not going to die, amt I?"', () => {
                             chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on a rest day."');
                             achs('"Thank you." *Take the charm*', () => {
                                 giveItem(acc.river_charm);
@@ -18301,7 +18542,7 @@ chss.riverman.sl = () => {
     if (!global.flags.gotten_river_charm) {
         achs('"I drank some of the water."', () => {
             chs('Old Man: "Ugh, you\'re killing me!.. Why are so many youngsters trying to get themselves killed these days... For now, please just focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water."');
-            achs('I\'m not going to die, am I?', () => {
+            achs('I\'m not going to die, amt I?', () => {
                 chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on your worst day."');
                 achs('"Thank you." Take the charm', () => {
                     giveItem(acc.river_charm);
@@ -19023,11 +19264,11 @@ function scoutGeneric(chs){
 
 function disassembleGeneric(obj){
   for(let a in obj.dss){
-    let am = obj.dss[a].amount;
-    if(obj.dss[a].q) am = (am+am*(obj.dss[a].q*skl.dssmb.lvl))<<0;
-    if(obj.dss[a].max) if(am>obj.dss[a].max) am = obj.dss[a].max;
-    let c = 1; if(obj.slot) c = obj.dp/obj.dpmax; am=Math.ceil(am/(2-c));
-    giveItem(obj.dss[a].item,am)
+    let amt = obj.dss[a].amount;
+    if(obj.dss[a].q) amt = (amt+amt*(obj.dss[a].q*skl.dssmb.lvl))<<0;
+    if(obj.dss[a].max) if(amt>obj.dss[a].max) amt = obj.dss[a].max;
+    let c = 1; if(obj.slot) c = obj.dp/obj.dpmax; amt=Math.ceil(amt/(2-c));
+    giveItem(obj.dss[a].item,amt)
   } giveSkExp(skl.dssmb,(2**obj.rar||1)*5-9.5); global.stat.dsst++;
   if(obj.slot)removeItem(obj);else{obj.amount--;if(obj.amount<=0) removeItem(obj); else if(obj.stype===global.sm)updateInv(global.sinv.indexOf(obj));else if(global.sm===1) updateInv(inv.indexOf(obj))}
 }
@@ -19152,7 +19393,7 @@ function nograd(s){
   }
 }
 
-function reduce(itm,am){if(am) {itm.amount=itm.amount-am<=0?0:itm.amount-am}if(itm.amount<=0) {removeItem(itm);updateTrunkLeftItem(itm,true)} else if(global.sm===1) updateInv(inv.indexOf(itm)); else if(global.sm===itm.stype) updateInv(global.sinv.indexOf(itm));updateTrunkLeftItem(itm)}
+function reduce(itm,amt){if(amt) {itm.amount=itm.amount-amt<=0?0:itm.amount-amt}if(itm.amount<=0) {removeItem(itm);updateTrunkLeftItem(itm,true)} else if(global.sm===1) updateInv(inv.indexOf(itm)); else if(global.sm===itm.stype) updateInv(global.sinv.indexOf(itm));updateTrunkLeftItem(itm)}
 function cansee(){if((global.flags.isdark&&you.mods.light>0)||skl.ntst.lvl>=12)return true}
 
 function col(txt,c,bc){
@@ -19274,14 +19515,14 @@ function _dbgspawn(arr, times){
   let result=[]; for(let g = 0;g<times;g++){
     for(let a in arr) { let t = 0; 
       if(random()<arr[a].chance+(arr[a].chance/100*you.luck)){ 
-        for(let b in result) {if(result[b].item.id===arr[a].item.id) {result[b].am++;break}
-        if(++t===result.length) result.push({item:arr[a].item,am:1});}
-        if(!result.length>0) result.push({item:arr[a].item,am:1});
+        for(let b in result) {if(result[b].item.id===arr[a].item.id) {result[b].amt++;break}
+        if(++t===result.length) result.push({item:arr[a].item,amt:1});}
+        if(!result.length>0) result.push({item:arr[a].item,amt:1});
       }
     }
   }
   console.log('Spawn from the drop array '+times+' times\n::RESULT::');
-  for(let a in result) console.log(result[a].item.name+': x'+result[a].am)
+  for(let a in result) console.log(result[a].item.name+': x'+result[a].amt)
   console.log('::END::')
 }
 
@@ -19306,8 +19547,8 @@ function giveall(what) { //**
   }*/
 }
 
-function scan(arr, val, am){
-    if(am) {for (let obj in arr) if (arr[obj].id === val.id&&arr[obj].amount>=am) return true}
+function scan(arr, val, amt){
+    if(amt) {for (let obj in arr) if (arr[obj].id === val.id&&arr[obj].amount>=amt) return true}
     else for (let obj in arr) if (arr[obj] === val) return true;
 }
 
@@ -19357,11 +19598,11 @@ planner.chkrot.f = function(){
     for(let a in planner.chkrot.data.items){ 
         let itm = planner.chkrot.data.items[a]; let wmod = 1; if(getSeason()===2) wmod = 0.5; else if(getSeason()===4) wmod = 2.5; itm.data.rottil+=randf(itm.rot[0]/wmod,itm.rot[1]/wmod);
         if(itm.data.rottil>=1){
-        let am = (itm.amount*randf(itm.rot[2],itm.rot[3])+1)<<0; itm.data.rottil--; itm.amount-=am;
+        let amt = (itm.amount*randf(itm.rot[2],itm.rot[3])+1)<<0; itm.data.rottil--; itm.amount-=amt;
         if(itm.stype===global.sm)updateInv(global.sinv.indexOf(itm));else if(global.sm===1) updateInv(inv.indexOf(itm));
         if(itm.amount<=0) {planner.chkrot.data.items.splice(planner.chkrot.data.items.indexOf(itm));removeItem(itm)}
-        msg('Your <span style="color:cyan">x'+am+'</span> <span style="color: orange">'+itm.name+'</span> '+select(['rotted away','went bad','spoiled'])+'!','yellow',null,null,'green')
-        if(itm.onChange) itm.onChange(am)
+        msg('Your <span style="color:cyan">x'+amt+'</span> <span style="color: orange">'+itm.name+'</span> '+select(['rotted away','went bad','spoiled'])+'!','yellow',null,null,'green')
+        if(itm.onChange) itm.onChange(amt)
         }
     }
 }; 
@@ -19375,10 +19616,10 @@ planner.imorph.f = function(){
         case 1:
         let itm = planner.imorph.data.items[a]; let wmod = 1; switch(getSeason()){case 2:wmod = 0.5;break;case 4:wmod = 2.5;break}; itm.data.rottil+=randf(itm.rot[0]/wmod,itm.rot[1]/wmod);
         if(itm.data.rottil>=1){
-            let am = (itm.amount*randf(itm.rot[2],itm.rot[3])+1)<<0; itm.data.rottil--; 
-            reduce(itm,am); if(itm.amount<=0) planner.imorph.data.items.splice(planner.imorph.data.items.indexOf(itm));
-            msg('Your <span style="color:cyan">x'+am+'</span> <span style="color: orange">'+itm.name+'</span> '+select(['rotted away','went bad','spoiled'])+'!','yellow',null,null,'green')
-            if(itm.onChange) itm.onChange(am)
+            let amt = (itm.amount*randf(itm.rot[2],itm.rot[3])+1)<<0; itm.data.rottil--; 
+            reduce(itm,amt); if(itm.amount<=0) planner.imorph.data.items.splice(planner.imorph.data.items.indexOf(itm));
+            msg('Your <span style="color:cyan">x'+amt+'</span> <span style="color: orange">'+itm.name+'</span> '+select(['rotted away','went bad','spoiled'])+'!','yellow',null,null,'green')
+            if(itm.onChange) itm.onChange(amt)
         } break;
         }
     }
@@ -19392,12 +19633,12 @@ planner.cchk.f = function(){
         let itm = container.home_strg.c[a].item; let data = container.home_strg.c[a].data; 
         let wmod = 1; switch(getSeason()){case 2:wmod = 0.25;break;case 4:wmod = 1.25;break}; data.rottil+=randf(itm.rot[0]/wmod,itm.rot[1]/wmod);
         if(data.rottil>=1){ 
-            let am = (itm.amount*randf(itm.rot[2],itm.rot[3])+1)<<0; data.rottil--;  
-            container.home_strg.c[a].am-=am; if(container.home_strg.c[a].am<=0) removeFromContainer(container.home_strg,container.home_strg.c[a]); 
+            let amt = (itm.amount*randf(itm.rot[2],itm.rot[3])+1)<<0; data.rottil--;  
+            container.home_strg.c[a].amt-=amt; if(container.home_strg.c[a].amt<=0) removeFromContainer(container.home_strg,container.home_strg.c[a]); 
             if(itm.onChange) { 
-            let nitm = itm.onChange(am,true); 
+            let nitm = itm.onChange(amt,true); 
             let citm = false; for(let b in container.home_strg.c) if(container.home_strg.c[b].item.id===nitm[0].id) {citm = container.home_strg.c[b];break}
-            if(citm) citm.am+=nitm[1]; else addToContainer(container.home_strg,nitm[0],nitm[1]);
+            if(citm) citm.amt+=nitm[1]; else addToContainer(container.home_strg,nitm[0],nitm[1]);
             } iftrunkopenc();
         }
         }
