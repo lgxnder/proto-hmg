@@ -15990,7 +15990,7 @@ chss.intro = new Chs({
             appear(dom.d_weather, dom.d_weathert); // show weather
 
             chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
-            achs('"Where amt I..?"', () => {
+            achs('"Where am I..?"', () => {
 
                 appear(dom.location); // show location
                 chs('???: "You\'re outside the village dojo... I found you here unconscious. Do you remember how you first arrived here?"');
@@ -16159,9 +16159,9 @@ chss.intro_western_woods_note = new Chs({
     id: 106,
     sl: () => {
         // don't need to update location here
-        chs('<div style="text-align:left">"Gone up north for the time being. For any poor soul who\'s wandered out here"+\
-            "without the strength to confront what lurks beyond the whispers of the wind that pass by every tree branch"+\
-            ", steele yourself.</div><br>Be kind to the woods."<br><br><div style="text-align:right">一Head Hunter, Yamato</div>');
+        chs('<div style="text-align:left;margin-left:4px;">"Gone up north for the time being. For any poor soul who\'s wandered out here\
+            without the strength to confront what lurks beyond the whispers of the wind that pass by every tree branch,\
+            steele yourself.</div><br>Be kind to the woods."<br><br><div style="text-align:right">一Head Hunter, Yamato</div>');
 
         achs('"Alrighty."', () => {
             move_to_area(chss.intro_western_woods1);
@@ -16174,8 +16174,8 @@ chss.intro_western_woods2 = new Chs({
     id: 107,
     sl: () => {
         u_loc('Deep Forest, Western Woods');
-        chs('You feel the hairs on the back of your neck stand up as the wind that flows around the trees momentarily"+\
-            "circles around you. You brush that feeling off, but your footing stays rooted into the ground.');
+        chs('You feel the hairs on the back of your neck stand up as the wind that flows around the trees momentarily\
+            circles around you. You brush that feeling off, but your footing stays rooted into the ground.');
 
         achs("Continue deeper into the woods =>", () => {
             if (!global.flags.mountain_pills_taken) {
