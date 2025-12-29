@@ -15,9 +15,6 @@
 <body class='noselect'>
 <script>
 
-global = new Object();
-let tempt = new Date();
-
 const YEAR = 518400;
 const MONTH = 43200;
 const DAY = 1440;
@@ -29,7 +26,11 @@ const GOLD = 10000;
 
 main();
 
-function main () {
+function main() {
+    tempt = new Date();
+    time = new Time();
+    time.minute = 338144100; //@Todo base game is monday 652/4/13/7:47
+  
     define_global();
     setup_data_objects();
     setup_dom();
@@ -49,7 +50,9 @@ function main () {
     define_items_generic();
 }
 
-function define_global () {
+function define_global() {
+    global = new Object();
+
     global.flags = {
         btl:       false,
         civil:     true,
@@ -260,7 +263,7 @@ function setup_data_objects() {
     acc = new Object();
     itemgroup = [item,wpn,eqp,sld,acc];
     rcp = new Object();
-    area = new Object();
+    zone = new Object();
     timers = new Object();
     chss = new Object();
     ttl = new Object();
@@ -306,9 +309,7 @@ function setup_world () {
     global.loc_spawn = chss.shack_bed;
 }
 
-
-//** If `lvr` is undefined or false, it will leave a simple "Game Saved" message in the message log.
-function save(lvr) {
+function save(isVerbose=false) {
     let storage = window.localStorage;
     global.flags.savestate = true;
     global.stat.gsvs++;
@@ -530,8 +531,8 @@ function save(lvr) {
     
     let a5 = [];
     let xx = 0;
-    for (let o in area) {
-        a5[xx++] = area[o].size;
+    for (let o in zone) {
+        a5[xx++] = zone[o].size;
     }
     str += JSON.stringify(a5);
     str +='|';
@@ -660,7 +661,7 @@ function save(lvr) {
     storage.setItem("v0.3", str);
     global.flags.savestate = false;
     
-    if (!lvr) {
+    if (isVerbose) {
         msg('Game Saved','cyan'); 
     }
     
@@ -975,9 +976,9 @@ function load(dt) {
         global.lw_op = 0;
         
         if (global.flags.civil === false && global.flags.btl === true) {
-            for (let obj in area) {
-                if (area[obj].id === a1.x) {
-                    area_init(area[obj]);
+            for (let obj in zone) {
+                if (zone[obj].id === a1.x) {
+                    zone_init(zone[obj]);
                     break;
                 }
             }
@@ -1124,9 +1125,9 @@ function load(dt) {
 
         let a5 = JSON.parse(str[7]);
         let xx = 0;
-        for (let o in area) {
+        for (let o in zone) {
             if (a5[xx]) {
-                area[o].size = a5[xx++];
+                zone[o].size = a5[xx++];
             }
         }
 
@@ -1219,7 +1220,7 @@ function load(dt) {
         global.flags.rdng = false;
         global.flags.civil = true;
         global.flags.btl = false;
-        global.current_z = area.nwh;
+        global.current_z = zone.nwh;
         global.current_m = creature.default;
         update_m();
         dom.d7m.update();
@@ -3444,9 +3445,6 @@ function Time() {
     this.year = 0;
 }
 
-time = new Time();
-time.minute = 338144100; 
-
 
 function callbackManager(id) {
     this.id = id || 0
@@ -4648,7 +4646,7 @@ function define_skills() {
 
     skl.hst = new Skill(); skl.hst.id = 159; skl.hvt.type=8;
     skl.hst.name = 'Harvesting';  
-    skl.hst.desc = 'Ability to find and collect usable materials from the surroundings'+dom.dseparator+'<small style="color:darkorange">Increases chances of obtaining area loot</small>';
+    skl.hst.desc = 'Ability to find and collect usable materials from the surroundings'+dom.dseparator+'<small style="color:darkorange">Increases chances of obtaining zone loot</small>';
     skl.hst.use=function(x,y){return this.lvl}
 
     skl.coldr = new Skill(); skl.coldr.id = 160; skl.coldr.type=6;
@@ -4918,7 +4916,7 @@ function define_items() {
       if(global.flags.civil===true&&global.flags.btl===false) {msg('You\'re not in combat!','red');return}
       if(global.current_z.size===1||global.current_z.size===0||global.current_z.isboss) {msg('You can\'t pass this enemy!','red');return}
       else{clearInterval(timers.btl);clearInterval(timers.btl2); msg('*Puff*','black',null,null,'lightgrey'); global.flags.smkactv=true; 
-      global.current_z.size--; area_init(global.current_z); dom.d7m.update(); 
+      global.current_z.size--; zone_init(global.current_z); dom.d7m.update(); 
       this.amount-- ;}
     }
 
@@ -4928,17 +4926,17 @@ function define_items() {
     item.svial1.stype=4;
     item.svial1.use=function(){if(global.flags.civil===true&&global.flags.btl===false){
       if(global.flags.sleepmode||global.flags.rdng||global.flags.isshop||global.flags.busy||global.flags.work) {msg('Unable to summon!','red');return}
-      let ta = new Area(); ta.id=-1
+      let ta = new Zone(); ta.id=-1
       ta.name = 'Somewhere';
       ta.pop = [{crt:creature.skl,lvlmin:10,lvlmax:10,c:1}]; ta.protected=true;
-      ta.onEnd=function(){area_init(area.nwh);global.flags.civil=true; global.flags.btl=false;}; global.flags.civil=false; global.flags.btl=true;
-      ta.size = 1; z_bake(ta); area_init(ta); dom.d7m.update(); msg('The creature arises from the ground!','white',null,null,'red')
+      ta.onEnd=function(){zone_init(zone.nwh);global.flags.civil=true; global.flags.btl=false;}; global.flags.civil=false; global.flags.btl=true;
+      ta.size = 1; z_bake(ta); zone_init(ta); dom.d7m.update(); msg('The creature arises from the ground!','white',null,null,'red')
       this.amount-- ;}else msg('You\'re already in a battle!','red')
     }
 
     item.mpwdr = new Item(); item.mpwdr.id = 3021;
     item.mpwdr.name='Monster Powder';
-    item.mpwdr.desc='Dried and grounded sunbloom mixed with red salts, it emits aura often mistaken for soul energy that attracts nearby creatures<br>'+dom.dseparator+'<span style=\'color:seagreen\'>Increases area size by 5</span>';
+    item.mpwdr.desc='Dried and grounded sunbloom mixed with red salts, it emits aura often mistaken for soul energy that attracts nearby creatures<br>'+dom.dseparator+'<span style=\'color:seagreen\'>Increases zone size by 5</span>';
     item.mpwdr.stype=4;
     item.mpwdr.use=function(){
       if(global.current_z.protected||global.current_z.id<=101||global.current_z.size<=1) {msg('Unable to use it here!','red');return}
@@ -5094,7 +5092,7 @@ function define_items() {
     item.bmsmktt.stype=4;
     item.bmsmktt.use=function(){ 
       if(global.current_location.id!==111){msg('This isn\'t the best place to use this','red'); return}
-      area.hmbsmnt.size=0; msg('You toss a cluster down your basement and hear a distant shrill','yellow')
+      zone.hmbsmnt.size=0; msg('You toss a cluster down your basement and hear a distant shrill','yellow')
       dom.location_text.innerHTML+='<span style="color:grey;font-size:1.2em">&nbsp煙<span>'
       sector.home.data.smkp = 900; sector.home.data.smkt = time.minute; this.amount-- ; 
     }
@@ -10119,12 +10117,12 @@ function Creature(op={}) {
         giveExp(this.exp+(this.exp*this.lvl/10<<0)/df); dropC(this); global.s_l=0;
         if(you.mods.enmondren>0) if(random()<you.mods.enmondren){let aam = 1+rand(this.lvl<<0,(this.lvl/4)<<0)**(1+(this.rnk/5)<<0)*you.mods.enmondrts ;giveWealth(rand(aam*.5<<0||1,aam*1.5<<0||1));} 
         if(--global.current_z.size>0) {
-            area_init(global.current_z);
+            zone_init(global.current_z);
         } else {
             if (global.current_z.size<=-1) {
-                area_init(global.current_z);
+                zone_init(global.current_z);
             } else {
-                msg('Area cleared','orange');
+                msg('Zone cleared','orange');
                 global.current_z.onEnd();
                 global.flags.civil = true;
                 global.flags.btl = false;
@@ -10782,11 +10780,8 @@ function runEffectors(e){ if(!e) return
   for(let a in e) e[a].e.use();
 }
 
-///////////////////////////////////////////
-//AREA / ZONE / ZNE
-///////////////////////////////////////////
 
-function Area(op={}) {
+function Zone(op={}) {
     this.id=0;
     this.name='Nowhere';
     this.size=10;
@@ -10801,8 +10796,11 @@ function Area(op={}) {
     z_bake(this);
 }
 
+function define_zones() {
+    return;
+}
 
-area.nwh = new Area ({
+zone.nwh = new Zone ({
     id: 101,
     name: 'Somewhere',
     size: 1,
@@ -10811,10 +10809,10 @@ area.nwh = new Area ({
         { crt: creature.default, lvlmin: 1, lvlmax: 1, c: 1 }
     ]
 });
-global.current_z = area.nwh;
+global.current_z = zone.nwh;
 
 
-area.intro_woods = new Area ({
+zone.intro_woods = new Zone ({
     id: 102,
     name: 'Western Woods',
     size: 1,
@@ -10832,7 +10830,7 @@ area.intro_woods = new Area ({
 });
 
 
-area.trn = new Area({
+zone.trn = new Zone({
     id: 202,
     name: 'Training Grounds',
     size: 10000,
@@ -10854,7 +10852,7 @@ area.trn = new Area({
 });
 
 
-area.trn1 = new Area({
+zone.trn1 = new Zone({
     id: 203,
     name: 'Training Grounds',
     size: 10,
@@ -10875,7 +10873,7 @@ area.trn1 = new Area({
 });
 
 
-area.trn2 = new Area({
+zone.trn2 = new Zone({
     id: 204,
     name: 'Training Grounds',
     size: 20,
@@ -10896,7 +10894,7 @@ area.trn2 = new Area({
 });
 
 
-area.trn3 = new Area({
+zone.trn3 = new Zone({
     id: 205,
     name: 'Training Grounds',
     size: 50,
@@ -10918,7 +10916,7 @@ area.trn3 = new Area({
 });
 
 
-area.clg = new Area({
+zone.clg = new Zone({
     id: 206,
     name: 'Damp cellar',
     size: 33,
@@ -10936,7 +10934,7 @@ area.clg = new Area({
     }
 });
 
-area.trnf = new Area({
+zone.trnf = new Zone({
     id: 207,
     name: "Training Grounds",
     size: -1,
@@ -10952,7 +10950,7 @@ area.trnf = new Area({
 });
 
 
-area.tst = new Area({
+zone.tst = new Zone({
     id: 208,
     name: 'Test',
     size: -1,
@@ -10963,7 +10961,7 @@ area.tst = new Area({
 });
 
 
-area.forestn1a2 = new Area({
+zone.forestn1a2 = new Zone({
     id: 209,
     name: 'Western forest hunting area',
     size: 60,
@@ -10996,7 +10994,7 @@ area.forestn1a2 = new Area({
 });
 
 
-area.hmbsmnt = new Area({
+zone.hmbsmnt = new Zone({
     id: 210,
     name: 'Your basement',
     size: 10,
@@ -11018,7 +11016,7 @@ area.hmbsmnt = new Area({
 });
 
 
-area.trne1 = new Area({
+zone.trne1 = new Zone({
     id: 211,
     name: 'Training Grounds',
     size: 1,
@@ -11037,7 +11035,7 @@ area.trne1 = new Area({
 });
 
 
-area.forestn2a2 = new Area({
+zone.forestn2a2 = new Zone({
     id: 212,
     name: 'Western forest hunting area',
     size: 50,
@@ -11080,7 +11078,7 @@ area.forestn2a2 = new Area({
 });
 
 
-area.trne2 = new Area({
+zone.trne2 = new Zone({
     id: 213,
     name: 'Training Grounds',
     size: 1,
@@ -11099,7 +11097,7 @@ area.trne2 = new Area({
 });
 
 
-area.trne3 = new Area({
+zone.trne3 = new Zone({
     id: 214,
     name: 'Training Grounds',
     size: 1,
@@ -11118,7 +11116,7 @@ area.trne3 = new Area({
 });
 
 
-area.forestn1a3 = new Area({
+zone.forestn1a3 = new Zone({
     id: 215,
     name: 'Western forest hunting area',
     size: -1,
@@ -11147,7 +11145,7 @@ area.forestn1a3 = new Area({
 });
 
 
-area.forestn1a4 = new Area({
+zone.forestn1a4 = new Zone({
     id: 216,
     name: 'Western forest hidden area',
     size: 25,
@@ -11166,7 +11164,7 @@ area.forestn1a4 = new Area({
 });
 
 
-area.trne4 = new Area({
+zone.trne4 = new Zone({
     id: 217,
     name: 'Training Grounds',
     size: 1,
@@ -11186,7 +11184,7 @@ area.trne4 = new Area({
 });
 
 
-area.forestn9a1 = new Area({
+zone.forestn9a1 = new Zone({
     id: 218,
     name: 'Southern forest hunting area',
     size: 48,
@@ -11213,9 +11211,9 @@ area.forestn9a1 = new Area({
 });
 
 
-function z_bake(area) { // convert pop into weighted prob. range; bake population
-    const weights_raw  = area.pop.reduce((sum, entry) => sum + entry.c, 0);
-    const weights_norm = area.pop.map(entry => entry.c / weights_raw);
+function z_bake(zone) { // convert pop into weighted prob. range; bake population
+    const weights_raw  = zone.pop.reduce((sum, entry) => sum + entry.c, 0);
+    const weights_norm = zone.pop.map(entry => entry.c / weights_raw);
     const ranges = [];
     let cum = 0; // :thinking:
 
@@ -11227,7 +11225,7 @@ function z_bake(area) { // convert pop into weighted prob. range; bake populatio
         ranges.push([start, end]);
     });
 
-    area.popc = ranges;
+    zone.popc = ranges;
 }
 
 ///////////////////////////////////////////
@@ -11468,7 +11466,7 @@ sector.forest1 = new Sector({
                     giveSkExp(skl.tpgrf, 0.001);
                 }
             } else {
-                msg('Area Explored!','lime');
+                msg('Zone Explored!','lime');
                 this.data.scoutf = true;
                 giveExp(7000, true, true, true); 
             }
@@ -12551,7 +12549,7 @@ dom.d9m.update=function(){ // displaying ranks, converting crt.rnk to text
 dom.d9m.style.borderBottom='#545299 dotted 2px';
 dom.d9m.style.backgroundColor='#272744';
 
-// area
+// zone info
 dom.d8m_c = addElement(dom.d1m,'small','bbts');
 dom.d8m1 = addElement(dom.d8m_c,'div',null,'bbts');
 dom.d8m1.innerHTML = 'Pause next battle: <span style=\'color:green\'>&nbspOFF';
@@ -12568,15 +12566,15 @@ dom.d7m_c = addElement(dom.d1m,'div','ainfo');
 dom.d7m = addElement(dom.d7m_c,'small'); 
 dom.d7m.update = function () {
     if (global.current_z.name == "Somewhere") { 
-        this.innerHTML = 'Area: Somewhere';
+        this.innerHTML = 'Zone: Somewhere';
     } else {
         global.current_z.size >= 0 ?
         
-        this.innerHTML = 'Area: '+
+        this.innerHTML = 'Zone: '+
         global.current_z.name+' / '+
         global.current_z.size : 
         
-        this.innerHTML = 'Area: '+
+        this.innerHTML = 'Zone: '+
         global.current_z.name+' / '+'∞';
     }
 };
@@ -13844,7 +13842,7 @@ function update_m(){
     dom.d9m.update();
 }
 
-testz = new Area();
+testz = new Zone();
 testz.apop = 4000;
 testz.bpop = 6000;
 testz.vsize = 10000;
@@ -14240,7 +14238,7 @@ function allbuff(who){
 
 function fght(att,def){
     /*if(global.flags.btlinterrupt===true){
-        msg('battle interrupted');if(global.current_z.size>0) {area_init(global.current_z);global.current_z.size--;}else if(global.current_z.size===-1)area_init(global.current_z);else {msg('Area cleared','orange');global.current_z.onEnd();global.flags.civil=true;global.flags.btl=false;}; dom.d7m.update(); global.flags.btlinterrupt=false; return;
+        msg('battle interrupted');if(global.current_z.size>0) {zone_init(global.current_z);global.current_z.size--;}else if(global.current_z.size===-1)zone_init(global.current_z);else {msg('Area cleared','orange');global.current_z.onEnd();global.flags.civil=true;global.flags.btl=false;}; dom.d7m.update(); global.flags.btlinterrupt=false; return;
     }*/
     if(!att.alive||!def.alive){
         return;
@@ -14679,19 +14677,19 @@ function renderSkl(skl) {
     this.skwmm3.style.backgroundColor = 'yellow';
 }
 
-function area_init(area){
-    if(area.size !== 0){
-        if(area.id !== 101){
+function zone_init(zone){
+    if(zone.size !== 0){
+        if(zone.id !== 101){
         let rnd = random();
-        for (let obj in area.pop) if(rnd>=area.popc[obj][0]&&rnd<=area.popc[obj][1]) if(!area.pop[obj].cond||area.pop[obj].cond()===true){
+        for (let obj in zone.pop) if(rnd>=zone.popc[obj][0]&&rnd<=zone.popc[obj][1]) if(!zone.pop[obj].cond||zone.pop[obj].cond()===true){
             global.flags.civil=false; global.flags.btl=true; 
-            global.current_z=area;
-            let temp=area.pop[obj]; 
+            global.current_z=zone;
+            let temp=zone.pop[obj]; 
             let newobj = temp.crt.id===creature.default.id?creature.default:mon_gen(temp.crt); 
             lvlup(newobj,rand(temp.lvlmin-1,temp.lvlmax-1));
             global.current_m = newobj; update_m(); dom.d5_1_1m.update(); if(!!dom.d7m)dom.d7m.update(); //dom.d5m.update(); 
             return newobj;
-        } else(area_init(area));
+        } else(zone_init(zone));
         }
     } else msg('nobody\'s here');
 
@@ -15821,7 +15819,7 @@ function clr_chs(index){
 
 function move_to_area(where, giveWalkingExp=true) {
     if (!where || typeof where !== 'object') { //let me bust out the updated JS for this
-        console.warn("move_to_area called with an invalid area:", where);
+        console.warn("move_to_area called with invalid chs:", where);
         return;
     }
 
@@ -15859,7 +15857,7 @@ function move_to_area(where, giveWalkingExp=true) {
     global.flags.civil = true;
     global.flags.btl = false;
 
-    global.current_z = area.nwh;
+    global.current_z = zone.nwh;
     dom.d7m.update();
     global.stat.move_to_areat++;
 
@@ -15945,7 +15943,7 @@ function deactivatef(f){
 }
 
 global._preig=addElement(document.body,'img');
-global._preig.src='ctst.png';
+//global._preig.src='ctst.png';
 global._preic=addElement(document.body,'canvas');
 global._preic_tmain=global._preic.getContext('2d');
 
@@ -16010,7 +16008,6 @@ chss.intro = new Chs({
 
         chs('???: "Kid..."'); 
         achs('"..."', () => {
-            global.time += DAY; 
             appear(dom.d_weather, dom.d_weathert); // show weather
 
             chs('???: "You\'ve gotta wake up. You can\'t stay here..."');
@@ -16056,10 +16053,12 @@ chss.intro = new Chs({
             });
         });
 
+        /*
         achs('DEBUG : Intro Western Woods', () => {
             __dbgqs();
             move_to_area(chss.intro_western_woods1);
         });
+        */
 
         achs('DEBUG : Intro Beast', () => {
             __dbgqs();
@@ -16096,10 +16095,12 @@ chss.intro_village_center = new Chs({
         achs('=> Check the Message Board', ()=>{
             __dbgsp();
             //move_to_area(chss.message_board,false);
+            //@Todo
         });
 
         achs('=> Enter Dojo', () => {
             msg('The entrance to the dojo is locked.', 'lightyellow');
+            //@Todo more flavour? fiddle with the rusty lock.. walk into the dojo...
         });
 
         achs('=> Visit Marketplace', ()=>{
@@ -16119,7 +16120,7 @@ chss.intro_marketplace = new Chs({
         u_loc('Village Center, Marketplace');
         chs("All of the stalls are closed up. No one seems to be around.")
 
-        // put nervous guy here ?
+        //@Idea put nervous guy here ? something for player to pick up, like an old doll from original p23
 
         achs('<= Return back to the Village Center', ()=>{
                 move_to_area(chss.intro_village_center);
@@ -16134,7 +16135,8 @@ chss.intro_village_outskirts = new Chs({
         u_loc('Village Outskirts');
 
         chs('There is a guard posted at the southern gate. He gives you a shifty look, but otherwise doesn\'t seem to mind you leaving.');
-        
+        //@Todo need more dialogue / a reason for the guard not wanting you one way but letting you go another. player tells them the reason ?
+
         achs('=> Enter Southern Forest', () => {
             msg('Gate Guard: "I can\'t grant you permission nor clearance to enter these woods. They are protected."','yellow');
         });
@@ -16253,7 +16255,7 @@ chss.intro_western_woods3 = new Chs({
 chss.intro_western_woods_btl = new Chs({
     id: 109,
     sl: () => {
-        area_init(area.intro_woods);
+        zone_init(zone.intro_woods);
     }
 });
 
@@ -16631,21 +16633,21 @@ chss.tdf.sl = function() {
     if (!global.flags.tr1_win) chs('"Easiest"',false).addEventListener('click',function(){
         chs('"You are fighting training dummies"',true);
         if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true}; 
-        area_init(area.trn1);
+        zone_init(zone.trn1);
     });
     if(!global.flags.tr2_win) chs('"Easy"',false).addEventListener('click',function(){
         chs('"You are fighting training dummies"',true);
         if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true}
-        area_init(area.trn2); 
+        zone_init(zone.trn2); 
     });
     if(!global.flags.tr3_win) chs('"Normal"',false).addEventListener('click',function(){
         chs('"You are fighting training dummies"',true);
         if(!global.flags.dm1ap){appear(dom.d1m);global.flags.dm1ap=true};
-        area_init(area.trn3); 
+        zone_init(zone.trn3); 
     });
 }
 chss.tdf.onEnter = function() {
-    area_init(area.nwh); 
+    zone_init(zone.nwh); 
 }
 
 chss.t2 = new Chs();
@@ -16700,28 +16702,28 @@ chss.t3.sl=()=>{global.flags.inside=true; u_loc('Dojo, lobby'); global.flags.ins
     });
     if(global.flags.dj1end===true&&you.lvl>=10&&!global.flags.trne1e1) chs('"Challenge a stronger opponent"',false).addEventListener('click',()=>{
       chs('"You are facing a golem"',true);
-      area_init(area.trne1); 
+      zone_init(zone.trne1); 
       chs('"<= Escape"',false).addEventListener('click',()=>{
         move_to_area(chss.t3,false);
       });
     });
     if(global.flags.trne1e1&&!global.flags.trne2e1) chs('"Challenge an even stronger opponent"',false,'cornflowerblue').addEventListener('click',()=>{
       chs('"You are facing a golem"',true);
-      area_init(area.trne2); 
+      zone_init(zone.trne2); 
       chs('"<= Escape"',false).addEventListener('click',()=>{
         move_to_area(chss.t3,false);
       });
     });
     if(global.flags.trne2e1&&!global.flags.trne3e1) chs('"Challenge a dangerous opponent"',false,'crimson').addEventListener('click',()=>{
       chs('"You are facing a golem"',true);
-      area_init(area.trne3); 
+      zone_init(zone.trne3); 
       chs('"<= Escape"',false).addEventListener('click',()=>{
         move_to_area(chss.t3,false);
       });
     });
     if(global.flags.trne3e1&&!global.flags.trne4e1) chs('"Challenge a powerful opponent"',false,'red').addEventListener('click',()=>{
       chs('"You are facing a golem"',true);
-      area_init(area.trne4); 
+      zone_init(zone.trne4); 
       chs('"<= Escape"',false).addEventListener('click',()=>{
         move_to_area(chss.t3,false);
       });
@@ -16834,7 +16836,7 @@ chss.t3.sl=()=>{global.flags.inside=true; u_loc('Dojo, lobby'); global.flags.ins
   }
 }
 chss.t3.onEnter=function(){
-  area_init(area.nwh); 
+  zone_init(zone.nwh); 
 }
 
 chss.djinf = new Chs(); chss.djinf.id = 160;
@@ -16921,9 +16923,9 @@ chss.return1.sl = () => {
     chs('Punch as many as you want', true);
     
     if(!global.flags.trnex2) {
-        area_init(area.trn);
+        zone_init(zone.trn);
     }
-    else area_init(area.trnf);
+    else zone_init(zone.trnf);
     
     achs('"<= Return back into lobby"', ()=>{
         move_to_area(chss.t3);
@@ -16967,12 +16969,12 @@ chss.forestn1a3.sl = () => {
     });
 }
 chss.forestn1a3.onEnter=function(){
-    area_init(area.forestn1a3);
+    zone_init(zone.forestn1a3);
 }
 
 chss.forestn1a4 = new Chs(); chss.forestn1a4.id = 161; add_to_sector(sector.forest1,chss.forestn1a4)
 chss.forestn1a4.sl=()=>{global.flags.inside=false; u_loc('Western Woods, Round Branches');  
-  if(area.forestn1a4.size>0){
+  if(zone.forestn1a4.size>0){
   chs('Something ambushes you!',true,'red');
   chs('"<= Escape"',false).addEventListener('click',()=>{
     move_to_area(chss.forestn1main);
@@ -16995,10 +16997,10 @@ chss.forestn1a4.sl=()=>{global.flags.inside=false; u_loc('Western Woods, Round B
   })}
 }
 chss.forestn1a4.onEnter=function(){
-  if(area.forestn1a4.size>0) area_init(area.forestn1a4);
+  if(zone.forestn1a4.size>0) zone_init(zone.forestn1a4);
 }
 chss.forestn1a4.onLeave=function(){
-  area.forestn1a4.size=rand(5)+20;
+  zone.forestn1a4.size=rand(5)+20;
 }
 chss.forestn1a4.data={scoutm:600,scout:0,scoutf:false,gets:[false],gotmod:0}
 chss.forestn1a4.scout=[
@@ -17014,27 +17016,30 @@ chss.forestn1b1.sl = () => {
     global.flags.inside=true;
     u_loc('Western Woods, Hunter\'s Lodge');
 
-    if(wearingany(wpn.mkrdwk)&&!global.flags.wkrtndrt){
-      chs('<span style="color:limegreen">Head Hunter Yamato</span>: You! Why do you have that?',true);
-      chs('"?"',false).addEventListener('click',()=>{
-        chs('<span style="color:limegreen">Head Hunter Yamato</span>: The sword! Where did you get it!?',true);
-        chs('Give explanation',false).addEventListener('click',()=>{
-          chs('<span style="color:limegreen">Head Hunter Yamato</span>: The body in the forest, you say... Dammit! Our scouts are worthless if it takes someone like you to make such an important discovery! *sigh..* This sword you\'re holding once belonged to our deputy chief - Dein. You might have not met him before if you never set your foot out of the village, he was a promising and talented young soldier who were assigned to such an remote settlement for his field training',true);
-          chs('=>',false).addEventListener('click',()=>{
-            chs('<span style="color:limegreen">Head Hunter Yamato</span>: Then one day he staight up vanished, without letting anyone know, and he was well respected and cared for our people all the same. Of course, being a part of the military would prevent him from disclosing his plans and duties, but it is highly doubtful a special task from the higher command would be the reason of his abscence. All of his belongins, personal items and possessions are still there, where he left them. Lad knew how to fight and wield a sword, I do not for once believe a man of his caliber would perish and die like this, the corpse you speak of might not be his...',true);
-            chs('Express your condolences to the deceased',false).addEventListener('click',()=>{
-              chs('<span style="color:limegreen">Head Hunter Yamato</span>: Alright, enough. Your sentiment is appreciated, but let us hope Dein still draws breath out there. This entire precident calls for investigation, a team of hunters will be dispatched shortly and you keep yourself alert too. And I will be taking that from your hands, thank you for bringing it here. Time will tell wether this sword becomes a memento or returns to its rightful owner',true);
-              chs('Part with the sword',false).addEventListener('click',()=>{
-                chs('<span style="color:limegreen">Head Hunter Yamato</span>: Here, take this for your trouble',true);
-                chs('Accept',false,'lime').addEventListener('click',()=>{
-                  removeItem(findbyid(inv, wpn.mkrdwk.id)); giveWealth(300); global.flags.wkrtndrt=true;move_to_area(chss.forestn1b1,false)
+    if (wearingany(wpn.mkrdwk)&&!global.flags.wkrtndrt) {
+          chs('<span style="color:limegreen">Head Hunter Yamato</span>: You! Why do you have that?',true);
+          chs('"?"',false).addEventListener('click',()=>{
+              chs('<span style="color:limegreen">Head Hunter Yamato</span>: The sword! Where did you get it!?',true);
+              chs('Give explanation',false).addEventListener('click',()=>{
+                  chs('<span style="color:limegreen">Head Hunter Yamato</span>: The body in the forest, you say... Dammit! Our scouts are worthless if it takes someone like you to make such an important discovery! *sigh..* This sword you\'re holding once belonged to our deputy chief - Dein. You might have not met him before if you never set your foot out of the village, he was a promising and talented young soldier who were assigned to such an remote settlement for his field training',true);
+                  chs('=>',false).addEventListener('click',()=>{
+                      chs('<span style="color:limegreen">Head Hunter Yamato</span>: Then one day he staight up vanished, without letting anyone know, and he was well respected and cared for our people all the same. Of course, being a part of the military would prevent him from disclosing his plans and duties, but it is highly doubtful a special task from the higher command would be the reason of his abscence. All of his belongins, personal items and possessions are still there, where he left them. Lad knew how to fight and wield a sword, I do not for once believe a man of his caliber would perish and die like this, the corpse you speak of might not be his...',true);
+                      chs('Express your condolences to the deceased',false).addEventListener('click',()=>{
+                          chs('<span style="color:limegreen">Head Hunter Yamato</span>: Alright, enough. Your sentiment is appreciated, but let us hope Dein still draws breath out there. This entire precident calls for investigation, a team of hunters will be dispatched shortly and you keep yourself alert too. And I will be taking that from your hands, thank you for bringing it here. Time will tell wether this sword becomes a memento or returns to its rightful owner',true);
+                          chs('Part with the sword',false).addEventListener('click',()=>{
+                            chs('<span style="color:limegreen">Head Hunter Yamato</span>: Here, take this for your trouble',true);
+                            chs('Accept',false,'lime').addEventListener('click',()=>{
+                                removeItem(findbyid(inv, wpn.mkrdwk.id));
+                                giveWealth(300);
+                                global.flags.wkrtndrt=true;
+                                move_to_area(chss.forestn1b1,false);
+                            });
+                        });
+                    });
                 });
-              });
             });
-          });
         });
-      });
-      return;
+        return;
     }
 
     if(!global.flags.forestn1b1int) {
@@ -17256,14 +17261,14 @@ chss.forestn1a1.sl=()=>{global.flags.inside=false; u_loc('Western Woods, The Yel
   });
 }
 chss.forestn1a1.onEnter=function(){
-  area_init(area.forestn1a2);
+  zone_init(zone.forestn1a2);
 }
 
 chss.forestn1a2 = new Chs(); chss.forestn1a2.id = 115; add_to_sector(sector.forest1,chss.forestn1a2)
 chss.forestn1a2.sl=()=>{
   global.flags.inside=false;
   u_loc('Western Woods, The Underbushes'); 
-  chs('You scavenged some goods from this forest area.',true);
+  chs('You scavenged some goods from this forest zone.',true);
   chs('"=> Go further into the forest"',false).addEventListener('click',()=>{
     move_to_area(chss.forestn2a1);
   });
@@ -17289,7 +17294,7 @@ chss.forestn2a1.sl=()=>{global.flags.inside=false; u_loc('Western Woods, The Sha
   });
 }
 chss.forestn2a1.onEnter=function(){
-  area_init(area.forestn2a2);
+  zone_init(zone.forestn2a2);
 }
 
 chss.forestn3main = new Chs(); chss.forestn3main.id = 168;
@@ -17313,7 +17318,7 @@ chss.forestn9a1m.sl=()=>{global.flags.inside=false; u_loc('Southern Forest, The 
   });
 }
 chss.forestn9a1m.onEnter=function(){
-  area_init(area.forestn9a1);
+  zone_init(zone.forestn9a1);
 }
 
 chss.marketplace = new Chs();
@@ -17541,7 +17546,7 @@ chss.gens1.sl=()=>{
             });
         });
     }
-    if(area.hmbsmnt.size>=1000&&global.flags.hbs1&&!global.flags.bmntsmkgt) {
+    if(zone.hmbsmnt.size>=1000&&global.flags.hbs1&&!global.flags.bmntsmkgt) {
         chs('Infestation problem', () => {
             chs('Sleeping Old Man: Your basement is in bad shape? Same been happening to the other folks lately, it\'s not just you. Something is drilling through the underground right into people\'s homes! And then you get a cellar full of rats. A complete travesty! Some speculate there\'s a monster cave nearby, but nothing was found yet. But don\'t fret, there is a solution for you - you smoke the pests out. Light this bag and toss it in, the deeper the better. Your entire place will be filled with smog, so you will have to leave and stay out for a few hours, then you\'ll have a clean and monster free basement at your disposal. 5 '+dom.coinsilver+' silver the price',true);
             if (you.wealth >= SILVER*5) {
@@ -17726,7 +17731,7 @@ chss.tstauto.sl=()=>{ u_loc('Test auto');
 chss.tst= new Chs(); chss.tst.id = -1;
 chss.tst.sl=()=>{ u_loc('Test'); 
   dom.tst = chs('TEST',true);
-    global.flags.btl=true; global.flags.civil=false; area_init(area.tst); 
+    global.flags.btl=true; global.flags.civil=false; zone_init(zone.tst); 
   chs('"<= Go back"',false).addEventListener('click',()=>{
     chss.village_center.sl();
   });    
@@ -17990,9 +17995,9 @@ global.text.bsseldark = ['Ack! Something touches you from the darkness','You ste
 
 chss.bsmnthm1 = new Chs(); chss.bsmnthm1.id = 158; add_to_sector(sector.home,chss.bsmnthm1); chss.bsmnthm1.effectors=[{e:effector.dark}]
 chss.bsmnthm1.sl=()=>{u_loc('Your Home, Basement'); 
-  if(area.hmbsmnt.size>0) {
+  if(zone.hmbsmnt.size>0) {
     chs('Argh! This place is infested!',true,'red');
-    area_init(area.hmbsmnt); 
+    zone_init(zone.hmbsmnt); 
   } else {if(!cansee())chs(select(global.text.bsseldark)+'. You can\'t see anything in this darkness, it\'ll be better if you find a lightsource',true,'darkgrey');else{
     chs(select(global.text.bssel),true);
     if(!global.flags.bsmntchck) chs('"Examine your surroundings"',false).addEventListener('click',()=>{ 
@@ -18061,11 +18066,11 @@ chss.home_bed.onStay = function(){
         dom.d5_1_1.update();
     }
     // if(global.current_z.id!==-666&&random()<.00001){
-    //   let ta = new Area(); ta.id=-666;
+    //   let ta = new Zone(); ta.id=-666;
     //   ta.name = 'Nightmare';
     //   ta.pop = [{crt:creature.ngtmr1,lvlmin:you.lvl,lvlmax:you.lvl,c:1}]; ta.protected=true;
-    //   ta.onEnd=function(){area_init(area.nwh);global.flags.civil=true; global.flags.btl=false;}; global.flags.civil=false; global.flags.btl=true;
-    //   ta.size = 1; z_bake(ta); area_init(ta); dom.d7m.update(); msg('Your sins are crawling up on you','red')
+    //   ta.onEnd=function(){zone_init(zone.nwh);global.flags.civil=true; global.flags.btl=false;}; global.flags.civil=false; global.flags.btl=true;
+    //   ta.size = 1; z_bake(ta); zone_init(ta); dom.d7m.update(); msg('Your sins are crawling up on you','red')
     //}
 }
 chss.home_bed.onEnter=function(){
@@ -18502,6 +18507,8 @@ chss.river_closer.sl = () => {
         });
     }
 
+    //@Todo add option for water qi meditation
+
     achs('<= Back away', () => {
         move_to_area(chss.river);
     });
@@ -18593,7 +18600,7 @@ chss.riverman.sl = () => {
     if (!global.flags.gotten_river_charm) {
         achs('"I drank some of the water."', () => {
             chs('Old Man: "Ugh, you\'re killing me!.. Why are so many youngsters trying to get themselves killed these days... For now, please just focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water."');
-            achs('I\'m not going to die, amt I?', () => {
+            achs('I\'m not going to die, am I?', () => {
                 chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on your worst day."');
                 achs('"Thank you." Take the charm', () => {
                     giveItem(acc.river_charm);
@@ -19057,11 +19064,12 @@ function timeConv(chrono){
 }
 
 function timeDisp(time, future){
-  let time_t = time;
-  if (future) {time_t = copy(time); time_t.minute += future;}
-  timeConv(time_t);
-  let mm = time_t.minute%60; if(mm<10) mm = '0'+mm;
-  return time_t.year+'/'+((time_t.month%12)+1)+'/'+((time_t.day%30)+1)+' '+time_t.hour%24+':'+mm; 
+    let time_t = time;
+    if (future) {time_t = copy(time); time_t.minute += future;}
+    timeConv(time_t);
+    let mm = time_t.minute%60;
+    if(mm<10) mm = '0'+mm;
+    return time_t.year+'/'+((time_t.month%12)+1)+'/'+((time_t.day%30)+1)+' '+time_t.hour%24+':'+mm; 
 }
 
 function dropC(crt,t){ t=t||1;
@@ -19716,7 +19724,7 @@ planner.djfood.f = function(){
 planner.areafillw = new Plan();
 planner.areafillw.id = 2;
 planner.areafillw.f = function(){
-    area.hmbsmnt.size+=rand(5,15); 
+    zone.hmbsmnt.size+=rand(5,15); 
 }; addPlan(planner.areafillw)
 
 planner.zrespawn = new Plan();
