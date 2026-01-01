@@ -50,10 +50,18 @@ function main() {
     define_zones();
     define_sectors();
     define_abilities();
+    define_effectors();
     
     define_items_generic();
 
     giveTitle(ttl.new, true);
+
+    you = new You();
+
+
+    container.home_strg = new Container(1);
+    if (!home.trunk) home.trunk = container.home_strg;
+
 }
 
 function define_global() {
@@ -254,6 +262,9 @@ function define_global() {
     global.text.d_j = ["月","火","水","木","金","土","日"];
 
     global.text.alcohol_d=["You drank some alcohol. You feel warm inside.","You drank alcohol. Party on!","You drank lots of alcohol. Are those white mice?","You drank unholy amounts of alcohol. But what do you care?","You embalmed yourself alive with so much alcohol, that even undead will leave your dead body alone."];
+
+    global.text.bssel = ['Ack! There\'s dust and cobweb everywhere in this place','Spiderweb lands on your face as you enter','Various broken garbage is littered around','You step on some glass shards and crush them']
+    global.text.bsseldark = ['Ack! Something touches you from the darkness','You step in and something crunches underneath','You feel like something moved in front of you','You touched cobweb and felt gross']
 }
 
 function setup_data_objects() {
@@ -9827,7 +9838,8 @@ function define_accessories() {
     */
 }
 
-// Rewards for dissassembling different items.
+
+//@Todo organize Rewards for dissassembling different items.
 wpn.stk1.dss=[{item:item.wdc,amount:2,q:1.5,max:5}]
 wpn.knf1.dss=[{item:item.wdc,amount:1,q:1,max:2}]
 item.fsh1.dss=[{item:item.fsh2,amount:1}]
@@ -9838,7 +9850,7 @@ item.cclth.dss=[{item:item.thrdnl,amount:1,q:1,max:2}]
 item.dmice1.dss=[{item:item.sbone,amount:1,q:.6,max:3}]
 item.dbdc1.dss=[{item:item.sbone,amount:1,q:.5,max:2}]
 
-////misc////
+//@Todo organize...
 global.wdrop=[{item:item.lckl,c:.0000048}];
 global.rdrop=[ // g f e 
   [{item:item.lsrd,c:.00026}],  
@@ -9882,7 +9894,7 @@ global.htrchl=[
   function(x){if(ttl.hstr1.have===false){if(x>=100){giveTitle(ttl.hstr1)}}},
   function(x){if(ttl.hstr2.have===false){if(x>=250){giveTitle(ttl.hstr2)}}},
   function(x){if(ttl.hstr3.have===false){if(x>=500){giveTitle(ttl.hstr3)}}},
-];
+]; //@Todo organize
 global.nethmchk=[
   function(x){if(ttl.neet.have===false){if(global.stat.athmec>=YEAR){giveTitle(ttl.neet)}}},
   function(x){if(ttl.neet2.have===false){if(global.stat.athmec>=YEAR*5){giveTitle(ttl.neet2)}}},
@@ -10030,16 +10042,14 @@ function You(){
         } dom.d6.update(); update_db(); if(you.hp>you.hpmax)you.hp=you.hpmax; dom.d5_1_1.update();
     }
     this.timescale_sleeping = 5;
+    /*
+    you.ai = function() {
+      //if(you.hp*100/you.hpmax<50) item.hrb1.use();
+      //if(you.sat*100/you.satmax<90) item.appl.use();
+    }
+    //@Idea maybe use this somewhere later down the line ? shadow , clone , mirror world, dark-link type encounter?
+    */
 }
-you = new You();
-
-/*
-you.ai = function() {
-  //if(you.hp*100/you.hpmax<50) item.hrb1.use();
-  //if(you.sat*100/you.satmax<90) item.appl.use();
-}
-//@Idea maybe use this somewhere later down the line ? shadow , clone , mirror world, dark-link type encounter?
-*/
 
 
 function Creature(op={}) {
@@ -10758,15 +10768,17 @@ function Effector() {
     this.use = function(){}
 }
 
-effector.dark = new Effector();
-effector.dark.activate = function(){global.flags.isdark = true}
-effector.dark.deactivate = function(){global.flags.isdark = false}
-effector.dark.x = '闇'; effector.dark.c = 'darkgrey';
+function define_effectors() {
+    effector.dark = new Effector();
+    effector.dark.activate = function(){global.flags.isdark = true}
+    effector.dark.deactivate = function(){global.flags.isdark = false}
+    effector.dark.x = '闇'; effector.dark.c = 'darkgrey';
 
-effector.shop = new Effector();
-effector.shop.activate = function(){global.flags.isshop = true}
-effector.shop.deactivate = function(){global.flags.isshop = false}
-effector.shop.x = '$'; effector.shop.c = 'gold';
+    effector.shop = new Effector();
+    effector.shop.activate = function(){global.flags.isshop = true}
+    effector.shop.deactivate = function(){global.flags.isshop = false}
+    effector.shop.x = '$'; effector.shop.c = 'gold';
+}
 
 function activateEffectors(e){ if(!e) return; 
   for(let a in e) if(!e[a].e.active&&(!e[a].c||e[a].c()===true)) {e[a].e.activate(); e[a].e.active = true}
@@ -11260,7 +11272,7 @@ function giveCrExp(skl, amt, lvl){
 }
 
 
-    function define_sectors() {
+function define_sectors() {
     sector.home = new Sector({
         id: 1,
         inside: true,
@@ -11516,11 +11528,6 @@ function giveCrExp(skl, amt, lvl){
 function Container(id){
     this.id = id || 0;
     this.c = [];
-}
-
-container.home_strg = new Container(1);
-if (!home.trunk) {
-    home.trunk = container.home_strg;
 }
 
 
@@ -17979,9 +17986,6 @@ chss.trd.sl=function(b, x, last_location_id){
     });
 }
 
-
-global.text.bssel = ['Ack! There\'s dust and cobweb everywhere in this place','Spiderweb lands on your face as you enter','Various broken garbage is littered around','You step on some glass shards and crush them']
-global.text.bsseldark = ['Ack! Something touches you from the darkness','You step in and something crunches underneath','You feel like something moved in front of you','You touched cobweb and felt gross']
 
 chss.bsmnthm1 = new Chs(); chss.bsmnthm1.id = 158; add_to_sector(sector.home,chss.bsmnthm1); chss.bsmnthm1.effectors=[{e:effector.dark}]
 chss.bsmnthm1.sl=()=>{u_loc('Your Home, Basement'); 
