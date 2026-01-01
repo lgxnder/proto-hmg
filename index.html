@@ -46,6 +46,10 @@ function main() {
     define_furniture();
     define_quests();
     define_skills();
+    define_creatures();
+    define_zones();
+    define_sectors();
+    define_abilities();
     
     define_items_generic();
 
@@ -10147,13 +10151,6 @@ function Creature(op={}) {
         giveSkExp(skl.war, (this.rnk*2-1)*(1+this.lvl*.05)*.1);
     };
     this.battle_ai = function(x,y,z) {
-    /*me = this.data;
-        if(!me.lasthp) me.lasthp=this.hp;
-        me.cdmg = me.lasthp-this.hp;
-        me.avgdmg = (me.cdmg+me.lstdmg)/2;
-        me.lasthp=this.hp; me.lstdmg=me.cdmg;
-        if(this.hp-me.avgdmg<=0) {msg('too scary, running away'); global.flags.btlinterrupt=true;}
-        */
         return attack(x,y);
     };
 
