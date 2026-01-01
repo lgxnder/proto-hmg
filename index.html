@@ -1,5 +1,4 @@
 <!-- 
-
   TODO:
        - Polish the intro sequence
        - Build out the general progression of the game
@@ -40,10 +39,7 @@ function main() {
         load();
     });
 
-    define_titles();
-    define_weather();
     define_effects();
-    define_furniture();
     define_quests();
     define_skills();
     define_creatures();
@@ -51,17 +47,36 @@ function main() {
     define_sectors();
     define_abilities();
     define_effectors();
+    define_vendors();
+    define_recipes();
     
     define_items_generic();
 
-    giveTitle(ttl.new, true);
-
     you = new You();
 
+    define_titles();
+    giveTitle(ttl.new, true);
 
+    define_actions();
+    act.default = new Action();
+    global.current_a = act.default;
+
+    define_furniture();
     container.home_strg = new Container(1);
     if (!home.trunk) home.trunk = container.home_strg;
 
+    if (global.flags.gameone === false) {
+        global.current_location = chss.intro;
+        move_to_area(chss.intro);
+        giveFurniture(furniture.frplc,null,false);
+        let _b = giveFurniture(furniture.bed1,null,false);
+        home.bed = _b;
+    }
+
+    define_weather();
+    setWeather(weather.clear, 600);
+    wManager();
+    dom.d_time.innerHTML = '<small>'+getDay(global.flags.tmmode)+'</small> '+timeDisp(time)
 }
 
 function define_global() {
@@ -292,6 +307,12 @@ function setup_data_objects() {
     act = new Object();
     test = new Object();
     callback = new Object(); 
+    callback.onDeath = new callbackManager(1);
+    callback.onDeath.fire = function(victim, killer){ 
+        for (let a in this.hooks) {
+            this.hooks[a].f(victim, killer);
+        }
+    }
     effector = new Object();
     planner = new Object();
     plans = [[],[],[]];
@@ -705,8 +726,8 @@ function load(dt) {
         dom.error.style.textAlign='center';
         dom.error.innerHTML='SOMETHING BROKE<br>PERHAPS DUE TO STUPIDITY OR DATA STRUCTURE CHANGES<br>⋗1 DELETING THE SAVE IS ADVISED<br>⋗2 OR WAITING FOR SOME TIME TIL FIXED<br>⋗3 OR CHECKING IN DIFFERENT BROWSER, MIGHT WORK THERE(MEANS THE SAVE IS BORKED(REFER TO 1))';
        
-        clearInterval(timers.mnch);
-        clearInterval(timers.snch);
+        clearInterval(timers.moon_charm);
+        clearInterval(timers.sun_charm);
         clearInterval(timers.autos);
         clearInterval(timers.rdng);
         clearInterval(timers.rdngdots);
@@ -2474,17 +2495,17 @@ function define_effects() {
     effect.imm.b = 'navy';
     effect.imm.use = function() {}
 
-    effect.snch = new Effect();
-    effect.snch.id = 6;
-    effect.snch.name = 'Sun blessing';
-    effect.snch.desc = 'You are blessed by Sun';
-    effect.snch.type = 2;
-    effect.snch.eq = true;
-    effect.snch.duration = -1;       
-    effect.snch.x = '☼';
-    effect.snch.c = 'gold';
-    effect.snch.b = 'blue';
-    effect.snch.onGive = function() {
+    effect.sun_charm = new Effect();
+    effect.sun_charm.id = 6;
+    effect.sun_charm.name = 'Sun blessing';
+    effect.sun_charm.desc = 'You are blessed by Sun';
+    effect.sun_charm.type = 2;
+    effect.sun_charm.eq = true;
+    effect.sun_charm.duration = -1;       
+    effect.sun_charm.x = '☼';
+    effect.sun_charm.c = 'gold';
+    effect.sun_charm.b = 'blue';
+    effect.sun_charm.onGive = function() {
         if (global.flags.loadstate){
             you.str   += 5;
             you.str_d += 5;
@@ -2496,12 +2517,12 @@ function define_effects() {
             you.hpmax += 100;
             you.sat   += 100;
             you.satmax += 100
-            global.flags.snch = true; 
+            global.flags.sun_charm = true; 
         }
     };
-    effect.snch.use = function() {
+    effect.sun_charm.use = function() {
         if (global.flags.isday === true) {
-            if (!global.flags.snch) {
+            if (!global.flags.sun_charm) {
                 you.str   += 5;
                 you.str_d += 5;
                 you.agl   += 5;
@@ -2512,12 +2533,12 @@ function define_effects() {
                 you.hpmax += 100;
                 you.sat   += 100;
                 you.satmax += 100;
-                global.flags.snch=true; 
+                global.flags.sun_charm=true; 
             } 
         } 
-        timers.snch=setInterval(function(){
+        timers.sun_charm=setInterval(function(){
             if(global.flags.isday===true) {
-                if (!global.flags.snch) {
+                if (!global.flags.sun_charm) {
                     you.str   += 5;
                     you.str_d += 5;
                     you.agl   += 5;
@@ -2528,38 +2549,38 @@ function define_effects() {
                     you.hpmax += 100;
                     you.sat   += 100;
                     you.satmax += 100;
-                    global.flags.snch = true; 
+                    global.flags.sun_charm = true; 
                     update_d();
                 }
             } else {
-                if (global.flags.snch === true) {
-                    effect.snch.un();
+                if (global.flags.sun_charm === true) {
+                    effect.sun_charm.un();
                     you.stat_r();
                     update_d();
                 }
             }
         }, 1000)
     }
-    effect.snch.un = function() { 
-        clearInterval(timers.snch);
-        if (global.flags.snch === true) {
+    effect.sun_charm.un = function() { 
+        clearInterval(timers.sun_charm);
+        if (global.flags.sun_charm === true) {
             you.sat -= 100;
-            global.flags.snch = false;
+            global.flags.sun_charm = false;
         }
     }
 
 
-    effect.mnch = new Effect();
-    effect.mnch.id = 7;
-    effect.mnch.name = 'Moon blessing';
-    effect.mnch.desc = 'You are blessed by Moon';
-    effect.mnch.type = 2;
-    effect.mnch.eq = true;
-    effect.mnch.duration = -1;       
-    effect.mnch.x = '☽';
-    effect.mnch.c = 'gold';
-    effect.mnch.b = 'purple';
-    effect.mnch.onGive = function() {
+    effect.moon_charm = new Effect();
+    effect.moon_charm.id = 7;
+    effect.moon_charm.name = 'Moon blessing';
+    effect.moon_charm.desc = 'You are blessed by Moon';
+    effect.moon_charm.type = 2;
+    effect.moon_charm.eq = true;
+    effect.moon_charm.duration = -1;       
+    effect.moon_charm.x = '☽';
+    effect.moon_charm.c = 'gold';
+    effect.moon_charm.b = 'purple';
+    effect.moon_charm.onGive = function() {
         if (global.flags.loadstate){
             you.str   += 5;
             you.str_d += 5;
@@ -2571,12 +2592,12 @@ function define_effects() {
             you.hpmax += 100;
             you.sat   += 100;
             you.satmax += 100;
-            global.flags.mnch=true;   
+            global.flags.moon_charm=true;   
         }
     };
-    effect.mnch.use = function() {
+    effect.moon_charm.use = function() {
         if (global.flags.isday === false) {
-            if (!global.flags.mnch){
+            if (!global.flags.moon_charm){
                 you.str   += 5;
                 you.str_d += 5;
                 you.agl   += 5;
@@ -2587,12 +2608,12 @@ function define_effects() {
                 you.hpmax += 100;
                 you.sat   += 100;
                 you.satmax += 100;
-                global.flags.mnch=true;
+                global.flags.moon_charm=true;
             } 
         } 
-        timers.mnch = setInterval( function() {
+        timers.moon_charm = setInterval( function() {
             if (global.flags.isday===false) {
-                if (!global.flags.mnch) {
+                if (!global.flags.moon_charm) {
                     you.str   += 5;
                     you.str_d += 5;
                     you.agl   += 5;
@@ -2603,23 +2624,23 @@ function define_effects() {
                     you.hpmax += 100;
                     you.sat   += 100;
                     you.satmax += 100;
-                    global.flags.mnch=true;
+                    global.flags.moon_charm=true;
                     update_d();
                 }
             } else {
-                if (global.flags.mnch === true) {
-                    effect.mnch.un();
+                if (global.flags.moon_charm === true) {
+                    effect.moon_charm.un();
                     you.stat_r();
                     update_d();
                 }
             }
         }, 1000)
     }
-    effect.mnch.un = function() { 
-        clearInterval(timers.mnch);
-        if (global.flags.mnch === true) {
+    effect.moon_charm.un = function() { 
+        clearInterval(timers.moon_charm);
+        if (global.flags.moon_charm === true) {
             you.sat -= 100;
-            global.flags.mnch = false;
+            global.flags.moon_charm = false;
         }
     }
 
@@ -3472,13 +3493,6 @@ function callbackManager(id) {
     this.fire = function(){};
 }
 
-callback.onDeath = new callbackManager(1);
-callback.onDeath.fire = function(victim, killer){ 
-    for (let a in this.hooks) {
-        this.hooks[a].f(victim, killer);
-    }
-}
-
 function attachCallback(callback, what, data){
     callback.hooks.push(what);
 }
@@ -3508,6 +3522,36 @@ function Quest() {
         pending : false,
         toup    : false
     };
+}
+
+function giveQst(q) {
+    if (!q.data.started) {
+        q.init();
+        q.data.started = true;
+        msg((q.repeatable ? '<span style="color:cyan">Repeatable</span> q' : 'Q')+'uest accepted: ' + '<span style="color:orange">"' + q.name + '"</span>','lightblue', q, 8);
+        let have = false;
+        for (let a in qsts) { 
+            if (qsts[a].id === q.id) {
+                have = true;
+                break;
+            }
+        }
+        if (!have) {
+            qsts.push(q);
+        }
+    }
+}
+
+function finishQst(q) {
+    if (q.data.started) {
+        q.data.done = true;
+        q.data.started = false;
+        q.data.pending = false;
+        msg('Quest completed: ','lime');
+        msg_add('"' + q.name + '"','orange');
+        q.rwd();
+        global.stat.qstc++;
+    }
 }
 
 function define_quests() {
@@ -3667,37 +3711,6 @@ function define_quests() {
     quest.lmfstkil1.goalsf = function() {
         return['Wolves killed: <span style="color:lime">35/35</span>'];
     };
-}
-
-
-function giveQst(q) {
-    if (!q.data.started) {
-        q.init();
-        q.data.started = true;
-        msg((q.repeatable ? '<span style="color:cyan">Repeatable</span> q' : 'Q')+'uest accepted: ' + '<span style="color:orange">"' + q.name + '"</span>','lightblue', q, 8);
-        let have = false;
-        for (let a in qsts) { 
-            if (qsts[a].id === q.id) {
-                have = true;
-                break;
-            }
-        }
-        if (!have) {
-            qsts.push(q);
-        }
-    }
-}
-
-function finishQst(q) {
-    if (q.data.started) {
-        q.data.done = true;
-        q.data.started = false;
-        q.data.pending = false;
-        msg('Quest completed: ','lime');
-        msg_add('"' + q.name + '"','orange');
-        q.rwd();
-        global.stat.qstc++;
-    }
 }
 
 
@@ -4723,7 +4736,6 @@ function Eqp(){
     this.onuneq =function(){};
     this.use = function(){equip(this)};
 }
-
 
 function define_items_generic() {
     eqp.dummy = new Eqp();
@@ -9113,25 +9125,25 @@ function define_accessories() {
     acc.strawp.onuneq=function(){you.sata-=50;you.sat-=50;you.spda-=1}
     acc.strawp.onGet=function(){if(acc.fmlim.have) {giveRcp(rcp.fmlim2); this.onGet=function(){}}}
 
-    acc.snch = new Eqp(); acc.snch.id = 40002;
-    acc.snch.name = 'Sun Charm';
-    acc.snch.desc = 'Little charm with a piece of power of the Sun imbued into it. It absorbs Sun energy'+dom.dseparator+'<span style=\'color:gold\'>Raises stats during day</span>';
-    acc.snch.slot = 8;
-    acc.snch.stype = 3;
-    acc.snch.eff[0]=effect.snch;
-    acc.snch.rar = 2;
-    acc.snch.oneq=function(){
+    acc.sun_charm = new Eqp(); acc.sun_charm.id = 40002;
+    acc.sun_charm.name = 'Sun Charm';
+    acc.sun_charm.desc = 'Little charm with a piece of power of the Sun imbued into it. It absorbs Sun energy'+dom.dseparator+'<span style=\'color:gold\'>Raises stats during day</span>';
+    acc.sun_charm.slot = 8;
+    acc.sun_charm.stype = 3;
+    acc.sun_charm.eff[0]=effect.sun_charm;
+    acc.sun_charm.rar = 2;
+    acc.sun_charm.oneq=function(){
       if(global.flags.savestate===false)msg('You feel closer to the Sun..','gold')
     }
 
-    acc.mnch = new Eqp(); acc.mnch.id = 40003;
-    acc.mnch.name = 'Moon Charm';
-    acc.mnch.desc = 'Little charm with a piece of power of the Moon imbued into it. It absorbs Moon energy'+dom.dseparator+'<span style=\'color:cyan\'>Raises stats during night</span>';
-    acc.mnch.slot = 8;
-    acc.mnch.stype = 3;
-    acc.mnch.eff[0]=effect.mnch;
-    acc.mnch.rar = 2;
-    acc.mnch.oneq=function(){
+    acc.moon_charm = new Eqp(); acc.moon_charm.id = 40003;
+    acc.moon_charm.name = 'Moon Charm';
+    acc.moon_charm.desc = 'Little charm with a piece of power of the Moon imbued into it. It absorbs Moon energy'+dom.dseparator+'<span style=\'color:cyan\'>Raises stats during night</span>';
+    acc.moon_charm.slot = 8;
+    acc.moon_charm.stype = 3;
+    acc.moon_charm.eff[0]=effect.moon_charm;
+    acc.moon_charm.rar = 2;
+    acc.moon_charm.oneq=function(){
       if(global.flags.savestate===false)msg('You feel closer to the Moon..','gold')
     }
 
@@ -11267,11 +11279,6 @@ function inSector(sector){
     }
 }
 
-function giveCrExp(skl, amt, lvl){
-  if(!lvl || skl.lvl < lvl) giveSkExp(skl, amt);
-}
-
-
 function define_sectors() {
     sector.home = new Sector({
         id: 1,
@@ -11530,6 +11537,9 @@ function Container(id){
     this.c = [];
 }
 
+function giveCrExp(skl, amt, lvl){
+    if(!lvl || skl.lvl < lvl) giveSkExp(skl, amt);
+}
 
 function Recipe(){
     this.name='';
@@ -11544,508 +11554,510 @@ function Recipe(){
     this.type=0; 
 }
 
-rcp.test = new Recipe(); rcp.test.id = 101;
-rcp.test.name='Test';
-rcp.test.rec=[{item:acc.dticket,amount:1},{item:acc.dticket,amount:1}];
-rcp.test.res =[{item:item.sbone,amount:991}];
+function define_recipes() {
+    rcp.test = new Recipe(); rcp.test.id = 101;
+    rcp.test.name='Test';
+    rcp.test.rec=[{item:acc.dticket,amount:1},{item:acc.dticket,amount:1}];
+    rcp.test.res =[{item:item.sbone,amount:991}];
 
-rcp.wp2 = new Recipe(); rcp.wp2.id = 102;
-rcp.wp2.name='Sharpened Stick';
-rcp.wp2.type = 3;
-rcp.wp2.rec =[{item:wpn.stk1,amount:1}];
-rcp.wp2.res =[{item:wpn.stk2,amount:1}];
-rcp.wp2.onmake=function(){giveCrExp(skl.crft,.5,1)}
-rcp.wp2.srect=['Any sharp tool'];
-rcp.wp2.srec=[function(){
-  for(let hh in inv) if(inv[hh].ctype===0&&inv[hh].cls[0]>=2) return true;
-}];
+    rcp.wp2 = new Recipe(); rcp.wp2.id = 102;
+    rcp.wp2.name='Sharpened Stick';
+    rcp.wp2.type = 3;
+    rcp.wp2.rec =[{item:wpn.stk1,amount:1}];
+    rcp.wp2.res =[{item:wpn.stk2,amount:1}];
+    rcp.wp2.onmake=function(){giveCrExp(skl.crft,.5,1)}
+    rcp.wp2.srect=['Any sharp tool'];
+    rcp.wp2.srec=[function(){
+      for(let hh in inv) if(inv[hh].ctype===0&&inv[hh].cls[0]>=2) return true;
+    }];
 
-rcp.strawp = new Recipe(); rcp.strawp.id = 103;
-rcp.strawp.name='Straw Pendant';
-rcp.strawp.type = 4;
-rcp.strawp.rec=[{item:item.sstraw,amount:5}];
-rcp.strawp.res=[{item:acc.strawp,amount:1}];
-rcp.strawp.onmake=function(){giveCrExp(skl.crft,.1,1)}
+    rcp.strawp = new Recipe(); rcp.strawp.id = 103;
+    rcp.strawp.name='Straw Pendant';
+    rcp.strawp.type = 4;
+    rcp.strawp.rec=[{item:item.sstraw,amount:5}];
+    rcp.strawp.res=[{item:acc.strawp,amount:1}];
+    rcp.strawp.onmake=function(){giveCrExp(skl.crft,.1,1)}
 
-rcp.hlpd = new Recipe(); rcp.hlpd.id = 104;
-rcp.hlpd.name='Low-grade Healing Powder';
-rcp.hlpd.type = 2;
-rcp.hlpd.rec=[{item:item.hrb1,amount:3}];
-rcp.hlpd.res=[{item:item.hlpd,amount:1}];
-rcp.hlpd.onmake=function(){giveCrExp(skl.alch,.2,1)}
+    rcp.hlpd = new Recipe(); rcp.hlpd.id = 104;
+    rcp.hlpd.name='Low-grade Healing Powder';
+    rcp.hlpd.type = 2;
+    rcp.hlpd.rec=[{item:item.hrb1,amount:3}];
+    rcp.hlpd.res=[{item:item.hlpd,amount:1}];
+    rcp.hlpd.onmake=function(){giveCrExp(skl.alch,.2,1)}
 
-rcp.borc = new Recipe(); rcp.borc.id = 105;
-rcp.borc.name='Boiled Rice';
-rcp.borc.type = 1;
-rcp.borc.rec=[{item:item.rice,amount:2},{item:item.watr,amount:2}];
-rcp.borc.res=[{item:item.borc,amount:1}];
-rcp.borc.onmake=function(){giveCrExp(skl.cook,.5,1)}
-rcp.borc.srect=['Nearby firesource'];
-rcp.borc.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.borc = new Recipe(); rcp.borc.id = 105;
+    rcp.borc.name='Boiled Rice';
+    rcp.borc.type = 1;
+    rcp.borc.rec=[{item:item.rice,amount:2},{item:item.watr,amount:2}];
+    rcp.borc.res=[{item:item.borc,amount:1}];
+    rcp.borc.onmake=function(){giveCrExp(skl.cook,.5,1)}
+    rcp.borc.srect=['Nearby firesource'];
+    rcp.borc.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.begg = new Recipe(); rcp.begg.id = 106;
-rcp.begg.name='Boiled Egg';
-rcp.begg.type = 1;
-rcp.begg.rec=[{item:item.eggn,amount:1},{item:item.watr,amount:2}];
-rcp.begg.res=[{item:item.begg,amount:1}];
-rcp.begg.onmake=function(){giveCrExp(skl.cook,.2,1)}
-rcp.begg.srect=['Nearby firesource'];
-rcp.begg.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.begg = new Recipe(); rcp.begg.id = 106;
+    rcp.begg.name='Boiled Egg';
+    rcp.begg.type = 1;
+    rcp.begg.rec=[{item:item.eggn,amount:1},{item:item.watr,amount:2}];
+    rcp.begg.res=[{item:item.begg,amount:1}];
+    rcp.begg.onmake=function(){giveCrExp(skl.cook,.2,1)}
+    rcp.begg.srect=['Nearby firesource'];
+    rcp.begg.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.trr = new Recipe(); rcp.trr.id = 107;
-rcp.trr.name='Trinity'; 
-rcp.trr.type = 4;
-rcp.trr.rec=[{item:acc.mstn,amount:1},{item:acc.srng,amount:1},{item:acc.bstn,amount:1},{item:acc.mstn,amount:1}];
-rcp.trr.res=[{item:acc.trrng,amount:1}];
+    rcp.trr = new Recipe(); rcp.trr.id = 107;
+    rcp.trr.name='Trinity'; 
+    rcp.trr.type = 4;
+    rcp.trr.rec=[{item:acc.mstn,amount:1},{item:acc.srng,amount:1},{item:acc.bstn,amount:1},{item:acc.mstn,amount:1}];
+    rcp.trr.res=[{item:acc.trrng,amount:1}];
 
-rcp.rsmt = new Recipe(); rcp.rsmt.id = 108;
-rcp.rsmt.name='Roasted Meat'; 
-rcp.rsmt.type = 1;
-rcp.rsmt.rec=[{item:item.rwmt1,amount:1}];
-rcp.rsmt.res=[{item:item.rsmt,amount:1}];
-rcp.rsmt.cmake=function(){let rn = random()+skl.cook.lvl*.1; if(rn>=.30) giveItem(rcp.rsmt.res[0].item); else {giveItem(item.brmt);  msg('It didn\'t turn out very well...','black',null,null,'lightgrey');}giveCrExp(skl.cook,.2,1);}
-rcp.rsmt.srect=['Nearby firesource'];
-rcp.rsmt.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.rsmt = new Recipe(); rcp.rsmt.id = 108;
+    rcp.rsmt.name='Roasted Meat'; 
+    rcp.rsmt.type = 1;
+    rcp.rsmt.rec=[{item:item.rwmt1,amount:1}];
+    rcp.rsmt.res=[{item:item.rsmt,amount:1}];
+    rcp.rsmt.cmake=function(){let rn = random()+skl.cook.lvl*.1; if(rn>=.30) giveItem(rcp.rsmt.res[0].item); else {giveItem(item.brmt);  msg('It didn\'t turn out very well...','black',null,null,'lightgrey');}giveCrExp(skl.cook,.2,1);}
+    rcp.rsmt.srect=['Nearby firesource'];
+    rcp.rsmt.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.segg = new Recipe(); rcp.segg.id = 109;
-rcp.segg.name='Scrambled Eggs'; 
-rcp.segg.type = 1;
-rcp.segg.rec=[{item:item.eggn,amount:2}];
-rcp.segg.res=[{item:item.segg,amount:1}];
-rcp.segg.onmake=function(){giveCrExp(skl.cook,1,2)}
-rcp.segg.srect=['Nearby firesource'];
-rcp.segg.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.segg = new Recipe(); rcp.segg.id = 109;
+    rcp.segg.name='Scrambled Eggs'; 
+    rcp.segg.type = 1;
+    rcp.segg.rec=[{item:item.eggn,amount:2}];
+    rcp.segg.res=[{item:item.segg,amount:1}];
+    rcp.segg.onmake=function(){giveCrExp(skl.cook,1,2)}
+    rcp.segg.srect=['Nearby firesource'];
+    rcp.segg.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.lnch1 = new Recipe(); rcp.lnch1.id = 110;
-rcp.lnch1.name='Bacon and Eggs'; 
-rcp.lnch1.type = 1;
-rcp.lnch1.rec=[{item:item.eggn,amount:2},{item:item.bac,amount:1}];
-rcp.lnch1.res=[{item:item.lnch1,amount:1}];
-rcp.lnch1.onmake=function(){giveCrExp(skl.cook,5,3)}
-rcp.lnch1.srect=['Nearby firesource'];
-rcp.lnch1.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.lnch1 = new Recipe(); rcp.lnch1.id = 110;
+    rcp.lnch1.name='Bacon and Eggs'; 
+    rcp.lnch1.type = 1;
+    rcp.lnch1.rec=[{item:item.eggn,amount:2},{item:item.bac,amount:1}];
+    rcp.lnch1.res=[{item:item.lnch1,amount:1}];
+    rcp.lnch1.onmake=function(){giveCrExp(skl.cook,5,3)}
+    rcp.lnch1.srect=['Nearby firesource'];
+    rcp.lnch1.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.lnch2 = new Recipe(); rcp.lnch2.id = 111;
-rcp.lnch2.name='Morning Set'; 
-rcp.lnch2.type = 1;
-rcp.lnch2.rec=[{item:item.eggn,amount:2},{item:item.brd,amount:1}];
-rcp.lnch2.res=[{item:item.lnch2,amount:1}];
-rcp.lnch2.onmake=function(){giveCrExp(skl.cook,8,3)}
-rcp.lnch2.srect=['Nearby firesource'];
-rcp.lnch2.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.lnch2 = new Recipe(); rcp.lnch2.id = 111;
+    rcp.lnch2.name='Morning Set'; 
+    rcp.lnch2.type = 1;
+    rcp.lnch2.rec=[{item:item.eggn,amount:2},{item:item.brd,amount:1}];
+    rcp.lnch2.res=[{item:item.lnch2,amount:1}];
+    rcp.lnch2.onmake=function(){giveCrExp(skl.cook,8,3)}
+    rcp.lnch2.srect=['Nearby firesource'];
+    rcp.lnch2.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.lnch3 = new Recipe(); rcp.lnch3.id = 112;
-rcp.lnch3.name='Lunch Set'; 
-rcp.lnch3.type = 1;
-rcp.lnch3.rec=[{item:item.eggn,amount:2},{item:item.brd,amount:1},{item:item.rwmt1,amount:1}];
-rcp.lnch3.res=[{item:item.lnch3,amount:1}];
-rcp.lnch3.onmake=function(){giveCrExp(skl.cook,10,4)}
-rcp.lnch3.srect=['Nearby firesource'];
-rcp.lnch3.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.lnch3 = new Recipe(); rcp.lnch3.id = 112;
+    rcp.lnch3.name='Lunch Set'; 
+    rcp.lnch3.type = 1;
+    rcp.lnch3.rec=[{item:item.eggn,amount:2},{item:item.brd,amount:1},{item:item.rwmt1,amount:1}];
+    rcp.lnch3.res=[{item:item.lnch3,amount:1}];
+    rcp.lnch3.onmake=function(){giveCrExp(skl.cook,10,4)}
+    rcp.lnch3.srect=['Nearby firesource'];
+    rcp.lnch3.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.orgs = new Recipe(); rcp.orgs.id = 113;
-rcp.orgs.name='Onion Rings'; 
-rcp.orgs.type = 1;
-rcp.orgs.rec=[{item:item.flr,amount:2},{item:item.onn,amount:1}];
-rcp.orgs.res=[{item:item.orgs,amount:1}];
-rcp.orgs.onmake=function(){giveCrExp(skl.cook,8,4)}
-rcp.orgs.srect=['Nearby firesource'];
-rcp.orgs.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.orgs = new Recipe(); rcp.orgs.id = 113;
+    rcp.orgs.name='Onion Rings'; 
+    rcp.orgs.type = 1;
+    rcp.orgs.rec=[{item:item.flr,amount:2},{item:item.onn,amount:1}];
+    rcp.orgs.res=[{item:item.orgs,amount:1}];
+    rcp.orgs.onmake=function(){giveCrExp(skl.cook,8,4)}
+    rcp.orgs.srect=['Nearby firesource'];
+    rcp.orgs.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.ffsh1 = new Recipe(); rcp.ffsh1.id = 114;
-rcp.ffsh1.name='Cooked Fish'; 
-rcp.ffsh1.type = 1;
-rcp.ffsh1.rec=[{item:item.fsh1,amount:1}];
-rcp.ffsh1.res=[{item:item.ffsh1,amount:1}];
-rcp.ffsh1.onmake=function(){giveCrExp(skl.cook,2,2)}
-rcp.ffsh1.srect=['Nearby firesource'];
-rcp.ffsh1.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.ffsh1 = new Recipe(); rcp.ffsh1.id = 114;
+    rcp.ffsh1.name='Cooked Fish'; 
+    rcp.ffsh1.type = 1;
+    rcp.ffsh1.rec=[{item:item.fsh1,amount:1}];
+    rcp.ffsh1.res=[{item:item.ffsh1,amount:1}];
+    rcp.ffsh1.onmake=function(){giveCrExp(skl.cook,2,2)}
+    rcp.ffsh1.srect=['Nearby firesource'];
+    rcp.ffsh1.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.ffsh2 = new Recipe(); rcp.ffsh2.id = 115;
-rcp.ffsh2.name='Batter Fried Fish'; 
-rcp.ffsh2.type = 1;
-rcp.ffsh2.rec=[{item:item.fsh2,amount:1},{item:item.flr,amount:1},{item:item.eggn,amount:1},{item:item.salt,amount:1}];
-rcp.ffsh2.res=[{item:item.ffsh2,amount:1}];
-rcp.ffsh2.onmake=function(){giveCrExp(skl.cook,12,5)}
-rcp.ffsh2.srect=['Nearby firesource'];
-rcp.ffsh2.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.ffsh2 = new Recipe(); rcp.ffsh2.id = 115;
+    rcp.ffsh2.name='Batter Fried Fish'; 
+    rcp.ffsh2.type = 1;
+    rcp.ffsh2.rec=[{item:item.fsh2,amount:1},{item:item.flr,amount:1},{item:item.eggn,amount:1},{item:item.salt,amount:1}];
+    rcp.ffsh2.res=[{item:item.ffsh2,amount:1}];
+    rcp.ffsh2.onmake=function(){giveCrExp(skl.cook,12,5)}
+    rcp.ffsh2.srect=['Nearby firesource'];
+    rcp.ffsh2.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.fnori = new Recipe(); rcp.fnori.id = 116;
-rcp.fnori.name='Fried Nori'; 
-rcp.fnori.type = 1;
-rcp.fnori.rec=[{item:item.nori,amount:1},{item:item.salt,amount:1}];
-rcp.fnori.res=[{item:item.fnori,amount:1}];
-rcp.fnori.onmake=function(){giveCrExp(skl.cook,4,4)}
-rcp.fnori.srect=['Nearby firesource'];
-rcp.fnori.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.fnori = new Recipe(); rcp.fnori.id = 116;
+    rcp.fnori.name='Fried Nori'; 
+    rcp.fnori.type = 1;
+    rcp.fnori.rec=[{item:item.nori,amount:1},{item:item.salt,amount:1}];
+    rcp.fnori.res=[{item:item.fnori,amount:1}];
+    rcp.fnori.onmake=function(){giveCrExp(skl.cook,4,4)}
+    rcp.fnori.srect=['Nearby firesource'];
+    rcp.fnori.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.cbun1 = new Recipe(); rcp.cbun1.id = 117;
-rcp.cbun1.name='Steamed Bun'; 
-rcp.cbun1.type = 1;
-rcp.cbun1.rec=[{item:item.watr,amount:1},{item:item.salt,amount:1},{item:item.dgh,amount:1}];
-rcp.cbun1.res=[{item:item.cbun1,amount:1}];
-rcp.cbun1.onmake=function(){giveCrExp(skl.cook,5,3)}
-rcp.cbun1.srect=['Nearby firesource'];
-rcp.cbun1.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.cbun1 = new Recipe(); rcp.cbun1.id = 117;
+    rcp.cbun1.name='Steamed Bun'; 
+    rcp.cbun1.type = 1;
+    rcp.cbun1.rec=[{item:item.watr,amount:1},{item:item.salt,amount:1},{item:item.dgh,amount:1}];
+    rcp.cbun1.res=[{item:item.cbun1,amount:1}];
+    rcp.cbun1.onmake=function(){giveCrExp(skl.cook,5,3)}
+    rcp.cbun1.srect=['Nearby firesource'];
+    rcp.cbun1.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.dgh = new Recipe(); rcp.dgh.id = 118;
-rcp.dgh.name='Dough'; 
-rcp.dgh.type = 1;
-rcp.dgh.rec=[{item:item.watr,amount:1},{item:item.flr,amount:3}];
-rcp.dgh.res=[{item:item.dgh,amount:1}];
-rcp.dgh.onmake=function(){giveCrExp(skl.cook,.5,2)}
+    rcp.dgh = new Recipe(); rcp.dgh.id = 118;
+    rcp.dgh.name='Dough'; 
+    rcp.dgh.type = 1;
+    rcp.dgh.rec=[{item:item.watr,amount:1},{item:item.flr,amount:3}];
+    rcp.dgh.res=[{item:item.dgh,amount:1}];
+    rcp.dgh.onmake=function(){giveCrExp(skl.cook,.5,2)}
 
-rcp.flr = new Recipe(); rcp.flr.id = 119;
-rcp.flr.name='Flour'; 
-rcp.flr.type = 1;
-rcp.flr.rec=[{item:item.wht,amount:1}];
-rcp.flr.res=[{item:item.flr,amount:2}];
-rcp.flr.onmake=function(){giveCrExp(skl.cook,.2,2)}
+    rcp.flr = new Recipe(); rcp.flr.id = 119;
+    rcp.flr.name='Flour'; 
+    rcp.flr.type = 1;
+    rcp.flr.rec=[{item:item.wht,amount:1}];
+    rcp.flr.res=[{item:item.flr,amount:2}];
+    rcp.flr.onmake=function(){giveCrExp(skl.cook,.2,2)}
 
-rcp.wbdl = new Recipe(); rcp.wbdl.id = 120;
-rcp.wbdl.name='Small Wood Bundle'; 
-rcp.wbdl.type = 5;
-rcp.wbdl.rec=[{item:item.wdc,amount:25}];
-rcp.wbdl.res=[{item:item.fwd1,amount:1}];
-rcp.wbdl.onmake=function(){giveCrExp(skl.crft,.5,1)}
+    rcp.wbdl = new Recipe(); rcp.wbdl.id = 120;
+    rcp.wbdl.name='Small Wood Bundle'; 
+    rcp.wbdl.type = 5;
+    rcp.wbdl.rec=[{item:item.wdc,amount:25}];
+    rcp.wbdl.res=[{item:item.fwd1,amount:1}];
+    rcp.wbdl.onmake=function(){giveCrExp(skl.crft,.5,1)}
 
-rcp.sshl = new Recipe(); rcp.sshl.id = 121;
-rcp.sshl.name='Star Shell'; 
-rcp.sshl.type = 4;
-rcp.sshl.rec=[{item:acc.snch,amount:1},{item:acc.mnch,amount:1}];
-rcp.sshl.res=[{item:acc.sshl,amount:1}];
-rcp.sshl.onmake=function(){giveCrExp(skl.crft,10)}
+    rcp.sshl = new Recipe(); rcp.sshl.id = 121;
+    rcp.sshl.name='Star Shell'; 
+    rcp.sshl.type = 4;
+    rcp.sshl.rec=[{item:acc.sun_charm,amount:1},{item:acc.moon_charm,amount:1}];
+    rcp.sshl.res=[{item:acc.sshl,amount:1}];
+    rcp.sshl.onmake=function(){giveCrExp(skl.crft,10)}
 
-rcp.hptn1 = new Recipe(); rcp.hptn1.id = 122;
-rcp.hptn1.name='Lesser Healing Potion'; 
-rcp.hptn1.type = 2;
-rcp.hptn1.rec=[{item:item.slm,amount:1},{item:item.hlpd,amount:2}];
-rcp.hptn1.res=[{item:item.hptn1,amount:1}];
-rcp.hptn1.onmake=function(){giveCrExp(skl.alch,1,2)}
+    rcp.hptn1 = new Recipe(); rcp.hptn1.id = 122;
+    rcp.hptn1.name='Lesser Healing Potion'; 
+    rcp.hptn1.type = 2;
+    rcp.hptn1.rec=[{item:item.slm,amount:1},{item:item.hlpd,amount:2}];
+    rcp.hptn1.res=[{item:item.hptn1,amount:1}];
+    rcp.hptn1.onmake=function(){giveCrExp(skl.alch,1,2)}
 
-rcp.hpck = new Recipe(); rcp.hpck.id = 123;
-rcp.hpck.name='Hippo Cookie'; 
-rcp.hpck.type = 1;
-rcp.hpck.rec=[{item:item.flr,amount:1},{item:item.hzlnt,amount:1},{item:item.sgr,amount:1},{item:item.mlkn,amount:1}];
-rcp.hpck.res=[{item:item.hpck,amount:1}];
-rcp.hpck.onmake=function(){giveCrExp(skl.cook,7,4)}
-rcp.hpck.srect=['Nearby firesource'];
-rcp.hpck.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.hpck = new Recipe(); rcp.hpck.id = 123;
+    rcp.hpck.name='Hippo Cookie'; 
+    rcp.hpck.type = 1;
+    rcp.hpck.rec=[{item:item.flr,amount:1},{item:item.hzlnt,amount:1},{item:item.sgr,amount:1},{item:item.mlkn,amount:1}];
+    rcp.hpck.res=[{item:item.hpck,amount:1}];
+    rcp.hpck.onmake=function(){giveCrExp(skl.cook,7,4)}
+    rcp.hpck.srect=['Nearby firesource'];
+    rcp.hpck.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.sdl1 = new Recipe(); rcp.sdl1.id = 124;
-rcp.sdl1.name='Straw Effigy'; 
-rcp.sdl1.type = 4;
-rcp.sdl1.rec=[{item:item.sstraw,amount:50}];
-rcp.sdl1.res=[{item:acc.sdl1,amount:1}];
-rcp.sdl1.onmake=function(){giveCrExp(skl.crft,3,2)}
+    rcp.sdl1 = new Recipe(); rcp.sdl1.id = 124;
+    rcp.sdl1.name='Straw Effigy'; 
+    rcp.sdl1.type = 4;
+    rcp.sdl1.rec=[{item:item.sstraw,amount:50}];
+    rcp.sdl1.res=[{item:acc.sdl1,amount:1}];
+    rcp.sdl1.onmake=function(){giveCrExp(skl.crft,3,2)}
 
-rcp.mnknk = new Recipe(); rcp.mnknk.id = 125;
-rcp.mnknk.name='Maneki-Neko'; 
-rcp.mnknk.type = 4;
-rcp.mnknk.rec=[{item:acc.cfgn,amount:1},{item:acc.lckcn,amount:1},];
-rcp.mnknk.res=[{item:acc.mnknk,amount:1}];
-rcp.mnknk.onmake=function(){giveCrExp(skl.crft,25)}
+    rcp.mnknk = new Recipe(); rcp.mnknk.id = 125;
+    rcp.mnknk.name='Maneki-Neko'; 
+    rcp.mnknk.type = 4;
+    rcp.mnknk.rec=[{item:acc.cfgn,amount:1},{item:acc.lckcn,amount:1},];
+    rcp.mnknk.res=[{item:acc.mnknk,amount:1}];
+    rcp.mnknk.onmake=function(){giveCrExp(skl.crft,25)}
 
-rcp.wdl1 = new Recipe(); rcp.wdl1.id = 126;
-rcp.wdl1.name='Wood Effigy'; 
-rcp.wdl1.type = 4;
-rcp.wdl1.rec=[{item:item.wdc,amount:40}];
-rcp.wdl1.res=[{item:acc.wdl1,amount:1}];
-rcp.wdl1.onmake=function(){giveCrExp(skl.crft,3,2)}
-rcp.wdl1.srect=['Any sharp tool'];
-rcp.wdl1.srec=[function(){
-  for(let hh in inv) if(inv[hh].ctype===0&&inv[hh].cls[0]>=2) return true;
-}];
+    rcp.wdl1 = new Recipe(); rcp.wdl1.id = 126;
+    rcp.wdl1.name='Wood Effigy'; 
+    rcp.wdl1.type = 4;
+    rcp.wdl1.rec=[{item:item.wdc,amount:40}];
+    rcp.wdl1.res=[{item:acc.wdl1,amount:1}];
+    rcp.wdl1.onmake=function(){giveCrExp(skl.crft,3,2)}
+    rcp.wdl1.srect=['Any sharp tool'];
+    rcp.wdl1.srec=[function(){
+      for(let hh in inv) if(inv[hh].ctype===0&&inv[hh].cls[0]>=2) return true;
+    }];
 
-rcp.gdl1 = new Recipe(); rcp.gdl1.id = 127;
-rcp.gdl1.name='Soul Puppet'; 
-rcp.gdl1.type = 4;
-rcp.gdl1.rec=[{item:acc.wdl1,amount:1},{item:acc.sdl1,amount:1},{item:acc.bdl1,amount:1},{item:item.lsrd,amount:5}];
-rcp.gdl1.res=[{item:acc.gdl1,amount:1}];
-rcp.gdl1.onmake=function(){giveCrExp(skl.crft,5,2)}
+    rcp.gdl1 = new Recipe(); rcp.gdl1.id = 127;
+    rcp.gdl1.name='Soul Puppet'; 
+    rcp.gdl1.type = 4;
+    rcp.gdl1.rec=[{item:acc.wdl1,amount:1},{item:acc.sdl1,amount:1},{item:acc.bdl1,amount:1},{item:item.lsrd,amount:5}];
+    rcp.gdl1.res=[{item:acc.gdl1,amount:1}];
+    rcp.gdl1.onmake=function(){giveCrExp(skl.crft,5,2)}
 
-rcp.tbrwd = new Recipe(); rcp.tbrwd.id = 128;
-rcp.tbrwd.name='Tea'; 
-rcp.tbrwd.type = 1;
-rcp.tbrwd.rec=[{item:item.tlvs,amount:1},{item:item.watr,amount:1},];
-rcp.tbrwd.res=[{item:item.tbrwd,amount:1}];
-rcp.tbrwd.onmake=function(){giveCrExp(skl.cook,1)}
+    rcp.tbrwd = new Recipe(); rcp.tbrwd.id = 128;
+    rcp.tbrwd.name='Tea'; 
+    rcp.tbrwd.type = 1;
+    rcp.tbrwd.rec=[{item:item.tlvs,amount:1},{item:item.watr,amount:1},];
+    rcp.tbrwd.res=[{item:item.tbrwd,amount:1}];
+    rcp.tbrwd.onmake=function(){giveCrExp(skl.cook,1)}
 
-rcp.brd = new Recipe(); rcp.brd.id = 129;
-rcp.brd.name='Bread'; 
-rcp.brd.type = 1;
-rcp.brd.rec=[{item:item.dgh,amount:1}];
-rcp.brd.res=[{item:item.brd,amount:1}];
-rcp.brd.cmake=function(){let rn = random()+skl.cook.lvl*.05; if(rn>=.25) giveItem(rcp.brd.res[0].item); else {giveItem(item.brdb);  msg('It didn\'t turn out very well...','black',null,null,'lightgrey');}giveCrExp(skl.cook,2,3)}
-rcp.brd.srect=['Nearby firesource'];
-rcp.brd.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.brd = new Recipe(); rcp.brd.id = 129;
+    rcp.brd.name='Bread'; 
+    rcp.brd.type = 1;
+    rcp.brd.rec=[{item:item.dgh,amount:1}];
+    rcp.brd.res=[{item:item.brd,amount:1}];
+    rcp.brd.cmake=function(){let rn = random()+skl.cook.lvl*.05; if(rn>=.25) giveItem(rcp.brd.res[0].item); else {giveItem(item.brdb);  msg('It didn\'t turn out very well...','black',null,null,'lightgrey');}giveCrExp(skl.cook,2,3)}
+    rcp.brd.srect=['Nearby firesource'];
+    rcp.brd.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.steak = new Recipe(); rcp.steak.id = 130;
-rcp.steak.name='Steak'; 
-rcp.steak.type = 1;
-rcp.steak.rec=[{item:item.salt,amount:1},{item:item.rwmt1,amount:1},{item:item.spc1,amount:1}];
-rcp.steak.res=[{item:item.steak,amount:1}];
-rcp.steak.onmake=function(){giveCrExp(skl.cook,7)}
-rcp.steak.srect=['Nearby firesource','Cooking lvl: 3'];
-rcp.steak.srec=[function(){if(you.mods.ckfre>0) return true},function(){if(skl.cook.lvl===3) return true}];
+    rcp.steak = new Recipe(); rcp.steak.id = 130;
+    rcp.steak.name='Steak'; 
+    rcp.steak.type = 1;
+    rcp.steak.rec=[{item:item.salt,amount:1},{item:item.rwmt1,amount:1},{item:item.spc1,amount:1}];
+    rcp.steak.res=[{item:item.steak,amount:1}];
+    rcp.steak.onmake=function(){giveCrExp(skl.cook,7)}
+    rcp.steak.srect=['Nearby firesource','Cooking lvl: 3'];
+    rcp.steak.srec=[function(){if(you.mods.ckfre>0) return true},function(){if(skl.cook.lvl===3) return true}];
 
-rcp.cnmnb = new Recipe(); rcp.cnmnb.id = 131;
-rcp.cnmnb.name='Cinnamon Bun'; 
-rcp.cnmnb.type = 1;
-rcp.cnmnb.rec=[{item:item.sgr,amount:1},{item:item.bttr,amount:1},{item:item.cnmn,amount:1},{item:item.wht,amount:1}];
-rcp.cnmnb.res=[{item:item.cnmnb,amount:1}];
-rcp.cnmnb.onmake=function(){giveCrExp(skl.cook,6,5)}
-rcp.cnmnb.srect=['Nearby firesource'];
-rcp.cnmnb.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.cnmnb = new Recipe(); rcp.cnmnb.id = 131;
+    rcp.cnmnb.name='Cinnamon Bun'; 
+    rcp.cnmnb.type = 1;
+    rcp.cnmnb.rec=[{item:item.sgr,amount:1},{item:item.bttr,amount:1},{item:item.cnmn,amount:1},{item:item.wht,amount:1}];
+    rcp.cnmnb.res=[{item:item.cnmnb,amount:1}];
+    rcp.cnmnb.onmake=function(){giveCrExp(skl.cook,6,5)}
+    rcp.cnmnb.srect=['Nearby firesource'];
+    rcp.cnmnb.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.brth = new Recipe(); rcp.brth.id = 132;
-rcp.brth.name='Broth'; 
-rcp.brth.type = 1;
-rcp.brth.rec=[{item:item.watr,amount:2},{item:item.rwmt1,amount:1}];
-rcp.brth.res=[{item:item.brth,amount:1}];
-rcp.brth.onmake=function(){giveCrExp(skl.cook,.5,2)}
-rcp.brth.srect=['Nearby firesource'];
-rcp.brth.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.brth = new Recipe(); rcp.brth.id = 132;
+    rcp.brth.name='Broth'; 
+    rcp.brth.type = 1;
+    rcp.brth.rec=[{item:item.watr,amount:2},{item:item.rwmt1,amount:1}];
+    rcp.brth.res=[{item:item.brth,amount:1}];
+    rcp.brth.onmake=function(){giveCrExp(skl.cook,.5,2)}
+    rcp.brth.srect=['Nearby firesource'];
+    rcp.brth.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.eggsp = new Recipe(); rcp.eggsp.id = 133;
-rcp.eggsp.name='Egg Soup'; 
-rcp.eggsp.type = 1;
-rcp.eggsp.rec=[{item:item.brth,amount:1},{item:item.eggn,amount:2},{item:item.salt,amount:1},{item:item.scln,amount:1}];
-rcp.eggsp.res=[{item:item.eggsp,amount:1}];
-rcp.eggsp.onmake=function(){giveCrExp(skl.cook,5,4)}
-rcp.eggsp.srect=['Nearby firesource'];
-rcp.eggsp.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.eggsp = new Recipe(); rcp.eggsp.id = 133;
+    rcp.eggsp.name='Egg Soup'; 
+    rcp.eggsp.type = 1;
+    rcp.eggsp.rec=[{item:item.brth,amount:1},{item:item.eggn,amount:2},{item:item.salt,amount:1},{item:item.scln,amount:1}];
+    rcp.eggsp.res=[{item:item.eggsp,amount:1}];
+    rcp.eggsp.onmake=function(){giveCrExp(skl.cook,5,4)}
+    rcp.eggsp.srect=['Nearby firesource'];
+    rcp.eggsp.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.crmchd = new Recipe(); rcp.crmchd.id = 134;
-rcp.crmchd.name='Creamy Chowder'; 
-rcp.crmchd.type = 1;
-rcp.crmchd.rec=[{item:item.mlkn,amount:1},{item:item.ches,amount:1},{item:item.rwmt1,amount:1},{item:item.potat,amount:1}];
-rcp.crmchd.res=[{item:item.crmchd,amount:1}];
-rcp.crmchd.onmake=function(){giveCrExp(skl.cook,15)}
-rcp.crmchd.srect=['Nearby firesource'];
-rcp.crmchd.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.crmchd = new Recipe(); rcp.crmchd.id = 134;
+    rcp.crmchd.name='Creamy Chowder'; 
+    rcp.crmchd.type = 1;
+    rcp.crmchd.rec=[{item:item.mlkn,amount:1},{item:item.ches,amount:1},{item:item.rwmt1,amount:1},{item:item.potat,amount:1}];
+    rcp.crmchd.res=[{item:item.crmchd,amount:1}];
+    rcp.crmchd.onmake=function(){giveCrExp(skl.cook,15)}
+    rcp.crmchd.srect=['Nearby firesource'];
+    rcp.crmchd.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.mink = new Recipe(); rcp.mink.id = 135;
-rcp.mink.name='Magic Ink'; 
-rcp.mink.type = 4;
-rcp.mink.rec=[{item:acc.qill,amount:1},{item:acc.bink,amount:1}];
-rcp.mink.res=[{item:acc.mink,amount:1}];
-rcp.mink.onmake=function(){giveCrExp(skl.crft,2.5,4)}
+    rcp.mink = new Recipe(); rcp.mink.id = 135;
+    rcp.mink.name='Magic Ink'; 
+    rcp.mink.type = 4;
+    rcp.mink.rec=[{item:acc.qill,amount:1},{item:acc.bink,amount:1}];
+    rcp.mink.res=[{item:acc.mink,amount:1}];
+    rcp.mink.onmake=function(){giveCrExp(skl.crft,2.5,4)}
 
-rcp.msoop = new Recipe(); rcp.msoop.id = 136;
-rcp.msoop.name='Mushroom Soup'; 
-rcp.msoop.type = 1;
-rcp.msoop.rec=[{item:item.watr,amount:2},{item:item.mshr,amount:2},{item:item.potat,amount:1},{item:item.onn,amount:1}];
-rcp.msoop.res=[{item:item.msoop,amount:1}];
-rcp.msoop.onmake=function(){giveCrExp(skl.cook,4,3)}
-rcp.msoop.srect=['Nearby firesource'];
-rcp.msoop.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.msoop = new Recipe(); rcp.msoop.id = 136;
+    rcp.msoop.name='Mushroom Soup'; 
+    rcp.msoop.type = 1;
+    rcp.msoop.rec=[{item:item.watr,amount:2},{item:item.mshr,amount:2},{item:item.potat,amount:1},{item:item.onn,amount:1}];
+    rcp.msoop.res=[{item:item.msoop,amount:1}];
+    rcp.msoop.onmake=function(){giveCrExp(skl.cook,4,3)}
+    rcp.msoop.srect=['Nearby firesource'];
+    rcp.msoop.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.jln4 = new Recipe(); rcp.jln4.id = 137;
-rcp.jln4.name='Grand Gelatin'; 
-rcp.jln4.type = 4;
-rcp.jln4.rec=[{item:acc.jln1,amount:1},{item:acc.jln2,amount:1},{item:acc.jln3,amount:1},];
-rcp.jln4.res=[{item:acc.jln4,amount:1}];
-rcp.jln4.onmake=function(){giveCrExp(skl.crft,15)}
+    rcp.jln4 = new Recipe(); rcp.jln4.id = 137;
+    rcp.jln4.name='Grand Gelatin'; 
+    rcp.jln4.type = 4;
+    rcp.jln4.rec=[{item:acc.jln1,amount:1},{item:acc.jln2,amount:1},{item:acc.jln3,amount:1},];
+    rcp.jln4.res=[{item:acc.jln4,amount:1}];
+    rcp.jln4.onmake=function(){giveCrExp(skl.crft,15)}
 
-rcp.strwks = new Recipe(); rcp.strwks.id = 138;
-rcp.strwks.name='Straw Kasa'; 
-rcp.strwks.type = 4;
-rcp.strwks.rec=[{item:item.sstraw,amount:30}];
-rcp.strwks.res=[{item:eqp.strwks,amount:1}];
-rcp.strwks.onmake=function(){giveCrExp(skl.crft,3,2)}
+    rcp.strwks = new Recipe(); rcp.strwks.id = 138;
+    rcp.strwks.name='Straw Kasa'; 
+    rcp.strwks.type = 4;
+    rcp.strwks.rec=[{item:item.sstraw,amount:30}];
+    rcp.strwks.res=[{item:eqp.strwks,amount:1}];
+    rcp.strwks.onmake=function(){giveCrExp(skl.crft,3,2)}
 
-rcp.bdl1 = new Recipe(); rcp.bdl1.id = 139;
-rcp.bdl1.name='Bone Doll'; 
-rcp.bdl1.type = 4;
-rcp.bdl1.rec=[{item:item.sbone,amount:30}];
-rcp.bdl1.res=[{item:acc.bdl1,amount:1}];
-rcp.bdl1.onmake=function(){giveCrExp(skl.crft,3,2)}
-rcp.bdl1.srect=['Any sharp tool'];
-rcp.bdl1.srec=[function(){
-  for(let hh in inv) if(inv[hh].ctype===0&&inv[hh].cls[0]>=2) return true;
-}];
+    rcp.bdl1 = new Recipe(); rcp.bdl1.id = 139;
+    rcp.bdl1.name='Bone Doll'; 
+    rcp.bdl1.type = 4;
+    rcp.bdl1.rec=[{item:item.sbone,amount:30}];
+    rcp.bdl1.res=[{item:acc.bdl1,amount:1}];
+    rcp.bdl1.onmake=function(){giveCrExp(skl.crft,3,2)}
+    rcp.bdl1.srect=['Any sharp tool'];
+    rcp.bdl1.srec=[function(){
+      for(let hh in inv) if(inv[hh].ctype===0&&inv[hh].cls[0]>=2) return true;
+    }];
 
-rcp.wvbkt = new Recipe(); rcp.wvbkt.id = 140;
-rcp.wvbkt.name='Straw Basket'; 
-rcp.wvbkt.type = 5;
-rcp.wvbkt.rec=[{item:item.sstraw,amount:40}];
-rcp.wvbkt.res=[{item:item.wvbkt,amount:1}];
-rcp.wvbkt.onmake=function(){giveCrExp(skl.crft,3,2)}
+    rcp.wvbkt = new Recipe(); rcp.wvbkt.id = 140;
+    rcp.wvbkt.name='Straw Basket'; 
+    rcp.wvbkt.type = 5;
+    rcp.wvbkt.rec=[{item:item.sstraw,amount:40}];
+    rcp.wvbkt.res=[{item:item.wvbkt,amount:1}];
+    rcp.wvbkt.onmake=function(){giveCrExp(skl.crft,3,2)}
 
-rcp.hlstw = new Recipe(); rcp.hlstw.id = 141;
-rcp.hlstw.name='Healing Stew'; 
-rcp.hlstw.type = 1;
-rcp.hlstw.rec=[{item:item.watr,amount:2},{item:item.hrb1,amount:28}];
-rcp.hlstw.res=[{item:item.hlstw,amount:1}];
-rcp.hlstw.onmake=function(){giveCrExp(skl.cook,1,2)}
-rcp.hlstw.srect=['Nearby firesource'];
-rcp.hlstw.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.hlstw = new Recipe(); rcp.hlstw.id = 141;
+    rcp.hlstw.name='Healing Stew'; 
+    rcp.hlstw.type = 1;
+    rcp.hlstw.rec=[{item:item.watr,amount:2},{item:item.hrb1,amount:28}];
+    rcp.hlstw.res=[{item:item.hlstw,amount:1}];
+    rcp.hlstw.onmake=function(){giveCrExp(skl.cook,1,2)}
+    rcp.hlstw.srect=['Nearby firesource'];
+    rcp.hlstw.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.bcrc = new Recipe(); rcp.bcrc.id = 142;
-rcp.bcrc.name='Bone Cracker'; 
-rcp.bcrc.type = 1;
-rcp.bcrc.rec=[{item:item.sbone,amount:25}];
-rcp.bcrc.res=[{item:item.bcrc,amount:1}];
-rcp.bcrc.onmake=function(){giveCrExp(skl.cook,1.7,3)}
-rcp.bcrc.srect=['Nearby firesource'];
-rcp.bcrc.srec=[function(){if(you.mods.ckfre>0) return true}];
- 
-rcp.bcrrt = new Recipe(); rcp.bcrrt.id = 143
-rcp.bcrrt.name='Boiled Carrot';
-rcp.bcrrt.type = 1;
-rcp.bcrrt.rec=[{item:item.crrt,amount:1},{item:item.watr,amount:1}];
-rcp.bcrrt.res=[{item:item.bcrrt,amount:1}];
-rcp.bcrrt.onmake=function(){giveCrExp(skl.cook,.3,2)}
-rcp.bcrrt.srect=['Nearby firesource'];
-rcp.bcrrt.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.bcrc = new Recipe(); rcp.bcrc.id = 142;
+    rcp.bcrc.name='Bone Cracker'; 
+    rcp.bcrc.type = 1;
+    rcp.bcrc.rec=[{item:item.sbone,amount:25}];
+    rcp.bcrc.res=[{item:item.bcrc,amount:1}];
+    rcp.bcrc.onmake=function(){giveCrExp(skl.cook,1.7,3)}
+    rcp.bcrc.srect=['Nearby firesource'];
+    rcp.bcrc.srec=[function(){if(you.mods.ckfre>0) return true}];
+    
+    rcp.bcrrt = new Recipe(); rcp.bcrrt.id = 143
+    rcp.bcrrt.name='Boiled Carrot';
+    rcp.bcrrt.type = 1;
+    rcp.bcrrt.rec=[{item:item.crrt,amount:1},{item:item.watr,amount:1}];
+    rcp.bcrrt.res=[{item:item.bcrrt,amount:1}];
+    rcp.bcrrt.onmake=function(){giveCrExp(skl.cook,.3,2)}
+    rcp.bcrrt.srect=['Nearby firesource'];
+    rcp.bcrrt.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.jsdch = new Recipe(); rcp.jsdch.id = 144;
-rcp.jsdch.name='Jelly Sandwich'; 
-rcp.jsdch.type = 1;
-rcp.jsdch.rec=[{item:item.jll,amount:1},{item:item.brd,amount:1},{item:item.ltcc,amount:1}];
-rcp.jsdch.res=[{item:item.jsdch,amount:1}];
-rcp.jsdch.onmake=function(){giveCrExp(skl.cook,.8,2)}
+    rcp.jsdch = new Recipe(); rcp.jsdch.id = 144;
+    rcp.jsdch.name='Jelly Sandwich'; 
+    rcp.jsdch.type = 1;
+    rcp.jsdch.rec=[{item:item.jll,amount:1},{item:item.brd,amount:1},{item:item.ltcc,amount:1}];
+    rcp.jsdch.res=[{item:item.jsdch,amount:1}];
+    rcp.jsdch.onmake=function(){giveCrExp(skl.cook,.8,2)}
 
-rcp.dcard1 = new Recipe(); rcp.dcard1.id = 145;
-rcp.dcard1.name='Discount Card'; 
-rcp.dcard1.type = 4;
-rcp.dcard1.rec=[{item:acc.dticket,amount:5}];
-rcp.dcard1.res=[{item:acc.dcard1,amount:1}];
-rcp.dcard1.onmake=function(){giveCrExp(skl.crft,16)}
+    rcp.dcard1 = new Recipe(); rcp.dcard1.id = 145;
+    rcp.dcard1.name='Discount Card'; 
+    rcp.dcard1.type = 4;
+    rcp.dcard1.rec=[{item:acc.dticket,amount:5}];
+    rcp.dcard1.res=[{item:acc.dcard1,amount:1}];
+    rcp.dcard1.onmake=function(){giveCrExp(skl.crft,16)}
 
-rcp.wsb = new Recipe(); rcp.wsb.id = 146;
-rcp.wsb.name='Wastebread'; 
-rcp.wsb.type = 1;
-rcp.wsb.rec=[{item:item.agrns,amount:3}];
-rcp.wsb.res=[{item:item.wsb,amount:1}];
-rcp.wsb.onmake=function(){giveCrExp(skl.cook,.5,3)}
+    rcp.wsb = new Recipe(); rcp.wsb.id = 146;
+    rcp.wsb.name='Wastebread'; 
+    rcp.wsb.type = 1;
+    rcp.wsb.rec=[{item:item.agrns,amount:3}];
+    rcp.wsb.res=[{item:item.wsb,amount:1}];
+    rcp.wsb.onmake=function(){giveCrExp(skl.cook,.5,3)}
 
-rcp.stksld = new Recipe(); rcp.stksld.id = 147;
-rcp.stksld.name='Stake Shield'; 
-rcp.stksld.type = 4;
-rcp.stksld.rec=[{item:wpn.stk2,amount:4}];
-rcp.stksld.res=[{item:sld.stksld,amount:1}];
-rcp.stksld.onmake=function(){giveCrExp(skl.crft,2.5,2)}
+    rcp.stksld = new Recipe(); rcp.stksld.id = 147;
+    rcp.stksld.name='Stake Shield'; 
+    rcp.stksld.type = 4;
+    rcp.stksld.rec=[{item:wpn.stk2,amount:4}];
+    rcp.stksld.res=[{item:sld.stksld,amount:1}];
+    rcp.stksld.onmake=function(){giveCrExp(skl.crft,2.5,2)}
 
-rcp.clrpin = new Recipe(); rcp.clrpin.id = 148;
-rcp.clrpin.name='Clover Pin'; 
-rcp.clrpin.type = 4;
-rcp.clrpin.rec=[{item:item.lckl,amount:7}];
-rcp.clrpin.res=[{item:acc.clrpin,amount:1}];
-rcp.clrpin.onmake=function(){giveCrExp(skl.crft,77)}
+    rcp.clrpin = new Recipe(); rcp.clrpin.id = 148;
+    rcp.clrpin.name='Clover Pin'; 
+    rcp.clrpin.type = 4;
+    rcp.clrpin.rec=[{item:item.lckl,amount:7}];
+    rcp.clrpin.res=[{item:acc.clrpin,amount:1}];
+    rcp.clrpin.onmake=function(){giveCrExp(skl.crft,77)}
 
-rcp.ptchct = new Recipe(); rcp.ptchct.id = 149;
-rcp.ptchct.name='Patchwork Coat'; 
-rcp.ptchct.type = 4;
-rcp.ptchct.rec=[{item:item.cclth,amount:11},{item:item.thrdnl,amount:4}];
-rcp.ptchct.res=[{item:eqp.ptchct,amount:1}];
-rcp.ptchct.onmake=function(){giveCrExp(skl.crft,3,2);giveCrExp(skl.tlrng,2,1)}
-rcp.ptchct.srect=['Tailoring tool lvl: 1'];
-rcp.ptchct.srec=[function(){
-  for(let hh in inv) if(inv[hh].tlrq>=1) return true;
-}];
+    rcp.ptchct = new Recipe(); rcp.ptchct.id = 149;
+    rcp.ptchct.name='Patchwork Coat'; 
+    rcp.ptchct.type = 4;
+    rcp.ptchct.rec=[{item:item.cclth,amount:11},{item:item.thrdnl,amount:4}];
+    rcp.ptchct.res=[{item:eqp.ptchct,amount:1}];
+    rcp.ptchct.onmake=function(){giveCrExp(skl.crft,3,2);giveCrExp(skl.tlrng,2,1)}
+    rcp.ptchct.srect=['Tailoring tool lvl: 1'];
+    rcp.ptchct.srec=[function(){
+      for(let hh in inv) if(inv[hh].tlrq>=1) return true;
+    }];
 
-rcp.ptchpts = new Recipe(); rcp.ptchpts.id = 150;
-rcp.ptchpts.name='Patchwork Pants'; 
-rcp.ptchpts.type = 4;
-rcp.ptchpts.rec=[{item:item.cclth,amount:9},{item:item.thrdnl,amount:3}];
-rcp.ptchpts.res=[{item:eqp.ptchpts,amount:1}];
-rcp.ptchpts.onmake=function(){giveCrExp(skl.crft,2,2);giveCrExp(skl.tlrng,3,1)}
-rcp.ptchpts.srect=['Tailoring tool lvl: 1'];
-rcp.ptchpts.srec=[function(){
-  for(let hh in inv) if(inv[hh].tlrq>=1) return true;
-}];
+    rcp.ptchpts = new Recipe(); rcp.ptchpts.id = 150;
+    rcp.ptchpts.name='Patchwork Pants'; 
+    rcp.ptchpts.type = 4;
+    rcp.ptchpts.rec=[{item:item.cclth,amount:9},{item:item.thrdnl,amount:3}];
+    rcp.ptchpts.res=[{item:eqp.ptchpts,amount:1}];
+    rcp.ptchpts.onmake=function(){giveCrExp(skl.crft,2,2);giveCrExp(skl.tlrng,3,1)}
+    rcp.ptchpts.srect=['Tailoring tool lvl: 1'];
+    rcp.ptchpts.srec=[function(){
+      for(let hh in inv) if(inv[hh].tlrq>=1) return true;
+    }];
 
-rcp.bblkt = new Recipe(); rcp.bblkt.id = 151;
-rcp.bblkt.name='Ragwork Blanket'; 
-rcp.bblkt.type = 5;
-rcp.bblkt.rec=[{item:item.cclth,amount:40},{item:item.thrdnl,amount:18}];
-rcp.bblkt.res=[{item:item.bblkt,amount:1}];
-rcp.bblkt.onmake=function(){giveCrExp(skl.crft,4,2);giveCrExp(skl.tlrng,7,1)}
-rcp.bblkt.srect=['Tailoring tool lvl: 1'];
-rcp.bblkt.srec=[function(){
-  for(let hh in inv) if(inv[hh].tlrq>=1) return true;
-}];
+    rcp.bblkt = new Recipe(); rcp.bblkt.id = 151;
+    rcp.bblkt.name='Ragwork Blanket'; 
+    rcp.bblkt.type = 5;
+    rcp.bblkt.rec=[{item:item.cclth,amount:40},{item:item.thrdnl,amount:18}];
+    rcp.bblkt.res=[{item:item.bblkt,amount:1}];
+    rcp.bblkt.onmake=function(){giveCrExp(skl.crft,4,2);giveCrExp(skl.tlrng,7,1)}
+    rcp.bblkt.srect=['Tailoring tool lvl: 1'];
+    rcp.bblkt.srec=[function(){
+      for(let hh in inv) if(inv[hh].tlrq>=1) return true;
+    }];
 
-rcp.spillw = new Recipe(); rcp.spillw.id = 152;
-rcp.spillw.name='Straw Pillow'; 
-rcp.spillw.type = 5;
-rcp.spillw.rec=[{item:item.cclth,amount:15},{item:item.thrdnl,amount:8},{item:item.sstraw,amount:80}];
-rcp.spillw.res=[{item:item.spillw,amount:1}];
-rcp.spillw.onmake=function(){giveCrExp(skl.crft,3,2);giveCrExp(skl.tlrng,4,1)}
+    rcp.spillw = new Recipe(); rcp.spillw.id = 152;
+    rcp.spillw.name='Straw Pillow'; 
+    rcp.spillw.type = 5;
+    rcp.spillw.rec=[{item:item.cclth,amount:15},{item:item.thrdnl,amount:8},{item:item.sstraw,amount:80}];
+    rcp.spillw.res=[{item:item.spillw,amount:1}];
+    rcp.spillw.onmake=function(){giveCrExp(skl.crft,3,2);giveCrExp(skl.tlrng,4,1)}
 
-rcp.alseto = new Recipe(); rcp.alseto.id = 153
-rcp.alseto.name='Basic Alchemy Set'; 
-rcp.alseto.type = 4;
-rcp.alseto.rec=[{item:acc.mpst,amount:1},{item:acc.mshst,amount:1},{item:acc.mhhst,amount:1}];
-rcp.alseto.res=[{item:acc.alseto,amount:1}];
-rcp.alseto.onmake=function(){giveCrExp(skl.crft,15,2);}
+    rcp.alseto = new Recipe(); rcp.alseto.id = 153
+    rcp.alseto.name='Basic Alchemy Set'; 
+    rcp.alseto.type = 4;
+    rcp.alseto.rec=[{item:acc.mpst,amount:1},{item:acc.mshst,amount:1},{item:acc.mhhst,amount:1}];
+    rcp.alseto.res=[{item:acc.alseto,amount:1}];
+    rcp.alseto.onmake=function(){giveCrExp(skl.crft,15,2);}
 
-rcp.mdcag = new Recipe(); rcp.mdcag.id = 154
-rcp.mdcag.name='Adhesive Bandage'; 
-rcp.mdcag.type = 4;
-rcp.mdcag.rec=[{item:item.bdgh,amount:1},{item:item.watr,amount:5},{item:item.hrb1,amount:50},{item:item.slm,amount:10}];
-rcp.mdcag.res=[{item:acc.mdcag,amount:1}];
-rcp.mdcag.onmake=function(){giveCrExp(skl.alch,2,2)}
+    rcp.mdcag = new Recipe(); rcp.mdcag.id = 154
+    rcp.mdcag.name='Adhesive Bandage'; 
+    rcp.mdcag.type = 4;
+    rcp.mdcag.rec=[{item:item.bdgh,amount:1},{item:item.watr,amount:5},{item:item.hrb1,amount:50},{item:item.slm,amount:10}];
+    rcp.mdcag.res=[{item:acc.mdcag,amount:1}];
+    rcp.mdcag.onmake=function(){giveCrExp(skl.alch,2,2)}
 
-rcp.mdcbg = new Recipe(); rcp.mdcbg.id = 155
-rcp.mdcbg.name='Medicated Bandage'; 
-rcp.mdcbg.type = 4;
-rcp.mdcbg.rec=[{item:acc.mdcag,amount:1},{item:acc.vtmns,amount:1},{item:item.hptn1,amount:8}];
-rcp.mdcbg.res=[{item:acc.mdcbg,amount:1}];
-rcp.mdcbg.onmake=function(){giveCrExp(skl.alch,3,2)}
+    rcp.mdcbg = new Recipe(); rcp.mdcbg.id = 155
+    rcp.mdcbg.name='Medicated Bandage'; 
+    rcp.mdcbg.type = 4;
+    rcp.mdcbg.rec=[{item:acc.mdcag,amount:1},{item:acc.vtmns,amount:1},{item:item.hptn1,amount:8}];
+    rcp.mdcbg.res=[{item:acc.mdcbg,amount:1}];
+    rcp.mdcbg.onmake=function(){giveCrExp(skl.alch,3,2)}
 
-rcp.cyrn = new Recipe(); rcp.cyrn.id = 156
-rcp.cyrn.name='Yarn Ball'; 
-rcp.cyrn.type = 5;
-rcp.cyrn.rec=[{item:item.thrdnl,amount:200}];
-rcp.cyrn.res=[{item:item.cyrn,amount:1}];
-rcp.cyrn.onmake=function(){giveCrExp(skl.crft,4,2)}
+    rcp.cyrn = new Recipe(); rcp.cyrn.id = 156
+    rcp.cyrn.name='Yarn Ball'; 
+    rcp.cyrn.type = 5;
+    rcp.cyrn.rec=[{item:item.thrdnl,amount:200}];
+    rcp.cyrn.res=[{item:item.cyrn,amount:1}];
+    rcp.cyrn.onmake=function(){giveCrExp(skl.crft,4,2)}
 
-rcp.fwdpile = new Recipe(); rcp.fwdpile.id = 157
-rcp.fwdpile.name='Firewood Pile'; 
-rcp.fwdpile.type = 5;
-rcp.fwdpile.rec=[{item:item.fwd1,amount:60}];
-rcp.fwdpile.res=[{item:item.fwdpile,amount:1}];
-rcp.fwdpile.onmake=function(){giveCrExp(skl.crft,5,2)}
+    rcp.fwdpile = new Recipe(); rcp.fwdpile.id = 157
+    rcp.fwdpile.name='Firewood Pile'; 
+    rcp.fwdpile.type = 5;
+    rcp.fwdpile.rec=[{item:item.fwd1,amount:60}];
+    rcp.fwdpile.res=[{item:item.fwdpile,amount:1}];
+    rcp.fwdpile.onmake=function(){giveCrExp(skl.crft,5,2)}
 
-rcp.fmlim2 = new Recipe(); rcp.fmlim2.id = 158
-rcp.fmlim2.name='Family Heirloom+'; 
-rcp.fmlim2.type = 4;
-rcp.fmlim2.rec=[{item:acc.strawp,amount:1},{item:acc.fmlim,amount:1}];
-rcp.fmlim2.res=[{item:acc.fmlim2,amount:1}];
-rcp.fmlim2.onmake=function(){giveCrExp(skl.crft,5,2)}
+    rcp.fmlim2 = new Recipe(); rcp.fmlim2.id = 158
+    rcp.fmlim2.name='Family Heirloom+'; 
+    rcp.fmlim2.type = 4;
+    rcp.fmlim2.rec=[{item:acc.strawp,amount:1},{item:acc.fmlim,amount:1}];
+    rcp.fmlim2.res=[{item:acc.fmlim2,amount:1}];
+    rcp.fmlim2.onmake=function(){giveCrExp(skl.crft,5,2)}
 
-rcp.appljc = new Recipe(); rcp.appljc.id = 159;
-rcp.appljc.name='Apple Juice'; 
-rcp.appljc.type = 1;
-rcp.appljc.rec=[{item:item.appl,amount:3}];
-rcp.appljc.res=[{item:item.appljc,amount:1},{item:item.frtplp,amount:1}];
-rcp.appljc.onmake=function(){giveCrExp(skl.cook,.5,2)}
+    rcp.appljc = new Recipe(); rcp.appljc.id = 159;
+    rcp.appljc.name='Apple Juice'; 
+    rcp.appljc.type = 1;
+    rcp.appljc.rec=[{item:item.appl,amount:3}];
+    rcp.appljc.res=[{item:item.appljc,amount:1},{item:item.frtplp,amount:1}];
+    rcp.appljc.onmake=function(){giveCrExp(skl.cook,.5,2)}
 
-rcp.bdgh = new Recipe(); rcp.bdgh.id = 160;
-rcp.bdgh.name='Bandage'; 
-rcp.bdgh.type = 2;
-rcp.bdgh.rec=[{item:item.cclth,amount:1},{item:item.watr,amount:3}];
-rcp.bdgh.res=[{item:item.bdgh,amount:1}];
-rcp.bdgh.onmake=function(){giveCrExp(skl.crft,.5,2)}
-rcp.bdgh.srect=['Nearby firesource'];
-rcp.bdgh.srec=[function(){if(you.mods.ckfre>0) return true}];
+    rcp.bdgh = new Recipe(); rcp.bdgh.id = 160;
+    rcp.bdgh.name='Bandage'; 
+    rcp.bdgh.type = 2;
+    rcp.bdgh.rec=[{item:item.cclth,amount:1},{item:item.watr,amount:3}];
+    rcp.bdgh.res=[{item:item.bdgh,amount:1}];
+    rcp.bdgh.onmake=function(){giveCrExp(skl.crft,.5,2)}
+    rcp.bdgh.srect=['Nearby firesource'];
+    rcp.bdgh.srec=[function(){if(you.mods.ckfre>0) return true}];
 
-rcp.wfng = new Recipe(); rcp.wfng.id = 161;
-rcp.wfng.name='Wolf Fang Necklace'; 
-rcp.wfng.type = 4;
-rcp.wfng.rec=[{item:item.wfng,amount:5},{item:item.thrdnl,amount:1}];
-rcp.wfng.res=[{item:acc.wfng,amount:1}];
-rcp.wfng.onmake=function(){giveCrExp(skl.crft,5,3)}
+    rcp.wfng = new Recipe(); rcp.wfng.id = 161;
+    rcp.wfng.name='Wolf Fang Necklace'; 
+    rcp.wfng.type = 4;
+    rcp.wfng.rec=[{item:item.wfng,amount:5},{item:item.thrdnl,amount:1}];
+    rcp.wfng.res=[{item:acc.wfng,amount:1}];
+    rcp.wfng.onmake=function(){giveCrExp(skl.crft,5,3)}
 
-rcp.wfar = new Recipe(); rcp.wfar.id = 162;
-rcp.wfar.name='Wolf Array'; 
-rcp.wfar.type = 4;
-rcp.wfar.rec=[{item:acc.wfng,amount:3}];
-rcp.wfar.res=[{item:acc.wfar,amount:1}];
-rcp.wfar.onmake=function(){giveCrExp(skl.crft,10,3)}
+    rcp.wfar = new Recipe(); rcp.wfar.id = 162;
+    rcp.wfar.name='Wolf Array'; 
+    rcp.wfar.type = 4;
+    rcp.wfar.rec=[{item:acc.wfng,amount:3}];
+    rcp.wfar.res=[{item:acc.wfar,amount:1}];
+    rcp.wfar.onmake=function(){giveCrExp(skl.crft,10,3)}
+}
 
 
 function evaluateSpecialRequirementsForRecipe(recipe) {
@@ -12146,63 +12158,65 @@ function Vendor(){
     }
 }
 
-vendor.stvr1 = new Vendor();
-vendor.stvr1.name = 'Street Vendor'; vendor.stvr1.infl = 2; vendor.stvr1.dfl = .3; 
-vendor.stvr1.items=[{item:item.cbun1,p:6,c:.8,min:1,max:4},{item:item.strwb,p:8,c:.01,min:1,max:8},{item:item.cbun2,p:7,c:.5,min:1,max:4},{item:item.brd,p:5,c:1,min:4,max:8}];
+function define_vendors() {
+    vendor.stvr1 = new Vendor();
+    vendor.stvr1.name = 'Street Vendor'; vendor.stvr1.infl = 2; vendor.stvr1.dfl = .3; 
+    vendor.stvr1.items=[{item:item.cbun1,p:6,c:.8,min:1,max:4},{item:item.strwb,p:8,c:.01,min:1,max:8},{item:item.cbun2,p:7,c:.5,min:1,max:4},{item:item.brd,p:5,c:1,min:4,max:8}];
 
-vendor.kid1 = new Vendor();
-vendor.kid1.name = 'Child Trader'; 
-vendor.kid1.items=[{item:item.pbl,p:1,c:1,min:10,max:50},{item:item.mcps,p:2,c:.3,min:6,max:16},{item:item.spb,p:3,c:.8,min:2,max:8},{item:item.bonig,p:11,c:.2,min:2,max:5}];
+    vendor.kid1 = new Vendor();
+    vendor.kid1.name = 'Child Trader'; 
+    vendor.kid1.items=[{item:item.pbl,p:1,c:1,min:10,max:50},{item:item.mcps,p:2,c:.3,min:6,max:16},{item:item.spb,p:3,c:.8,min:2,max:8},{item:item.bonig,p:11,c:.2,min:2,max:5}];
 
-vendor.grc1 = new Vendor();
-vendor.grc1.name = 'Grocery Shop';
-vendor.grc1.data.time=vendor.grc1.timeorig=3; vendor.grc1.infl = 1.15; vendor.grc1.dfl = .3;
-vendor.grc1.data.rep=10; vendor.grc1.repsc=8
-vendor.grc1.items=[{item:item.rice,p:4,c:1,min:40,max:50},{item:item.eggn,p:7,c:1,min:8,max:32},{item:item.onn,p:8,c:1,min:5,max:12},{item:item.salt,p:25,c:.3,min:2,max:7},{item:item.grlc,p:14,c:.15,min:1,max:8},{item:item.wht,p:5,c:1,min:13,max:29},{item:item.ltcc,p:8,c:.6,min:3,max:6},{item:item.mlkn,p:10,c:.4,min:2,max:4},{item:item.appl,p:5,c:.8,min:5,max:20},{item:item.brd,p:12,c:.85,min:3,max:10},{item:item.bgt,p:17,c:.35,min:1,max:6},{item:item.rwmt1,p:31,c:.25,min:4,max:8},{item:item.agrns,p:8,c:.2,min:10,max:30},{item:item.watr,p:2,c:.85,min:20,max:70}];
-vendor.grc1.extra = function(){
-  if(random()<.2)chss.grc1.data.gets[0]=false;
-}
+    vendor.grc1 = new Vendor();
+    vendor.grc1.name = 'Grocery Shop';
+    vendor.grc1.data.time=vendor.grc1.timeorig=3; vendor.grc1.infl = 1.15; vendor.grc1.dfl = .3;
+    vendor.grc1.data.rep=10; vendor.grc1.repsc=8
+    vendor.grc1.items=[{item:item.rice,p:4,c:1,min:40,max:50},{item:item.eggn,p:7,c:1,min:8,max:32},{item:item.onn,p:8,c:1,min:5,max:12},{item:item.salt,p:25,c:.3,min:2,max:7},{item:item.grlc,p:14,c:.15,min:1,max:8},{item:item.wht,p:5,c:1,min:13,max:29},{item:item.ltcc,p:8,c:.6,min:3,max:6},{item:item.mlkn,p:10,c:.4,min:2,max:4},{item:item.appl,p:5,c:.8,min:5,max:20},{item:item.brd,p:12,c:.85,min:3,max:10},{item:item.bgt,p:17,c:.35,min:1,max:6},{item:item.rwmt1,p:31,c:.25,min:4,max:8},{item:item.agrns,p:8,c:.2,min:10,max:30},{item:item.watr,p:2,c:.85,min:20,max:70}];
+    vendor.grc1.extra = function(){
+      if(random()<.2)chss.grc1.data.gets[0]=false;
+    }
 
-vendor.gens1 = new Vendor();
-vendor.gens1.name = 'General Store';
-vendor.gens1.time=vendor.gens1.timeorig=3;
-vendor.gens1.infl = 1.2;
-vendor.gens1.dfl = .2;
-vendor.gens1.data.rep=5;
-vendor.gens1.repsc=4
-vendor.gens1.items= [
-    {item:item.fwd1,p:25,c:1,min:8,max:20},
-    {item:item.coal2,p:80,c:.5,min:2,max:5},
-    {item:item.amrthsck,p:360,c:.2,min:1,max:1},
-    {item:item.dmkbk,p:390,c:.15,min:1,max:1},
-    {item:item.wsb,p:16,c:.7,min:5,max:11},
-    {item:wpn.wsrd1,p:35,c:.6,min:1,max:3},
-    {item:eqp.rncp,p:60,c:.3,min:1,max:3},
-    {item:eqp.rnss,p:70,c:.3,min:1,max:3},
-    {item:eqp.tnc,p:56,c:.3,min:1,max:3},
-    {item:eqp.sndl,p:32,c:.3,min:1,max:6},
-    {item:wpn.bsrd,p:100,c:.3,min:1,max:2},
-    {item:wpn.sprw,p:130,c:.3,min:1,max:3},
-    {item:item.wine1,p:116,c:.2,min:1,max:7},
-    {item:item.rope,p:100,c:.65,min:1,max:6},
-    {item:item.msc1,p:110,c:.25,min:1,max:4},
-    {item:item.tbwr1,p:130,c:.65,min:1,max:4},
-    {item:item.bed2,p:500,c:.45,min:1,max:1},
-    {item:item.cndl,p:200,c:.55,min:1,max:2},
-    {item:item.cclth,p:7,c:.85,min:15,max:50},
-    {item:item.thrdnl,p:2,c:.85,min:3,max:70},
-    {item:acc.ndlb,p:50,c:.73,min:1,max:15}];
-vendor.gens1.extra = function(){
-  if(random()<.2)chss.gens1.data.gets[0]=false;
-}
+    vendor.gens1 = new Vendor();
+    vendor.gens1.name = 'General Store';
+    vendor.gens1.time=vendor.gens1.timeorig=3;
+    vendor.gens1.infl = 1.2;
+    vendor.gens1.dfl = .2;
+    vendor.gens1.data.rep=5;
+    vendor.gens1.repsc=4
+    vendor.gens1.items= [
+        {item:item.fwd1,p:25,c:1,min:8,max:20},
+        {item:item.coal2,p:80,c:.5,min:2,max:5},
+        {item:item.amrthsck,p:360,c:.2,min:1,max:1},
+        {item:item.dmkbk,p:390,c:.15,min:1,max:1},
+        {item:item.wsb,p:16,c:.7,min:5,max:11},
+        {item:wpn.wsrd1,p:35,c:.6,min:1,max:3},
+        {item:eqp.rncp,p:60,c:.3,min:1,max:3},
+        {item:eqp.rnss,p:70,c:.3,min:1,max:3},
+        {item:eqp.tnc,p:56,c:.3,min:1,max:3},
+        {item:eqp.sndl,p:32,c:.3,min:1,max:6},
+        {item:wpn.bsrd,p:100,c:.3,min:1,max:2},
+        {item:wpn.sprw,p:130,c:.3,min:1,max:3},
+        {item:item.wine1,p:116,c:.2,min:1,max:7},
+        {item:item.rope,p:100,c:.65,min:1,max:6},
+        {item:item.msc1,p:110,c:.25,min:1,max:4},
+        {item:item.tbwr1,p:130,c:.65,min:1,max:4},
+        {item:item.bed2,p:500,c:.45,min:1,max:1},
+        {item:item.cndl,p:200,c:.55,min:1,max:2},
+        {item:item.cclth,p:7,c:.85,min:15,max:50},
+        {item:item.thrdnl,p:2,c:.85,min:3,max:70},
+        {item:acc.ndlb,p:50,c:.73,min:1,max:15}];
+    vendor.gens1.extra = function(){
+      if(random()<.2)chss.gens1.data.gets[0]=false;
+    }
 
-vendor.pha1 = new Vendor(); 
-vendor.pha1.name = 'Herbalist';
-vendor.pha1.time=vendor.pha1.timeorig=2; vendor.pha1.infl = 1.25; vendor.pha1.dfl = .2;
-vendor.pha1.data.rep=5; vendor.pha1.repsc=6
-vendor.pha1.items=[{item:item.sp1,p:20,c:1,min:3,max:15},{item:item.sp2,p:230,c:.8,min:2,max:10},{item:item.sp3,p:690,c:.7,min:1,max:5},{item:item.bdgh,p:6,c:.9,min:5,max:15},{item:acc.vtmns,p:150,c:.5,min:1,max:3},{item:acc.mpst,p:100,c:.8,min:1,max:6},{item:acc.mshst,p:480,c:.6,min:1,max:1},{item:acc.mhhst,p:600,c:.4,min:1,max:1},{item:item.hptn1,p:20,c:1,min:8,max:35},{item:item.atd1,p:40,c:.7,min:4,max:13},{item:item.psnwrd,p:400,c:.25,min:2,max:5},{item:item.smm,p:70,c:.75,min:2,max:8},{item:item.mdc1,p:150,c:.75,min:1,max:1}];
-vendor.pha1.extra = function(){
-  if(random()<.2)chss.pha1.data.gets[0]=false;
+    vendor.pha1 = new Vendor(); 
+    vendor.pha1.name = 'Herbalist';
+    vendor.pha1.time=vendor.pha1.timeorig=2; vendor.pha1.infl = 1.25; vendor.pha1.dfl = .2;
+    vendor.pha1.data.rep=5; vendor.pha1.repsc=6
+    vendor.pha1.items=[{item:item.sp1,p:20,c:1,min:3,max:15},{item:item.sp2,p:230,c:.8,min:2,max:10},{item:item.sp3,p:690,c:.7,min:1,max:5},{item:item.bdgh,p:6,c:.9,min:5,max:15},{item:acc.vtmns,p:150,c:.5,min:1,max:3},{item:acc.mpst,p:100,c:.8,min:1,max:6},{item:acc.mshst,p:480,c:.6,min:1,max:1},{item:acc.mhhst,p:600,c:.4,min:1,max:1},{item:item.hptn1,p:20,c:1,min:8,max:35},{item:item.atd1,p:40,c:.7,min:4,max:13},{item:item.psnwrd,p:400,c:.25,min:2,max:5},{item:item.smm,p:70,c:.75,min:2,max:8},{item:item.mdc1,p:150,c:.75,min:1,max:1}];
+    vendor.pha1.extra = function(){
+      if(random()<.2)chss.pha1.data.gets[0]=false;
+    }
 }
    
 function restock(vnd){vnd.stock=[]; shuffle(vnd.items); 
@@ -12234,82 +12248,83 @@ function Action(){
     this.activate = function(){}
     this.deactivate = function(){}
 };
-act.default = new Action();
-global.current_a = act.default;
 
+function define_actions() {
+//@Todo @Idea         these ideas below are super cool and i would love to do something with them someday...  
 //tendon transformation scripture
 //third inner cultivation
 //heavenly dragon arts
 //eff iron determination / golden rule / wisdom of crisis
 //arhat/deep sitting arhat/raised bowl arhat/raised pagoda arhat/meditating arhat/overseas arhat/elephant riding arhat/taming tiger arhat/taming dragon arhat/
 
-act.demo = new Action();
-act.demo.id = 1;
-act.demo.name ='Run';
-act.demo.desc = function() {
-    return 'Run within this area to improve your physique'+dom.dseparator+'<span style="color:pink">Exp +0.5/s</span><br><span style="color:skyblue">Trains Walking</span><br><span style="color:crimson">Energy Consumption +0.1\/s</span>';
-};
-act.demo.cond = function(l){
-    if(!global.flags.btl&&global.flags.civil&&!global.flags.inside&&!global.flags.sleepmode&&!global.flags.rdng&&!global.flags.isshop&&!global.flags.work)  return true; else{if(l!==false)msg('This isn\'t the best place to run around','red');return false}
-}
-act.demo.use = function(){
-    giveExp(.5,true,true);
-    if(you.sat>0) giveSkExp(skl.walk,1.5); else giveSkExp(skl.walk,.5);
-    you.eqp[6].dp=you.eqp[6].dp-.005<0?0:you.eqp[6].dp-.005;
-}
-act.demo.activate = function(){
-    msg('You start running','orange'); this.active=true;
-    you.mods.sdrate+=.1*you.mods.runerg; you.mods.stdstps+=.5;
-    clearInterval(timers.actm); giveEff(you,effect.run);
-    timers.actm=setInterval(()=>{
-        this.use();
-    },1000);
-}; 
-act.demo.deactivate = function(){msg('You stop','skyblue');clearInterval(timers.actm); this.active=false;removeEff(effect.run);you.mods.sdrate-=.1*you.mods.runerg;you.mods.stdstps-=.5;}
-
-act.scout = new Action();
-act.scout.id = 2;
-act.scout.name = 'Investigate';
-act.scout.desc = function() {
-    return 'Thoroughly examine current area in search for hidden passages, treasure, secrets or anything of interest';
-};
-act.scout.cond = function(l){
-    if(global.flags.isdark&&!cansee()){return false}
-    if(!global.flags.btl&&global.flags.civil&&!global.flags.sleepmode&&!global.flags.rdng) return true; else{if(l!==false)msg('You\'re too occupied with something else','red');return false}
-}
-act.scout.activate = function(){
-  msg('You begin to look around','springgreen'); this.active=true;
-  clearInterval(timers.actm); giveEff(you,effect.scout);
-  let t=2; for(let a in global.current_location.sector) {let m = canScout(global.current_location.sector[a]); if(m===1) t=m;}
-  if(canScout(global.current_location)===1||t===1) msg('You sense something','white')
-  timers.actm=setInterval(()=>{
-    this.use();
-  },1000);
-};
-
-act.scout.use = function(){
-    if(global.flags.isdark&&!cansee()) {deactivateAct(this); msg('You can\'t see anything','grey');return}
-    let a1 = canScout(global.current_location); let a2c=[]
-    for(let a in global.current_location.sector) a2c.push(canScout(global.current_location.sector[a])); 
-    let a2=3; for(let a in a2c) if(a2c[a]!==3) {if(a2c[a]===1){a2=1;break}else a2=2}
-    if(a1===1) global.current_location.onScout(); if(a2===1) {for(let a in global.current_location.sector) if(canScout(global.current_location.sector[a])===1)global.current_location.sector[a].onScout();}
-    if(a1===3&&a2===3) {
-        msg('There doesn\'t seem to be anything of interest around..','lightgrey');deactivateAct(this)
-    } else if(a1>=2&&a2>=2){
-        msg('You have already explored this area','lightgrey');deactivateAct(this); 
+    act.demo = new Action();
+    act.demo.id = 1;
+    act.demo.name ='Run';
+    act.demo.desc = function() {
+        return 'Run within this area to improve your physique'+dom.dseparator+'<span style="color:pink">Exp +0.5/s</span><br><span style="color:skyblue">Trains Walking</span><br><span style="color:crimson">Energy Consumption +0.1\/s</span>';
+    };
+    act.demo.cond = function(l){
+        if(!global.flags.btl&&global.flags.civil&&!global.flags.inside&&!global.flags.sleepmode&&!global.flags.rdng&&!global.flags.isshop&&!global.flags.work)  return true; else{if(l!==false)msg('This isn\'t the best place to run around','red');return false}
     }
-}
-act.scout.deactivate = function(){msg('You stop','skyblue');clearInterval(timers.actm); this.active=false;removeEff(effect.scout);}
+    act.demo.use = function(){
+        giveExp(.5,true,true);
+        if(you.sat>0) giveSkExp(skl.walk,1.5); else giveSkExp(skl.walk,.5);
+        you.eqp[6].dp=you.eqp[6].dp-.005<0?0:you.eqp[6].dp-.005;
+    }
+    act.demo.activate = function(){
+        msg('You start running','orange'); this.active=true;
+        you.mods.sdrate+=.1*you.mods.runerg; you.mods.stdstps+=.5;
+        clearInterval(timers.actm); giveEff(you,effect.run);
+        timers.actm=setInterval(()=>{
+            this.use();
+        },1000);
+    }; 
+    act.demo.deactivate = function(){msg('You stop','skyblue');clearInterval(timers.actm); this.active=false;removeEff(effect.run);you.mods.sdrate-=.1*you.mods.runerg;you.mods.stdstps-=.5;}
 
-act.demo2 = new Action();
-act.demo2.id = -3;
-act.demo2.name = 'Selfharm'; //** always thought this one was a bit strange lol
-act.demo2.type =2 
-act.demo2.desc = function() {return 'Injure yourself'};
-act.demo2.use = function() {
-    let f = findbyid(you.eff,effect.bled.id); 
-    if(!f) {msg('You '+select(['stab','slash'])+' your '+select(['hand','chest','leg','palm','arm','foot']),'red');} else msg('You\'re already injured','orange'); giveEff(you,effect.bled,10,1);
-}; 
+    act.scout = new Action();
+    act.scout.id = 2;
+    act.scout.name = 'Investigate';
+    act.scout.desc = function() {
+        return 'Thoroughly examine current area in search for hidden passages, treasure, secrets or anything of interest';
+    };
+    act.scout.cond = function(l){
+        if(global.flags.isdark&&!cansee()){return false}
+        if(!global.flags.btl&&global.flags.civil&&!global.flags.sleepmode&&!global.flags.rdng) return true; else{if(l!==false)msg('You\'re too occupied with something else','red');return false}
+    }
+    act.scout.activate = function(){
+      msg('You begin to look around','springgreen'); this.active=true;
+      clearInterval(timers.actm); giveEff(you,effect.scout);
+      let t=2; for(let a in global.current_location.sector) {let m = canScout(global.current_location.sector[a]); if(m===1) t=m;}
+      if(canScout(global.current_location)===1||t===1) msg('You sense something','white')
+      timers.actm=setInterval(()=>{
+        this.use();
+      },1000);
+    };
+
+    act.scout.use = function(){
+        if(global.flags.isdark&&!cansee()) {deactivateAct(this); msg('You can\'t see anything','grey');return}
+        let a1 = canScout(global.current_location); let a2c=[]
+        for(let a in global.current_location.sector) a2c.push(canScout(global.current_location.sector[a])); 
+        let a2=3; for(let a in a2c) if(a2c[a]!==3) {if(a2c[a]===1){a2=1;break}else a2=2}
+        if(a1===1) global.current_location.onScout(); if(a2===1) {for(let a in global.current_location.sector) if(canScout(global.current_location.sector[a])===1)global.current_location.sector[a].onScout();}
+        if(a1===3&&a2===3) {
+            msg('There doesn\'t seem to be anything of interest around..','lightgrey');deactivateAct(this)
+        } else if(a1>=2&&a2>=2){
+            msg('You have already explored this area','lightgrey');deactivateAct(this); 
+        }
+    }
+    act.scout.deactivate = function(){msg('You stop','skyblue');clearInterval(timers.actm); this.active=false;removeEff(effect.scout);}
+
+    act.demo2 = new Action();
+    act.demo2.id = -3;
+    act.demo2.name = 'Selfharm'; //** always thought this one was a bit strange lol
+    act.demo2.type =2 
+    act.demo2.desc = function() {return 'Injure yourself'};
+    act.demo2.use = function() {
+        let f = findbyid(you.eff,effect.bled.id); 
+        if(!f) {msg('You '+select(['stab','slash'])+' your '+select(['hand','chest','leg','palm','arm','foot']),'red');} else msg('You\'re already injured','orange'); giveEff(you,effect.bled,10,1);
+    }; 
+}
 
 function giveAction(a){
     if(a.have===false) {if(!global.flags.actsu){global.flags.actsu=true;dom.ct_bt3.innerHTML='actions'}
@@ -12317,11 +12332,52 @@ function giveAction(a){
     }
 } 
 
+function renderAct(a){
+    this.accm = addElement(dom.acccon,'div',null,'skwmmc');
+    a.t = this.accm;
+    addDesc(this.accm,null,2,a.name,a.desc());
+    this.accm.innerHTML = a.name;
+    this.accm.style.textAlign='center';
+    this.accm.style.display='block';
+    if(acts.length-1===acts.indexOf(a)) this.accm.style.borderBottom='1px solid #46a';
+    if(a.cond(false)!==true) this.accm.style.color='grey';
+    if(a.active===true) this.accm.style.color='lime';
+    this.accm.addEventListener('click',function(){
+    switch(a.type){
+        case 1:
+        if(a.cond()===true&&a.id!==global.current_a.id) {activateAct(a); this.style.color='lime'} else 
+        if(a.id===global.current_a.id) {deactivateAct(global.current_a); this.style.color='inherit'}
+        break;
+        case 2: if(a.cond()===true) a.use(); break;
+        case 3: break;
+    }
+        for(let a in acts)refreshAct(acts[a].t, acts[a])
+    })
+}
 
-///////////////////////////////////////////
-//DOM
-///////////////////////////////////////////
+function refreshAct(e,a){
+    e.style.color='inherit';
+    if(a.cond(false)!==true) e.style.color='grey';
+    if(a.active===true) e.style.color='lime';
+}
 
+function activateAct(actn){
+    global.current_a.deactivate();
+    actn.activate();
+    global.current_a=actn;
+    global.flags.busy=true;
+    dom.ct_bt3.style.backgroundColor='darkslategray'
+}
+
+function deactivateAct(actn){
+    actn.deactivate();
+    global.current_a=act.default;
+    global.flags.busy=false;
+    dom.ct_bt3.style.backgroundColor='inherit';
+    for(let a in acts)refreshAct(acts[a].t, acts[a])
+}
+
+//@Todo organize
 dom.d0 = addElement(document.body,'div','d1','d');
 if (!global.flags.aw_u) {
     dom.d0.style.display = 'none';
@@ -12815,42 +12871,6 @@ dom.ct_bt3.addEventListener('click',()=>{
         }
     }
 }); 
-
-function renderAct(a){
-    this.accm = addElement(dom.acccon,'div',null,'skwmmc');
-    a.t = this.accm;
-    addDesc(this.accm,null,2,a.name,a.desc());
-    this.accm.innerHTML = a.name;
-    this.accm.style.textAlign='center';
-    this.accm.style.display='block';
-    if(acts.length-1===acts.indexOf(a)) this.accm.style.borderBottom='1px solid #46a';
-    if(a.cond(false)!==true) this.accm.style.color='grey';
-    if(a.active===true) this.accm.style.color='lime';
-    this.accm.addEventListener('click',function(){
-    switch(a.type){
-        case 1:
-        if(a.cond()===true&&a.id!==global.current_a.id) {activateAct(a); this.style.color='lime'} else 
-        if(a.id===global.current_a.id) {deactivateAct(global.current_a); this.style.color='inherit'}
-        break;
-        case 2: if(a.cond()===true) a.use(); break;
-        case 3: break;
-    }
-        for(let a in acts)refreshAct(acts[a].t, acts[a])
-    })
-}
-function refreshAct(e,a){
-    e.style.color='inherit';
-    if(a.cond(false)!==true) e.style.color='grey';
-    if(a.active===true) e.style.color='lime';
-}
-
-function activateAct(actn){
-    global.current_a.deactivate(); actn.activate(); global.current_a=actn; global.flags.busy=true; dom.ct_bt3.style.backgroundColor='darkslategray'
-}
-
-function deactivateAct(actn){
-    actn.deactivate(); global.current_a=act.default; global.flags.busy=false; dom.ct_bt3.style.backgroundColor='inherit'; for(let a in acts)refreshAct(acts[a].t, acts[a])
-}
 
 dom.ct_bt2.addEventListener('click', function() { // skill list menu
     dom.nthngdsp.style.display = 'none';
@@ -15403,7 +15423,7 @@ function chs_spec(type,x){
             dom.ch_1_4=addElement(dom.ch_1,'div',null,'chs_s');
             dom.ch_1_4.innerHTML='Likes: <span style="color:lime">'+global.text.cln[c.data.l1]+'</span> And <span style="color:lime">'+global.text.cln[c.data.l2]+'</span>';
             
-            timers.caupd = setInterval( () => {
+            timers.upd_cat = setInterval( () => {
                 dom.ch_1_2.innerHTML = 'Age: '+
                     (c.data.age >= YEAR  ? '<span style="color:orange">'+(c.data.age/YEAR<<0)    +'</span> Years ' : '')+
                     (c.data.age >= MONTH ? '<span style="color:yellow">'+(c.data.age/MONTH<<0)%12+'</span> Months ':'')+
@@ -16071,16 +16091,6 @@ chss.intro = new Chs({
     }
 });
 
-
-if (global.flags.gameone === false){
-    global.current_location = chss.intro;
-    move_to_area(chss.intro);
-    giveFurniture(furniture.frplc,null,false);
-    let _b = giveFurniture(furniture.bed1,null,false);
-    home.bed = _b;
-}
-
-
 chss.intro_village_center = new Chs({
     id: 102,
     sl: () => {
@@ -16493,7 +16503,7 @@ chss.home.sl = () => {
 
             chs('"<= Return"', false).addEventListener('click', () => {
                 move_to_area(chss.home, false);
-                clearInterval(timers.caupd);
+                clearInterval(timers.upd_cat);
             });
         });
     }
@@ -16687,7 +16697,7 @@ chss.t3.sl=()=>{global.flags.inside=true; u_loc('Dojo, lobby'); global.flags.ins
     else if(global.flags.trnex1===true&&!global.flags.trnex2){
       chs('Instructor: "Hahahhha! What a great disciple! That\'s not the dedication most of the other disciples have! Take this, it\'ll help you in your future endeavours"',true,'yellow');
       chs('"Thanks teacher!"',false).addEventListener('click',()=>{
-        giveItem(acc.snch); move_to_area(chss.village_center); global.flags.trnex2=true;
+        giveItem(acc.sun_charm); move_to_area(chss.village_center); global.flags.trnex2=true;
       });
     }
     else{ chs(select(['Instructor: "Back already?"','You notice other dojo disciples diligently train','Pieces of broken training dummies are scattered on the floor']),true);
@@ -16793,7 +16803,7 @@ chss.t3.sl=()=>{global.flags.inside=true; u_loc('Dojo, lobby'); global.flags.ins
         chs('"Level 25 reward"',false,'orange').addEventListener('click',()=>{
           chs('Instructor: "You\'re almost ready to face real dangers of the outside world! Keep working hard!"',true);
           chs('"Accept"',false,'lime').addEventListener('click',()=>{
-            global.flags.dj1rw5=true; giveWealth(350); giveItem(acc.mnch) ;move_to_area(chss.t3,false);
+            global.flags.dj1rw5=true; giveWealth(350); giveItem(acc.moon_charm) ;move_to_area(chss.t3,false);
           });
         });
       }
@@ -18613,350 +18623,351 @@ chss.riverman.sl = () => {
 
 function wManager(){
     let ses = getSeason();
-  if (w_manager.duration>0) w_manager.duration-=global.timescale; 
-  else{
+    if (w_manager.duration>0) {
+        w_manager.duration-=global.timescale;
+    } else {
     let chance = rand(1, 100);
-    switch(ses){
-      case 1: 
-      switch (w_manager.curr.id){
-        case weather.sunny.id: 
-          if(chance<=10) setWeather(weather.cloudy, rand(120, 220));
-          else if (chance>10&&chance<=20) setWeather(weather.overcast, rand(90, 280));
-          else if (chance>20&&chance<=90&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(300, 500));
-          else if (chance>20&&chance<=90&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(200, 400));
-          else setWeather(weather.sunny, rand(22, 44));
+    switch(ses) {
+        case 1: 
+        switch (w_manager.curr.id){
+            case weather.sunny.id: 
+                if(chance<=10) setWeather(weather.cloudy, rand(120, 220));
+                else if (chance>10&&chance<=20) setWeather(weather.overcast, rand(90, 280));
+                else if (chance>20&&chance<=90&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(300, 500));
+                else if (chance>20&&chance<=90&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(200, 400));
+                else setWeather(weather.sunny, rand(22, 44));
+            break;
+            case weather.cloudy.id: 
+                if(chance<=15) setWeather(weather.stormy, rand(100, 200));
+                else if (chance>15&&chance<=35) setWeather(weather.overcast, rand(90, 220));
+                else if (chance>35&&chance<=45) setWeather(weather.rain, rand(150, 250));
+                else if (chance>45&&chance<=65) setWeather(weather.drizzle, rand(30, 80));
+                else if (chance>65&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(300, 500));
+                else if (chance>65&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(200, 400));
+                else setWeather(weather.cloudy, rand(90,160));
+            break;
+            case weather.stormy.id:
+                if(chance<10) setWeather(weather.cloudy, rand(90, 120));
+                else if (chance>10&&chance<=40) setWeather(weather.storm, rand(90, 160));
+                else if (chance>40&&chance<=60) setWeather(weather.rain, rand(120, 200));
+                else if (chance>60&&chance<=75) setWeather(weather.drizzle, rand(20, 40));
+                else setWeather(weather.stormy, rand(60,120));
+            break;
+            case weather.storm.id: 
+                if(chance<5) setWeather(weather.stormy, rand(80, 120));
+                else if (chance>5&&chance<=65) setWeather(weather.rain, rand(180, 250));
+                else if (chance>65&&chance<=75) setWeather(weather.heavyrain, rand(80, 150));
+                else setWeather(weather.storm, rand(20,80));
+            break;
+            case weather.overcast.id: 
+                if(chance<20) setWeather(weather.stormy, rand(50, 120));
+                else if (chance>20&&chance<=45) setWeather(weather.cloudy, rand(100, 200));
+                else if (chance>45&&chance<=60) setWeather(weather.clear, rand(150, 250));
+                else setWeather(weather.overcast, rand(40,90));
+            break;
+            case weather.rain.id: 
+                if(chance<10) setWeather(weather.drizzle, rand(30, 50));
+                else if (chance>10&&chance<=20) setWeather(weather.heavyrain, rand(100, 200));
+                else if (chance>20&&chance<=30) setWeather(weather.overcast, rand(52, 173));
+                else if (chance>30&&chance<=55) setWeather(weather.misty, rand(25, 55));
+                else if (chance>55&&chance<=80) setWeather(weather.clear, rand(225, 455));
+                else setWeather(weather.rain, rand(80,120));
+            break;
+            case weather.heavyrain.id: 
+                if(chance<10) setWeather(weather.storm, rand(80, 130));
+                else if (chance>10&&chance<=65) setWeather(weather.rain, rand(100, 170));
+                else if (chance>65&&chance<=75) setWeather(weather.misty, rand(15, 40));
+                else if (chance>75&&chance<=80) setWeather(weather.clear, rand(110, 200));
+                else if (chance>80&&chance<=90) setWeather(weather.thunder, rand(120, 200));
+                else setWeather(weather.heavyrain, rand(50,100));
+            break;
+            case weather.misty.id: 
+                if(chance<50) setWeather(weather.foggy, rand(22, 33));
+                else if (chance>50&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+                else if (chance>50&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+                else setWeather(weather.misty, rand(11,22));
+            break;
+            case weather.foggy.id: 
+                if(chance<20) setWeather(weather.overcast, rand(80, 130));
+                else if (chance>20&&chance<=70&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+                else if (chance>20&&chance<=70&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+                else setWeather(weather.foggy, rand(11,22));
+            break;
+            case weather.drizzle.id: 
+                if(chance<20) setWeather(weather.overcast, rand(30, 60));
+                else if (chance>20&&chance<=50) setWeather(weather.rain, rand(90, 180));
+                else if (chance>50&&chance<=65) setWeather(weather.clear, rand(90, 180));
+                else setWeather(weather.drizzle, rand(30,62));      
+            break;
+            case weather.clear.id: 
+                if(chance<10) setWeather(weather.overcast, rand(30, 60));
+                else if (chance>10&&chance<=55&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+                else if (chance>10&&chance<=55&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+                else if (chance>55&&chance<=65) setWeather(weather.cloudy, rand(100, 200));
+                else setWeather(weather.clear, rand(160,290));
+            break;
+            case weather.thunder.id: 
+                if(chance<50) setWeather(weather.heavyrain, rand(60, 90));
+                else if (chance>50&&chance<=80) setWeather(weather.storm, rand(80, 120));
+                else setWeather(weather.thunder, rand(40,60));
+            break;
+            default: setWeather(weather.clear, rand(30,60)); break; 
+        }
         break;
-        case weather.cloudy.id: 
-          if(chance<=15) setWeather(weather.stormy, rand(100, 200));
-          else if (chance>15&&chance<=35) setWeather(weather.overcast, rand(90, 220));
-          else if (chance>35&&chance<=45) setWeather(weather.rain, rand(150, 250));
-          else if (chance>45&&chance<=65) setWeather(weather.drizzle, rand(30, 80));
-          else if (chance>65&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(300, 500));
-          else if (chance>65&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(200, 400));
-          else setWeather(weather.cloudy, rand(90,160));
-        break;
-        case weather.stormy.id:
-          if(chance<10) setWeather(weather.cloudy, rand(90, 120));
-          else if (chance>10&&chance<=40) setWeather(weather.storm, rand(90, 160));
-          else if (chance>40&&chance<=60) setWeather(weather.rain, rand(120, 200));
-          else if (chance>60&&chance<=75) setWeather(weather.drizzle, rand(20, 40));
-          else setWeather(weather.stormy, rand(60,120));
-        break;
-        case weather.storm.id: 
-          if(chance<5) setWeather(weather.stormy, rand(80, 120));
-          else if (chance>5&&chance<=65) setWeather(weather.rain, rand(180, 250));
-          else if (chance>65&&chance<=75) setWeather(weather.heavyrain, rand(80, 150));
-          else setWeather(weather.storm, rand(20,80));
-        break;
-        case weather.overcast.id: 
-          if(chance<20) setWeather(weather.stormy, rand(50, 120));
-          else if (chance>20&&chance<=45) setWeather(weather.cloudy, rand(100, 200));
-          else if (chance>45&&chance<=60) setWeather(weather.clear, rand(150, 250));
-          else setWeather(weather.overcast, rand(40,90));
-        break;
-        case weather.rain.id: 
-          if(chance<10) setWeather(weather.drizzle, rand(30, 50));
-          else if (chance>10&&chance<=20) setWeather(weather.heavyrain, rand(100, 200));
-          else if (chance>20&&chance<=30) setWeather(weather.overcast, rand(52, 173));
-          else if (chance>30&&chance<=55) setWeather(weather.misty, rand(25, 55));
-          else if (chance>55&&chance<=80) setWeather(weather.clear, rand(225, 455));
-          else setWeather(weather.rain, rand(80,120));
-        break;
-        case weather.heavyrain.id: 
-          if(chance<10) setWeather(weather.storm, rand(80, 130));
-          else if (chance>10&&chance<=65) setWeather(weather.rain, rand(100, 170));
-          else if (chance>65&&chance<=75) setWeather(weather.misty, rand(15, 40));
-          else if (chance>75&&chance<=80) setWeather(weather.clear, rand(110, 200));
-          else if (chance>80&&chance<=90) setWeather(weather.thunder, rand(120, 200));
-          else setWeather(weather.heavyrain, rand(50,100));
-        break;
-        case weather.misty.id: 
-          if(chance<50) setWeather(weather.foggy, rand(22, 33));
-          else if (chance>50&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>50&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else setWeather(weather.misty, rand(11,22));
-        break;
-        case weather.foggy.id: 
-          if(chance<20) setWeather(weather.overcast, rand(80, 130));
-          else if (chance>20&&chance<=70&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>20&&chance<=70&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else setWeather(weather.foggy, rand(11,22));
-        break;
-        case weather.drizzle.id: 
-          if(chance<20) setWeather(weather.overcast, rand(30, 60));
-          else if (chance>20&&chance<=50) setWeather(weather.rain, rand(90, 180));
-          else if (chance>50&&chance<=65) setWeather(weather.clear, rand(90, 180));
-          else setWeather(weather.drizzle, rand(30,62));      
-        break;
-        case weather.clear.id: 
-          if(chance<10) setWeather(weather.overcast, rand(30, 60));
-          else if (chance>10&&chance<=55&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>10&&chance<=55&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else if (chance>55&&chance<=65) setWeather(weather.cloudy, rand(100, 200));
-          else setWeather(weather.clear, rand(160,290));
-        break;
-        case weather.thunder.id: 
-          if(chance<50) setWeather(weather.heavyrain, rand(60, 90));
-          else if (chance>50&&chance<=80) setWeather(weather.storm, rand(80, 120));
-          else setWeather(weather.thunder, rand(40,60));
-        break;
-        default: setWeather(weather.clear, rand(30,60)); break; 
-      }
-      break;
-    case 2:
-      switch (w_manager.curr.id){
-        case weather.sunny.id: 
-          if(chance<=5) setWeather(weather.cloudy, rand(60, 120));
-          else if (chance>5&&chance<=90&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(400, 700));
-          else if (chance>15&&chance<=90&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(300, 500));
-          else setWeather(weather.sunny, rand(90, 180));
-        break;
-        case weather.cloudy.id: 
-          if(chance<=3) setWeather(weather.stormy, rand(30, 60));
-          else if (chance>3&&chance<=8) setWeather(weather.overcast, rand(40, 120));
-          else if (chance>8&&chance<=15) setWeather(weather.rain, rand(50, 100));
-          else if (chance>15&&chance<=25) setWeather(weather.drizzle, rand(30, 80));
-          else if (chance>25&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(300, 500));
-          else if (chance>25&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(200, 400));
-          else setWeather(weather.cloudy, rand(40,120));
-        break;
-        case weather.stormy.id:
-          if(chance<35) setWeather(weather.cloudy, rand(60, 120));
-          else if (chance>35&&chance<=40) setWeather(weather.storm, rand(90, 160));
-          else if (chance>40&&chance<=60) setWeather(weather.rain, rand(70, 120));
-          else if (chance>60&&chance<=85) setWeather(weather.drizzle, rand(60, 900));
-          else setWeather(weather.stormy, rand(60,120));
-        break;
-        case weather.storm.id: 
-          if(chance<5) setWeather(weather.stormy, rand(30, 50));
-          else if (chance>5&&chance<=65) setWeather(weather.rain, rand(140, 200));
-          else if (chance>65&&chance<=70) setWeather(weather.heavyrain, rand(80, 150));
-          else setWeather(weather.storm, rand(20,80));
-        break;
-        case weather.overcast.id: 
-          if(chance<5) setWeather(weather.stormy, rand(20, 60));
-          else if (chance>5&&chance<=45) setWeather(weather.cloudy, rand(100, 200));
-          else if (chance>45&&chance<=65) setWeather(weather.clear, rand(150, 250));
-          else setWeather(weather.overcast, rand(60,110));
-        break;
-        case weather.rain.id: 
-          if(chance<10) setWeather(weather.drizzle, rand(50, 70));
-          else if (chance>10&&chance<=15) setWeather(weather.heavyrain, rand(50, 80));
-          else if (chance>15&&chance<=40) setWeather(weather.overcast, rand(82, 173));
-          else if (chance>40&&chance<=55) setWeather(weather.misty, rand(25, 55));
-          else if (chance>55&&chance<=80) setWeather(weather.clear, rand(225, 455));
-          else setWeather(weather.rain, rand(80,120));
-        break;
-        case weather.heavyrain.id: 
-          if(chance<10) setWeather(weather.storm, rand(80, 130));
-          else if (chance>10&&chance<=65) setWeather(weather.rain, rand(100, 170));
-          else if (chance>65&&chance<=75) setWeather(weather.misty, rand(15, 40));
-          else if (chance>75&&chance<=87) setWeather(weather.clear, rand(110, 200));
-          else if (chance>87&&chance<=90) setWeather(weather.thunder, rand(120, 200));
-          else setWeather(weather.heavyrain, rand(50,100));
-        break;
-        case weather.misty.id: 
-          if(chance<50) setWeather(weather.foggy, rand(22, 33));
-          else if (chance>50&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>50&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else setWeather(weather.misty, rand(11,22));
-        break;
-        case weather.foggy.id: 
-          if(chance<20) setWeather(weather.overcast, rand(80, 130));
-          else if (chance>20&&chance<=70&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>20&&chance<=70&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else setWeather(weather.foggy, rand(11,22));
-        break;
-        case weather.drizzle.id: 
-          if(chance<15) setWeather(weather.overcast, rand(30, 60));
-          else if (chance>15&&chance<=40) setWeather(weather.cloudy, rand(90, 180));
-          else if (chance>40&&chance<=50) setWeather(weather.rain, rand(50, 111));
-          else if (chance>50&&chance<=65) setWeather(weather.clear, rand(90, 180));
-          else setWeather(weather.drizzle, rand(30,62));      
-        break;
-        case weather.clear.id: 
-          if(chance<5) setWeather(weather.overcast, rand(30, 60));
-          else if (chance>5&&chance<=55&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>10&&chance<=55&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else if (chance>55&&chance<=65) setWeather(weather.cloudy, rand(100, 200));
-          else setWeather(weather.clear, rand(160,290));
-        break;
-        case weather.thunder.id: 
-          if(chance<50) setWeather(weather.heavyrain, rand(60, 90));
-          else if (chance>50&&chance<=80) setWeather(weather.storm, rand(80, 120));
-          else setWeather(weather.thunder, rand(40,60));
-        break;
-        default: setWeather(weather.clear, rand(30,60)); break; 
-      }
-      break;
-    case 3:
-      switch (w_manager.curr.id){
-        case weather.sunny.id: 
-          if(chance<=25) setWeather(weather.cloudy, rand(120, 220));
-          else if (chance>25&&chance<=60) setWeather(weather.overcast, rand(90, 280));
-          else if (chance>60&&chance<=90&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(80, 150));
-          else if (chance>60&&chance<=90&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(120, 180));
-          else setWeather(weather.sunny, rand(22, 44));
-        break;
-        case weather.cloudy.id: 
-          if(chance<=30) setWeather(weather.stormy, rand(100, 200));
-          else if (chance>30&&chance<=55) setWeather(weather.overcast, rand(90, 220));
-          else if (chance>55&&chance<=85) setWeather(weather.rain, rand(150, 250));
-          else if (chance>85&&chance<=90) setWeather(weather.drizzle, rand(70, 120));
-          else if (chance>90&&chance<=95&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(170, 250));
-          else if (chance>90&&chance<=95&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(180, 300));
-          else setWeather(weather.cloudy, rand(90,160));
-        break;
-        case weather.stormy.id:
-          if(chance<15) setWeather(weather.cloudy, rand(90, 120));
-          else if (chance>15&&chance<=40) setWeather(weather.storm, rand(90, 160));
-          else if (chance>40&&chance<=70) setWeather(weather.rain, rand(120, 200));
-          else if (chance>70&&chance<=85) setWeather(weather.drizzle, rand(20, 40));
-          else setWeather(weather.stormy, rand(60,120));
-        break;
-        case weather.storm.id: 
-          if(chance<10) setWeather(weather.stormy, rand(80, 120));
-          else if (chance>10&&chance<=45) setWeather(weather.rain, rand(180, 250));
-          else if (chance>45&&chance<=85) setWeather(weather.heavyrain, rand(100, 190));
-          else setWeather(weather.storm, rand(20,80));
-        break;
-        case weather.overcast.id: 
-          if(chance<20) setWeather(weather.stormy, rand(50, 120));
-          else if (chance>20&&chance<=55) setWeather(weather.cloudy, rand(80, 150));
-          else if (chance>55&&chance<=60) setWeather(weather.clear, rand(150, 250));
-          else setWeather(weather.overcast, rand(40,90));
-        break;
-        case weather.rain.id: 
-          if(chance<10) setWeather(weather.drizzle, rand(30, 50));
-          else if (chance>10&&chance<=30) setWeather(weather.heavyrain, rand(100, 200));
-          else if (chance>30&&chance<=40) setWeather(weather.overcast, rand(52, 173));
-          else if (chance>40&&chance<=50) setWeather(weather.misty, rand(25, 55));
-          else if (chance>50&&chance<=65) setWeather(weather.clear, rand(100, 200));
-          else setWeather(weather.rain, rand(80,120));
-        break;
-        case weather.heavyrain.id: 
-          if(chance<15) setWeather(weather.storm, rand(80, 130));
-          else if (chance>15&&chance<=55) setWeather(weather.rain, rand(100, 170));
-          else if (chance>55&&chance<=65) setWeather(weather.misty, rand(15, 40));
-          else if (chance>65&&chance<=70) setWeather(weather.clear, rand(110, 200));
-          else if (chance>70&&chance<=95) setWeather(weather.thunder, rand(120, 200));
-          else setWeather(weather.heavyrain, rand(50,100));
-        break;
-        case weather.misty.id: 
-          if(chance<25) setWeather(weather.foggy, rand(22, 33));
-          else if (chance>25&&chance<=55) setWeather(weather.overcast, rand(60, 100));
-          else if (chance>55&&chance<=75) setWeather(weather.cloudy, rand(60, 100));
-          else setWeather(weather.misty, rand(11,22));
-        break;
-        case weather.foggy.id: 
-          if(chance<20) setWeather(weather.overcast, rand(80, 130));
-          else if (chance>20&&chance<=40) setWeather(weather.rain, rand(100, 200));
-          else if (chance>40&&chance<=70) setWeather(weather.heavyrain, rand(100, 200));
-          else setWeather(weather.foggy, rand(11,22));
-        break;
-        case weather.drizzle.id: 
-          if(chance<15) setWeather(weather.overcast, rand(30, 60));
-          else if (chance>15&&chance<=55) setWeather(weather.rain, rand(90, 180));
-          else if (chance>55&&chance<=60) setWeather(weather.clear, rand(60, 100));
-          else if (chance>60&&chance<=70) setWeather(weather.cloudy, rand(40, 90));
-          else setWeather(weather.drizzle, rand(30,62));      
-        break;
-        case weather.clear.id: 
-          if(chance<25) setWeather(weather.overcast, rand(80, 140));
-          else if (chance>25&&chance<=45&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>25&&chance<=45&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else if (chance>45&&chance<=70) setWeather(weather.cloudy, rand(100, 200));
-          else if (chance>70&&chance<=90) setWeather(weather.drizzle, rand(30, 80));
-          else setWeather(weather.clear, rand(120,200));
-        break;
-        case weather.thunder.id: 
-          if(chance<30) setWeather(weather.heavyrain, rand(60, 90));
-          else if (chance>30&&chance<=60) setWeather(weather.storm, rand(80, 120));
-          else setWeather(weather.thunder, rand(40,60));
-        break;
-        default: setWeather(weather.clear, rand(30,60)); break; 
-      }
-      break;
-    case 4:
-      switch (w_manager.curr.id){
-        case weather.sunny.id: 
-          if(chance<=40) setWeather(weather.cloudy, rand(120, 220));
-          else if (chance>40&&chance<=80) setWeather(weather.overcast, rand(90, 280));
-          else if (chance>80&&chance<=90&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 300));
-          else if (chance>80&&chance<=90&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 300));
-          else setWeather(weather.sunny, rand(22, 44));
-        break;
-        case weather.cloudy.id: 
-          if(chance<=15) setWeather(weather.overcast, rand(90, 220));
-          else if (chance>15&&chance<=17) setWeather(weather.rain, rand(30, 80));
-          else if (chance>17&&chance<=20) setWeather(weather.drizzle, rand(30, 80));
-          else if (chance>20&&chance<=30&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 300));
-          else if (chance>20&&chance<=30&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 300));
-          else if (chance>30&&chance<=60) setWeather(weather.snow, rand(180, 300));
-          else if (chance>60&&chance<=70) setWeather(weather.sstorm, rand(90, 200));
-          else setWeather(weather.cloudy, rand(90,160));
-        break;
-        case weather.overcast.id: 
-          if(chance<20) setWeather(weather.snow, rand(50, 120));
-          else if (chance>20&&chance<=45) setWeather(weather.cloudy, rand(100, 200));
-          else if (chance>45&&chance<=60) setWeather(weather.clear, rand(150, 250));
-          else if (chance>60&&chance<=70) setWeather(weather.sstorm, rand(150, 250));
-          else setWeather(weather.overcast, rand(40,90));
-        break;
-        case weather.rain.id: 
-          if(chance<10) setWeather(weather.drizzle, rand(30, 50));
-          else if (chance>10&&chance<=20) setWeather(weather.snow, rand(100, 200));
-          else if (chance>20&&chance<=30) setWeather(weather.overcast, rand(52, 173));
-          else if (chance>30&&chance<=55) setWeather(weather.misty, rand(25, 55));
-          else if (chance>55&&chance<=80) setWeather(weather.clear, rand(225, 455));
-          else setWeather(weather.rain, rand(20,40));
-        break;
-        case weather.misty.id: 
-          if(chance<30) setWeather(weather.foggy, rand(22, 33));
-          else if (chance>30&&chance<=50) setWeather(weather.snow, rand(100, 200));
-          else if (chance>50&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>50&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else setWeather(weather.misty, rand(11,22));
-        break;
-        case weather.foggy.id: 
-          if(chance<20) setWeather(weather.overcast, rand(80, 130));
-          else if (chance>20&&chance<=70&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>20&&chance<=70&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else setWeather(weather.foggy, rand(11,22));
-        break;
-        case weather.drizzle.id: 
-          if(chance<20) setWeather(weather.overcast, rand(30, 60));
-          else if (chance>20&&chance<=25) setWeather(weather.rain, rand(90, 120));
-          else if (chance>25&&chance<=40) setWeather(weather.snow, rand(90, 180));
-          else if (chance>40&&chance<=65) setWeather(weather.clear, rand(90, 150));
-          else setWeather(weather.drizzle, rand(30,62));      
-        break;
-        case weather.clear.id: 
-          if(chance<10) setWeather(weather.overcast, rand(30, 60));
-          else if (chance>10&&chance<=55&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
-          else if (chance>10&&chance<=55&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
-          else if (chance>55&&chance<=65) setWeather(weather.cloudy, rand(100, 200));
-          else if (chance>65&&chance<=75) setWeather(weather.snow, rand(100, 200));
-          else setWeather(weather.clear, rand(160,290));
-        break;
-        case weather.snow.id: 
-          if(chance<20) setWeather(weather.sstorm, rand(80, 130));
-          else if (chance>20&&chance<=25) setWeather(weather.rain, rand(15, 50));
-          else if (chance>25&&chance<=40) setWeather(weather.clear, rand(90, 150));
-          else if (chance>40&&chance<=65) setWeather(weather.overcast, rand(140, 320));
-          else if (chance>60&&chance<=85) setWeather(weather.cloudy, rand(120, 200));
-          else setWeather(weather.snow, rand(30,62));      
-        break;
-        case weather.sstorm.id: 
-          if(chance<10) setWeather(weather.overcast, rand(30, 60));
-          else if (chance>10&&chance<=35) setWeather(weather.snow, rand(90, 120));
-          else if (chance>35&&chance<=45) setWeather(weather.cloudy, rand(90, 180));
-          else if (chance>45&&chance<=65) setWeather(weather.overcast, rand(90, 150));
-          else setWeather(weather.sstorm, rand(40,120));      
-        break;
-        default: setWeather(weather.clear, rand(30,60)); break; 
-      }
-      break;
+        case 2:
+            switch (w_manager.curr.id){
+              case weather.sunny.id: 
+                if(chance<=5) setWeather(weather.cloudy, rand(60, 120));
+                else if (chance>5&&chance<=90&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(400, 700));
+                else if (chance>15&&chance<=90&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(300, 500));
+                else setWeather(weather.sunny, rand(90, 180));
+              break;
+              case weather.cloudy.id: 
+                if(chance<=3) setWeather(weather.stormy, rand(30, 60));
+                else if (chance>3&&chance<=8) setWeather(weather.overcast, rand(40, 120));
+                else if (chance>8&&chance<=15) setWeather(weather.rain, rand(50, 100));
+                else if (chance>15&&chance<=25) setWeather(weather.drizzle, rand(30, 80));
+                else if (chance>25&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(300, 500));
+                else if (chance>25&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(200, 400));
+                else setWeather(weather.cloudy, rand(40,120));
+              break;
+              case weather.stormy.id:
+                if(chance<35) setWeather(weather.cloudy, rand(60, 120));
+                else if (chance>35&&chance<=40) setWeather(weather.storm, rand(90, 160));
+                else if (chance>40&&chance<=60) setWeather(weather.rain, rand(70, 120));
+                else if (chance>60&&chance<=85) setWeather(weather.drizzle, rand(60, 900));
+                else setWeather(weather.stormy, rand(60,120));
+              break;
+              case weather.storm.id: 
+                if(chance<5) setWeather(weather.stormy, rand(30, 50));
+                else if (chance>5&&chance<=65) setWeather(weather.rain, rand(140, 200));
+                else if (chance>65&&chance<=70) setWeather(weather.heavyrain, rand(80, 150));
+                else setWeather(weather.storm, rand(20,80));
+              break;
+              case weather.overcast.id: 
+                if(chance<5) setWeather(weather.stormy, rand(20, 60));
+                else if (chance>5&&chance<=45) setWeather(weather.cloudy, rand(100, 200));
+                else if (chance>45&&chance<=65) setWeather(weather.clear, rand(150, 250));
+                else setWeather(weather.overcast, rand(60,110));
+              break;
+              case weather.rain.id: 
+                if(chance<10) setWeather(weather.drizzle, rand(50, 70));
+                else if (chance>10&&chance<=15) setWeather(weather.heavyrain, rand(50, 80));
+                else if (chance>15&&chance<=40) setWeather(weather.overcast, rand(82, 173));
+                else if (chance>40&&chance<=55) setWeather(weather.misty, rand(25, 55));
+                else if (chance>55&&chance<=80) setWeather(weather.clear, rand(225, 455));
+                else setWeather(weather.rain, rand(80,120));
+              break;
+              case weather.heavyrain.id: 
+                if(chance<10) setWeather(weather.storm, rand(80, 130));
+                else if (chance>10&&chance<=65) setWeather(weather.rain, rand(100, 170));
+                else if (chance>65&&chance<=75) setWeather(weather.misty, rand(15, 40));
+                else if (chance>75&&chance<=87) setWeather(weather.clear, rand(110, 200));
+                else if (chance>87&&chance<=90) setWeather(weather.thunder, rand(120, 200));
+                else setWeather(weather.heavyrain, rand(50,100));
+              break;
+              case weather.misty.id: 
+                if(chance<50) setWeather(weather.foggy, rand(22, 33));
+                else if (chance>50&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+                else if (chance>50&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+                else setWeather(weather.misty, rand(11,22));
+              break;
+              case weather.foggy.id: 
+                if(chance<20) setWeather(weather.overcast, rand(80, 130));
+                else if (chance>20&&chance<=70&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+                else if (chance>20&&chance<=70&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+                else setWeather(weather.foggy, rand(11,22));
+              break;
+              case weather.drizzle.id: 
+                if(chance<15) setWeather(weather.overcast, rand(30, 60));
+                else if (chance>15&&chance<=40) setWeather(weather.cloudy, rand(90, 180));
+                else if (chance>40&&chance<=50) setWeather(weather.rain, rand(50, 111));
+                else if (chance>50&&chance<=65) setWeather(weather.clear, rand(90, 180));
+                else setWeather(weather.drizzle, rand(30,62));      
+              break;
+              case weather.clear.id: 
+                if(chance<5) setWeather(weather.overcast, rand(30, 60));
+                else if (chance>5&&chance<=55&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+                else if (chance>10&&chance<=55&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+                else if (chance>55&&chance<=65) setWeather(weather.cloudy, rand(100, 200));
+                else setWeather(weather.clear, rand(160,290));
+              break;
+              case weather.thunder.id: 
+                if(chance<50) setWeather(weather.heavyrain, rand(60, 90));
+                else if (chance>50&&chance<=80) setWeather(weather.storm, rand(80, 120));
+                else setWeather(weather.thunder, rand(40,60));
+              break;
+              default: setWeather(weather.clear, rand(30,60)); break; 
+            }
+            break;
+        case 3:
+          switch (w_manager.curr.id){
+            case weather.sunny.id: 
+              if(chance<=25) setWeather(weather.cloudy, rand(120, 220));
+              else if (chance>25&&chance<=60) setWeather(weather.overcast, rand(90, 280));
+              else if (chance>60&&chance<=90&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(80, 150));
+              else if (chance>60&&chance<=90&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(120, 180));
+              else setWeather(weather.sunny, rand(22, 44));
+            break;
+            case weather.cloudy.id: 
+              if(chance<=30) setWeather(weather.stormy, rand(100, 200));
+              else if (chance>30&&chance<=55) setWeather(weather.overcast, rand(90, 220));
+              else if (chance>55&&chance<=85) setWeather(weather.rain, rand(150, 250));
+              else if (chance>85&&chance<=90) setWeather(weather.drizzle, rand(70, 120));
+              else if (chance>90&&chance<=95&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(170, 250));
+              else if (chance>90&&chance<=95&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(180, 300));
+              else setWeather(weather.cloudy, rand(90,160));
+            break;
+            case weather.stormy.id:
+              if(chance<15) setWeather(weather.cloudy, rand(90, 120));
+              else if (chance>15&&chance<=40) setWeather(weather.storm, rand(90, 160));
+              else if (chance>40&&chance<=70) setWeather(weather.rain, rand(120, 200));
+              else if (chance>70&&chance<=85) setWeather(weather.drizzle, rand(20, 40));
+              else setWeather(weather.stormy, rand(60,120));
+            break;
+            case weather.storm.id: 
+              if(chance<10) setWeather(weather.stormy, rand(80, 120));
+              else if (chance>10&&chance<=45) setWeather(weather.rain, rand(180, 250));
+              else if (chance>45&&chance<=85) setWeather(weather.heavyrain, rand(100, 190));
+              else setWeather(weather.storm, rand(20,80));
+            break;
+            case weather.overcast.id: 
+              if(chance<20) setWeather(weather.stormy, rand(50, 120));
+              else if (chance>20&&chance<=55) setWeather(weather.cloudy, rand(80, 150));
+              else if (chance>55&&chance<=60) setWeather(weather.clear, rand(150, 250));
+              else setWeather(weather.overcast, rand(40,90));
+            break;
+            case weather.rain.id: 
+              if(chance<10) setWeather(weather.drizzle, rand(30, 50));
+              else if (chance>10&&chance<=30) setWeather(weather.heavyrain, rand(100, 200));
+              else if (chance>30&&chance<=40) setWeather(weather.overcast, rand(52, 173));
+              else if (chance>40&&chance<=50) setWeather(weather.misty, rand(25, 55));
+              else if (chance>50&&chance<=65) setWeather(weather.clear, rand(100, 200));
+              else setWeather(weather.rain, rand(80,120));
+            break;
+            case weather.heavyrain.id: 
+              if(chance<15) setWeather(weather.storm, rand(80, 130));
+              else if (chance>15&&chance<=55) setWeather(weather.rain, rand(100, 170));
+              else if (chance>55&&chance<=65) setWeather(weather.misty, rand(15, 40));
+              else if (chance>65&&chance<=70) setWeather(weather.clear, rand(110, 200));
+              else if (chance>70&&chance<=95) setWeather(weather.thunder, rand(120, 200));
+              else setWeather(weather.heavyrain, rand(50,100));
+            break;
+            case weather.misty.id: 
+              if(chance<25) setWeather(weather.foggy, rand(22, 33));
+              else if (chance>25&&chance<=55) setWeather(weather.overcast, rand(60, 100));
+              else if (chance>55&&chance<=75) setWeather(weather.cloudy, rand(60, 100));
+              else setWeather(weather.misty, rand(11,22));
+            break;
+            case weather.foggy.id: 
+              if(chance<20) setWeather(weather.overcast, rand(80, 130));
+              else if (chance>20&&chance<=40) setWeather(weather.rain, rand(100, 200));
+              else if (chance>40&&chance<=70) setWeather(weather.heavyrain, rand(100, 200));
+              else setWeather(weather.foggy, rand(11,22));
+            break;
+            case weather.drizzle.id: 
+              if(chance<15) setWeather(weather.overcast, rand(30, 60));
+              else if (chance>15&&chance<=55) setWeather(weather.rain, rand(90, 180));
+              else if (chance>55&&chance<=60) setWeather(weather.clear, rand(60, 100));
+              else if (chance>60&&chance<=70) setWeather(weather.cloudy, rand(40, 90));
+              else setWeather(weather.drizzle, rand(30,62));      
+            break;
+            case weather.clear.id: 
+              if(chance<25) setWeather(weather.overcast, rand(80, 140));
+              else if (chance>25&&chance<=45&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+              else if (chance>25&&chance<=45&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+              else if (chance>45&&chance<=70) setWeather(weather.cloudy, rand(100, 200));
+              else if (chance>70&&chance<=90) setWeather(weather.drizzle, rand(30, 80));
+              else setWeather(weather.clear, rand(120,200));
+            break;
+            case weather.thunder.id: 
+              if(chance<30) setWeather(weather.heavyrain, rand(60, 90));
+              else if (chance>30&&chance<=60) setWeather(weather.storm, rand(80, 120));
+              else setWeather(weather.thunder, rand(40,60));
+            break;
+            default: setWeather(weather.clear, rand(30,60)); break; 
+          }
+          break;
+        case 4:
+          switch (w_manager.curr.id){
+            case weather.sunny.id: 
+              if(chance<=40) setWeather(weather.cloudy, rand(120, 220));
+              else if (chance>40&&chance<=80) setWeather(weather.overcast, rand(90, 280));
+              else if (chance>80&&chance<=90&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 300));
+              else if (chance>80&&chance<=90&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 300));
+              else setWeather(weather.sunny, rand(22, 44));
+            break;
+            case weather.cloudy.id: 
+              if(chance<=15) setWeather(weather.overcast, rand(90, 220));
+              else if (chance>15&&chance<=17) setWeather(weather.rain, rand(30, 80));
+              else if (chance>17&&chance<=20) setWeather(weather.drizzle, rand(30, 80));
+              else if (chance>20&&chance<=30&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 300));
+              else if (chance>20&&chance<=30&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 300));
+              else if (chance>30&&chance<=60) setWeather(weather.snow, rand(180, 300));
+              else if (chance>60&&chance<=70) setWeather(weather.sstorm, rand(90, 200));
+              else setWeather(weather.cloudy, rand(90,160));
+            break;
+            case weather.overcast.id: 
+              if(chance<20) setWeather(weather.snow, rand(50, 120));
+              else if (chance>20&&chance<=45) setWeather(weather.cloudy, rand(100, 200));
+              else if (chance>45&&chance<=60) setWeather(weather.clear, rand(150, 250));
+              else if (chance>60&&chance<=70) setWeather(weather.sstorm, rand(150, 250));
+              else setWeather(weather.overcast, rand(40,90));
+            break;
+            case weather.rain.id: 
+              if(chance<10) setWeather(weather.drizzle, rand(30, 50));
+              else if (chance>10&&chance<=20) setWeather(weather.snow, rand(100, 200));
+              else if (chance>20&&chance<=30) setWeather(weather.overcast, rand(52, 173));
+              else if (chance>30&&chance<=55) setWeather(weather.misty, rand(25, 55));
+              else if (chance>55&&chance<=80) setWeather(weather.clear, rand(225, 455));
+              else setWeather(weather.rain, rand(20,40));
+            break;
+            case weather.misty.id: 
+              if(chance<30) setWeather(weather.foggy, rand(22, 33));
+              else if (chance>30&&chance<=50) setWeather(weather.snow, rand(100, 200));
+              else if (chance>50&&chance<=80&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+              else if (chance>50&&chance<=80&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+              else setWeather(weather.misty, rand(11,22));
+            break;
+            case weather.foggy.id: 
+              if(chance<20) setWeather(weather.overcast, rand(80, 130));
+              else if (chance>20&&chance<=70&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+              else if (chance>20&&chance<=70&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+              else setWeather(weather.foggy, rand(11,22));
+            break;
+            case weather.drizzle.id: 
+              if(chance<20) setWeather(weather.overcast, rand(30, 60));
+              else if (chance>20&&chance<=25) setWeather(weather.rain, rand(90, 120));
+              else if (chance>25&&chance<=40) setWeather(weather.snow, rand(90, 180));
+              else if (chance>40&&chance<=65) setWeather(weather.clear, rand(90, 150));
+              else setWeather(weather.drizzle, rand(30,62));      
+            break;
+            case weather.clear.id: 
+              if(chance<10) setWeather(weather.overcast, rand(30, 60));
+              else if (chance>10&&chance<=55&&getHour()>=5&&getHour()<=16) setWeather(weather.sunny, rand(100, 200));
+              else if (chance>10&&chance<=55&&getHour()<5&&getHour()>16) setWeather(weather.clear, rand(100, 200));
+              else if (chance>55&&chance<=65) setWeather(weather.cloudy, rand(100, 200));
+              else if (chance>65&&chance<=75) setWeather(weather.snow, rand(100, 200));
+              else setWeather(weather.clear, rand(160,290));
+            break;
+            case weather.snow.id: 
+              if(chance<20) setWeather(weather.sstorm, rand(80, 130));
+              else if (chance>20&&chance<=25) setWeather(weather.rain, rand(15, 50));
+              else if (chance>25&&chance<=40) setWeather(weather.clear, rand(90, 150));
+              else if (chance>40&&chance<=65) setWeather(weather.overcast, rand(140, 320));
+              else if (chance>60&&chance<=85) setWeather(weather.cloudy, rand(120, 200));
+              else setWeather(weather.snow, rand(30,62));      
+            break;
+            case weather.sstorm.id: 
+              if(chance<10) setWeather(weather.overcast, rand(30, 60));
+              else if (chance>10&&chance<=35) setWeather(weather.snow, rand(90, 120));
+              else if (chance>35&&chance<=45) setWeather(weather.cloudy, rand(90, 180));
+              else if (chance>45&&chance<=65) setWeather(weather.overcast, rand(90, 150));
+              else setWeather(weather.sstorm, rand(40,120));      
+            break;
+            default: setWeather(weather.clear, rand(30,60)); break; 
+          }
+          break;
     } 
     dom.d_weathert.style.backgroundColor=dom.d_weathert.style.color='inherit'; 
     dom.d_weathert.innerHTML = w_manager.curr.name
@@ -18968,40 +18979,42 @@ function wManager(){
             dom.d_weathert.style.color='#ffef33';
             dom.d_weathert.style.backgroundColor='#bf495f'
         } 
-        else if(getHour()>=20&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
-        else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Bright Night';dom.d_weathert.style.color='cornflowerblue';dom.d_weathert.style.backgroundColor='#1d4677'}
+          else if(getHour()>=20&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
+          else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Bright Night';dom.d_weathert.style.color='cornflowerblue';dom.d_weathert.style.backgroundColor='#1d4677'}
       break;
       case weather.cloudy.id: 
-        if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML='Sunrise';dom.d_weathert.style.color='#ffef33';dom.d_weathert.style.backgroundColor='#bf495f'}
-        else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Night';dom.d_weathert.style.color='#69e1e6';dom.d_weathert.style.backgroundColor='#091523'}
+          if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML='Sunrise';dom.d_weathert.style.color='#ffef33';dom.d_weathert.style.backgroundColor='#bf495f'}
+          else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Night';dom.d_weathert.style.color='#69e1e6';dom.d_weathert.style.backgroundColor='#091523'}
       break;
       case weather.overcast.id: 
-        if(getHour()>=18&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
-        else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Night';dom.d_weathert.style.color='#69e1e6';dom.d_weathert.style.backgroundColor='#091523'}
+          if(getHour()>=18&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
+          else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Night';dom.d_weathert.style.color='#69e1e6';dom.d_weathert.style.backgroundColor='#091523'}
       break;
       case weather.rain.id: 
-        if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Rainy Night';dom.d_weathert.style.color='cyan';dom.d_weathert.style.backgroundColor='#111f63'}
+          if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Rainy Night';dom.d_weathert.style.color='cyan';dom.d_weathert.style.backgroundColor='#111f63'}
       break;
       case weather.misty.id: 
-        if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML = 'Misty Morning';dom.d_weathert.style.color='#ffb91d';dom.d_weathert.style.backgroundColor='#926b64'}
-        else if(getHour()>=18&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
-        else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Misty Night';dom.d_weathert.style.color='#1f69a9';dom.d_weathert.style.backgroundColor='#2c3044'}
+          if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML = 'Misty Morning';dom.d_weathert.style.color='#ffb91d';dom.d_weathert.style.backgroundColor='#926b64'}
+          else if(getHour()>=18&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
+          else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Misty Night';dom.d_weathert.style.color='#1f69a9';dom.d_weathert.style.backgroundColor='#2c3044'}
       break;
       case weather.foggy.id: 
-        if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML ='Foggy Morning';dom.d_weathert.style.color='#ffc94f';dom.d_weathert.style.backgroundColor='#8e8280'}
-        else if(getHour()>=18&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
-        else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Foggy Night';dom.d_weathert.style.color='#6dbbff';dom.d_weathert.style.backgroundColor='#273267'}
+          if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML ='Foggy Morning';dom.d_weathert.style.color='#ffc94f';dom.d_weathert.style.backgroundColor='#8e8280'}
+          else if(getHour()>=18&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
+          else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Foggy Night';dom.d_weathert.style.color='#6dbbff';dom.d_weathert.style.backgroundColor='#273267'}
       break;
       case weather.drizzle.id: 
-        if(getHour()>=22&&getHour()<=3){dom.d_weathert.innerHTML = 'Night Drizzle';dom.d_weathert.style.color='cyan';dom.d_weathert.style.backgroundColor='#111f63'}
+          if(getHour()>=22&&getHour()<=3){dom.d_weathert.innerHTML = 'Night Drizzle';dom.d_weathert.style.color='cyan';dom.d_weathert.style.backgroundColor='#111f63'}
       break;
       case weather.clear.id:
-        if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML='Sunrise';dom.d_weathert.style.color='#ffef33';dom.d_weathert.style.backgroundColor='#9c3f3f'}
-        else if(getHour()>=20&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
-        else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Starry Night';dom.d_weathert.style.color='#ffff66';dom.d_weathert.style.backgroundColor='#00397b'}
+          if((getHour()>4&&getMinute()>=30)&&getHour()<=6) {dom.d_weathert.innerHTML='Sunrise';dom.d_weathert.style.color='#ffef33';dom.d_weathert.style.backgroundColor='#9c3f3f'}
+          else if(getHour()>=20&&getHour()<=21) {dom.d_weathert.innerHTML = 'Dusk';dom.d_weathert.style.color='yellow';dom.d_weathert.style.backgroundColor='#e8421c'}
+          else if(getHour()>=22||getHour()<=3) {dom.d_weathert.innerHTML = 'Starry Night';dom.d_weathert.style.color='#ffff66';dom.d_weathert.style.backgroundColor='#00397b'}
       break;
     }
-  } w_manager.curr.ontick(); onSeasonTick(ses); 
+    }
+    w_manager.curr.ontick();
+    onSeasonTick(ses); 
 }
 
 function setWeather(w, d){
@@ -19010,11 +19023,12 @@ function setWeather(w, d){
   //empty(dom.d_weather); icon(dom.d_weather,1,1,32,32)
   if(w.frain===true) {global.flags.israin=true;global.flags.issnow=false;dom.d_anomaly.innerHTML='🌧'} else if(w.fsnow===true){global.flags.issnow=true;global.flags.israin=false;dom.d_anomaly.innerHTML='❄️'} else {global.flags.israin=false;dom.d_anomaly.innerHTML='';global.flags.issnow=false}
   if(w.c) dom.d_weathert.style.color=w.c; if(w.bc) dom.d_weathert.style.backgroundColor=w.bc;
-} setWeather(weather.clear, 600);
+}
+
 
 function isWeather(weather){
-  return w_manager.curr.id===weather.id
-} wManager(); dom.d_time.innerHTML = '<small>'+getDay(global.flags.tmmode)+'</small> '+timeDisp(time)
+    return w_manager.curr.id===weather.id
+}
 
 function onSeasonTick(season){
   switch (season){
