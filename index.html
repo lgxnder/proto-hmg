@@ -41,6 +41,10 @@ function main() {
     update();
 
     you = new You();
+
+    window.addEventListener('load', ()=>{
+        load(undefined, true);
+    });
     
     define_titles();
     define_global_titlechecks();
@@ -79,16 +83,12 @@ function main() {
     wManager();
     dom.d_time.innerHTML = '<small>'+getDay(global.flags.tmmode)+'</small> '+timeDisp(time)
 
-
     global.t_n=0;
 
     for (let x in global.cptchk) global.cptchk[x]();
 
     global.current_location = chss.intro;
-
-    window.addEventListener('load', ()=>{
-        load(undefined, true);
-    });
+    move_to_area(chss.intro);
 }
 
 function define_global() {
@@ -572,17 +572,22 @@ function save(verbose=false) {
 }
 
 function load(save_data, verbose=false) {
-      if (verbose===true) console.log("Attempting to load...");
-
-      var raw_data = save_data || window.localStorage.getItem("v0.3");
+      //if (verbose===true) console.log("Attempting to load...");
+      var raw_data = save_data ?? window.localStorage.getItem("v0.3");
 
       if (raw_data) {
-          str = b64_to_utf8(raw_data);
-          if (verbose===true) console.log(str);      
+          if (verbose===true) {
+              str = b64_to_utf8(raw_data);
+              console.log(str);
+          }
+      } else {
+          console.log("No save data could be found.");
+          return;
+      }
 
-      } else if (!raw_data || str == '') { // save data is completely empty
+      if (!raw_data || str == '') { // save data is completely empty
           if (!raw_data) console.log("No save data was passed to the load function.");
-          if (str == '') console.log("Save data passed is an empty string.");
+          if (!str=='')  console.log("Save data is an empty string.");
           if (verbose===true) console.log("The game broke whilst trying to save.")
 
           display_load_error();
