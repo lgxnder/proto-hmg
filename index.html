@@ -40,10 +40,6 @@ function main() {
 
     update();
 
-    window.addEventListener('load', ()=>{
-        load();
-    });
-
     you = new You();
     
     define_titles();
@@ -92,6 +88,10 @@ function main() {
     }
 
     global.current_location = chss.intro;
+
+    window.addEventListener('load', ()=>{
+        load(true);
+    });
 }
 
 function define_global() {
@@ -313,35 +313,44 @@ function setup_world () {
 function save(verbose=false) {
     if (verbose===true) console.log("Saving game...");
 
-    let storage = window.localStorage;
+    const storage = window.localStorage;
     global.flags.savestate = true;
     global.stat.gsvs++;
     
-    let str = ""; //** calculate and display the time since last save.
-    let a = new Date();
-    global.lst_sve = a.getFullYear()+'/'+(a.getMonth()+1)+'/'+a.getDate()+' '+a.getHours()+':'+(a.getMinutes()>=10?a.getMinutes():'0'+a.getMinutes())+':'+(a.getSeconds()>=10?a.getSeconds():'0'+a.getSeconds());
+    const now = new Date();
+    global.lst_sve =
+        now.getFullYear() + '/' +
+        (now.getMonth() + 1) + '/' +
+        now.getDate() + ' ' +
+        now.getHours() + ':' +
+        (now.getMinutes() >= 10 ? now.getMinutes() : '0' + now.getMinutes()) + ':' +
+        (now.getSeconds() >= 10 ? now.getSeconds() : '0' + now.getSeconds());
     dom.sl_extra.innerHTML = 'Last save: ' + global.lst_sve;
-    
-    let o = [];
-    for (let obj in you.eqp) {
-        o[obj] = you.eqp[obj];
-        unequip(you.eqp[obj], {save:true});
+
+    const freeze_previous = global.flags.m_freeze;
+    global.flags.m_freeze = true;
+
+    global.current_a.deactivate();
+    dom.ct_bt3.style.backgroundColor = 'inherit';
+
+    if (inSector(sector.home)) {
+        for (let i in furn) deactivatef(furn[i]);
     }
-    you.stat_r();
-    
-    let freezete = global.flags.m_freeze;
-    if ( inSector(sector.home) ) {
-        for (let a in furn) {
-            deactivatef(furn[a]);
+
+    const equipped = [];
+    if (you.eqp) {
+        for (const k in you.eqp) {
+            equipped.push(you.eqp[k]);
+            unequip(you.eqp[k], { save: true });
         }
+        you.stat_r();
     }
-    global.flags.m_freeze=true;
-    
-    for (let a in you.eff) {
-        if (you.eff[a].type === 5) {
-            //** if you have any equipment that provides a stat modifier,
-            //** make sure to remove it properly without leaving permanent stats.
-            you.eff[a].onRemove();
+
+    if (you.eff) {
+        for (const e of you.eff) {
+            if (e?.type === 5 && e.onRemove) {
+                e.onRemove();
+            }
         }
     }
     
@@ -393,316 +402,203 @@ function save(verbose=false) {
         ki:     you.ki
     };
     
-    global.flags.m_freeze = true;
-    global.current_a.deactivate();
-    dom.ct_bt3.style.backgroundColor = 'inherit';
-    
-    for (let a in you.eff) {
-        if (you.eff[a].type===5) {
-            //** if you have any equipment that provides a stat mod, ensure to run its onGive property properly.
-            you.eff[a].onGive();
+    const effs = [];
+    for (let i in you.eff) {
+        if (you.eff[i].id) {
+            effs.push({
+                a: you.eff[i].id,
+                b: you.eff[i].duration,
+                c: you.eff[i].power || 1
+            })
+        }
+        if (you.eff[i].type === 5) {
+            you.eff[i].onGive();
         }
     }
-    str += JSON.stringify(yu);
-    str += '|';
-    
-    let a4 = [];
-    for (let obj in you.eff) if (!!you.eff[obj].id) { 
-        var pw;
-        !!you.eff[obj].power?pw = you.eff[obj].power:pw = 1;
-        a4[obj] = {
-            a : you.eff[obj].id, 
-            b : you.eff[obj].duration,
-            c : pw
-        };
-    }; 
-    global.flags.m_freeze=false;
-    str += JSON.stringify(a4);
-    str +='|';
-    
-    let a6 = [];
-    for (let obj in you.skls) {
-        a6[obj] = {
-            id : you.skls[obj].id,
-            lvl : you.skls[obj].lvl,
-            mst : []
-        };
-        for (let m in you.skls[obj].mlstn) {
-            a6[obj].mst[m] = you.skls[obj].mlstn[m].g
-        };
-    };
-    str += JSON.stringify(a6);
-    str +='|';
-    
-    let a7 = [];
-    for (let obj in skl) {
-        a7.push( [skl[obj].exp, skl[obj].p] );
-    };
-    str += JSON.stringify(a7);
-    str +='|';
-    
-    var datasi = [];
-    let nindxdt = 0;
-    for (let obj in item) {
-        if (item[obj].data.tried === true) {
-            datasi[nindxdt++] = item[obj].id;
-        }
-    };
-    
-    var datare = [];
-    let nindxat = 0;
-    for (let obj in item) {
-        if (item[obj].data.finished===true) {
-            datare[nindxat++]=item[obj].id;
-        }
-    };
-    
-    let a1 = {
-        uid:global.uid,
-        jj:global.stat,
-        x:global.current_z.id,
-        a:global.rm,
-        b:global.sm,
-        e:global.flags,
-        f:global.spirits,
-        g:global.msgs_max,
-        j:time.minute,
-        k:w_manager.duration,
-        l:w_manager.curr.id,
-        m:global.lst_sve,
-        n:global.bg_r,
-        o:global.bg_g,
-        p:global.bg_b,
-        q:global.bestiary,
-        r:global.timehold,
-        r2:global.timewold,
-        datas:datasi,
-        u:global.timescale,
-        datar:datare,
-        z:global.offline_evil_index,
-        drdata:global.drdata
-    };
-    str += JSON.stringify(a1);
-    str +='|';
-    
-    let a2=[];
-    for (let obj in global.rec_d) {
-        a2[obj] = {
-            id   : global.rec_d[obj].id,
-            data : global.rec_d[obj].data
-        }
+
+    const skls = [];
+    for (let i in you.skls) {
+        const s = you.skls[i];
+        skls.push({
+            id:  s.id,
+            lvl: s.lvl,
+            mst: s.mlstn.map(m => m.g)
+        });
     }
-    str += JSON.stringify(a2);
-    str +='|'; 
-    
-    let a3 = [ [], [], [], [], [], [] ];
-    
-    for (let obj in o) {
-        equip(o[obj], { save:true });
-        you.stat_r();
+
+    const sklexp = [];
+    for (let i in skl) {
+        sklexp.push([
+            skl[i].exp,
+            skl[i].p
+        ]);
     }
-    for (let obj in inv) {
-        let expectedIndex = Math.max(0, Math.min(4, Math.floor(inv[obj].id / 10000)));
-        if (expectedIndex === 0) { 
-            a3[0].push({
-                id : inv[obj].id,
-                amt : inv[obj].amount,
-                data : inv[obj].data }); 
-        }
-        else {
-            a3[expectedIndex].push({
-                id : inv[obj].id,
-                dp : inv[obj].dp,
-                toeq : true,
-                data : inv[obj].data
+
+    const datasi = [];
+    const datare = [];
+    for (let i in item) {
+        if (item[i].data.tried) datasi.push(item[i].id);
+        if (item[i].data.finished) datare.push(item[i].id);
+    }
+
+    const a1 = {
+        uid: global.uid,
+        jj: global.stat,
+        x: global.current_z.id,
+        a: global.rm,
+        b: global.sm,
+        e: global.flags,
+        f: global.spirits,
+        g: global.msgs_max,
+        j: time.minute,
+        k: w_manager.duration,
+        l: w_manager.curr.id,
+        m: global.lst_sve,
+        n: global.bg_r,
+        o: global.bg_g,
+        p: global.bg_b,
+        q: global.bestiary,
+        r: global.timehold,
+        r2: global.timewold,
+        datas: datasi,
+        u: global.timescale,
+        datar: datare,
+        z: global.offline_evil_index,
+        drdata: global.drdata
+    };
+
+    const rec = global.rec_d.map(r => ({ id: r.id, data: r.data }));
+
+    const invsave = [[], [], [], [], [], []];
+    for (let i in inv) {
+        const idx = Math.max(0, Math.min(4, Math.floor(inv[i].id / 10000)));
+        if (idx === 0) {
+            invsave[0].push({ id: inv[i].id, amt: inv[i].amount, data: inv[i].data });
+        } else {
+            invsave[idx].push({
+                id: inv[i].id,
+                dp: inv[i].dp,
+                toeq: !!scanbyuid(equipped, inv[i].data.uid),
+                data: inv[i].data
             });
-            if (!scanbyuid(you.eqp,inv[obj].data.uid)) {
-                a3[expectedIndex][a3[expectedIndex].length - 1].toeq = false ;
-            }
         }
     }
-    
-    for (let a in item) {
-        if (item[a].save === true) {
-            a3[5].push({
-                item : item[a].id,
-                data:item[a].data });
+
+    for (let i in item) {
+        if (item[i].save) {
+            invsave[5].push({
+                item: item[i].id,
+                data: item[i].data
+            });
         }
     }
-    str += JSON.stringify(a3);
-    str +='|';
-    
-    let a5 = [];
-    let xx = 0;
-    for (let o in zone) {
-        a5[xx++] = zone[o].size;
+
+    const zonesz = Object.values(zone).map(z => z.size);
+    const furns = furn.map(f => ({ id: f.id, data: f.data }));
+
+    const vendors = {};
+    for (let v in vendor) {
+        vendors[v] = {
+            stock: vendor[v].stock.map(s => [s[0].id, s[1], s[2]]),
+            data: vendor[v].data
+        };
     }
-    str += JSON.stringify(a5);
-    str +='|';
-    
-    let a8 = dar; 
-    str += JSON.stringify(a8);
-    str +='|';
-    
-    let a9 = [];
-    for (let obj in furn) {
-        a9.push({
-            id:furn[obj].id,
-            data:furn[obj].data });
-    }
-    str += JSON.stringify(a9);
-    str +='|';
-    
-    let a10 = {};
-    let a11 = {};
-    for (let obj in vendor) { 
-        let stock = [];
-        for (let i=0; i<vendor[obj].stock.length; i++) {
-            stock[i] = [];
-            stock[i][0] = vendor[obj].stock[i][0].id;
-            stock[i][1] = vendor[obj].stock[i][1];
-            stock[i][2] = vendor[obj].stock[i][2];
-        }  
-        a10[obj] = { stock : stock,
-                      data : vendor[obj].data }; 
-    }
-    str += JSON.stringify(a10);
-    str +='|';
-    
-    let a12 = [];
-    for (let a in global.titles) {
-        a12.push(global.titles[a].id);
-        /* ** the following has been commented out in the official source code:
-        for (let obj in ttl) {
-            if (ttl[obj].have === true) {
-                a12.push(ttl[obj].id);
-            }
-        }
-        */
-    }
-    str += JSON.stringify(a12);
-    str +='|';
-    
-    let a13 = new Object(); 
-    for (let s in home)
-    a13[s] = home[s].id;
-    str += JSON.stringify(a13);
-    str +='|';
-    
-    let a14 = [];
-    for (let obj in qsts) {
-        a14.push({ id : qsts[obj].id,
-                 data : qsts[obj].data });
-    }
-    str += JSON.stringify(a14);
-    str +='|';
-    
-    let a15 = [];
-    for (let obj in acts) {
-        a15.push({ id : acts[obj].id,
-                 data : acts[obj].data });
-    }
-    str += JSON.stringify(a15);
-    str +='|';
-    
-    let a17 = [];
-    for (let obj in sector) { 
-        a17.push({ id : sector[obj].id,
-                 data : sector[obj].data});
-    }
-    str += JSON.stringify(a17);
-    str +='|';
-    
-    let a18 = [];
-    for(let obj in container){
-        let cont = []; 
-        for (let a in container[obj].c) {
-            cont.push({ id : container[obj].c[a].item.id,
-                      data : container[obj].c[a].data,
-                        amt : container[obj].c[a].amt,
-                        dp : container[obj].c[a].dp });
-        }
-        a18.push({ id : container[obj].id,
-                    c : cont });  
-    }
-    str += JSON.stringify(a18);
-    str +='|';
-    
-    let a19 = [];
-    for (let obj in chss) {
-        if (JSON.stringify(chss[obj].data) !== '{}') {
-            a19.push({ id : chss[obj].id,
-                     data : chss[obj].data });
+
+    const titles = global.titles.map(t => t.id);
+
+    const homef = {};
+    for (let k in home) homef[k] = home[k].id;
+
+    const quests = qsts.map(q => ({ id: q.id, data: q.data }));
+    acts = acts.map(a => ({ id: a.id, data: a.data }));
+    const sects = Object.values(sector).map(s => ({ id: s.id, data: s.data }));
+
+    const conts = Object.values(container).map(c => ({
+        id: c.id,
+        c: c.c.map(i => ({
+            id: i.item.id,
+            data: i.data,
+            amt: i.amt,
+            dp: i.dp
+        }))
+    }));
+
+    const chdata = [];
+    for (let c in chss) {
+        if (!objempty(chss[c].data)) {
+            chdata.push({ id: chss[c].id, data: chss[c].data });
         }
     }
-    str += JSON.stringify(a19);
-    str +='|savevalid|';
-    
-    let a20 = [];
-    for (let a in ttl) {
-        if (ttl[a].tget) {
-            a20.push(ttl[a].id);
-        }
+
+    const ttlg = [];
+    for (let i in ttl) if (ttl[i].tget) ttlg.push(ttl[i].id);
+
+    let str = [
+        JSON.stringify(yu),
+        JSON.stringify(effs),
+        JSON.stringify(skls),
+        JSON.stringify(sklexp),
+        JSON.stringify(a1),
+        JSON.stringify(rec),
+        JSON.stringify(invsave),
+        JSON.stringify(zonesz),
+        JSON.stringify(dar),
+        JSON.stringify(furns),
+        JSON.stringify(vendors),
+        JSON.stringify(titles),
+        JSON.stringify(homef),
+        JSON.stringify(quests),
+        JSON.stringify(acts),
+        JSON.stringify(sects),
+        JSON.stringify(conts),
+        JSON.stringify(chdata),
+        'savevalid',
+        JSON.stringify(ttlg)
+    ].join('|');
+
+    for (let i = 0; i < equipped.length; i++) {
+        equip(equipped[i], { save: true });
     }
-    str += JSON.stringify(a20); 
+    you.stat_r();
 
     if (inSector(sector.home)) {
-        for (let a in furn) {
-            activatef(furn[a]);
-        }
+        for (let i in furn) activatef(furn[i]);
     }
-    
-    global.flags.m_freeze=true;
-    global.current_a.activate();
-    global.flags.m_freeze = freezete;
 
-    if (global.flags.busy === true) {
-        dom.ct_bt3.style.backgroundColor='darkslategray';
-    }
-    
+    global.flags.m_freeze = freeze_previous;
     str = utf8_to_b64(str);
     storage.setItem("v0.3", str);
     global.flags.savestate = false;
-    
-    if (verbose===true) {
-        msg('Game Saved','cyan'); 
-    }
-    
+
+    if (verbose) msg('Game Saved', 'cyan');
     return str;
 }
 
-function load(dt, verbose=false) {
+function load(verbose=false, dt) {
     if (verbose===true) console.log("Loading...");
 
     var str = dt || window.localStorage.getItem("v0.3"); 
     str = b64_to_utf8(str);
     if (str && str != '') {
-        dom.error = addElement(document.body,'div');
-        dom.error.style.width='100%';
-        dom.error.style.height='auto';
-        dom.error.style.position='absolute';
-        dom.error.style.fontSize='2em';
-        dom.error.style.color='red';
-        dom.error.style.zIndex=9999;
-        dom.error.style.lineHeight='normal';
-        dom.error.style.opacity=0;
-        
-        setTimeout(function() {
-            appear(dom.error)}, 500);
+        if (verbose===true) {
+            console.log("The game broke whilst trying to save.")
+            console.log(`ATTEMPTING TO LOAD THIS SAVE DATA : ${str}`);
+        }
 
-        dom.error.style.textAlign='center';
-        dom.error.innerHTML='SOMETHING BROKE<br>PERHAPS DUE TO STUPIDITY OR DATA STRUCTURE CHANGES<br>⋗1 DELETING THE SAVE IS ADVISED<br>⋗2 OR WAITING FOR SOME TIME TIL FIXED<br>⋗3 OR CHECKING IN DIFFERENT BROWSER, MIGHT WORK THERE(MEANS THE SAVE IS BORKED(REFER TO 1))';
-       
+        display_load_error();
+
         clearInterval(timers.moon_charm);
         clearInterval(timers.sun_charm);
         clearInterval(timers.autos);
         clearInterval(timers.rdng);
         clearInterval(timers.rdngdots);
-        global.menuo = 0;
         clearInterval(timers.actm);
         clearInterval(timers.job1t);
         clearInterval(timers.bstmonupdate);
         clearInterval(timers.rptbncgt);
+        if (verbose===true) console.log("Timers cleared.");
+
+        global.menuo = 0;
         global.flags.rptbncgtf = false;
         global.flags.rptbncgt = false;
         
@@ -764,10 +660,13 @@ function load(dt, verbose=false) {
         you.crt = yu_s.crt;
         global.flags.loadstate = true;
         
-        for (let a in callback) {
-            for (let b in callback[a].hooks) {
-                if (callback[a].hooks[b].data.q) {
-                    callback[a].hooks.splice(callback[a].hooks[b],1);
+        for (let key in callback) {
+            if (callback[key].hooks) {
+                for (let i=callback[key].hooks.length-1;i>= 0;i--) {
+                    const hook = callback[key].hooks[i];
+                    if (hook && hook.data && hook.data.q) {
+                        callback[key].hooks.splice(i, 1);
+                    }
                 }
             }
         }
@@ -798,9 +697,9 @@ function load(dt, verbose=false) {
             eqp.dummy
         ]; 
 
-        for (let a in you.eff) {
-            you.eff[a].active=false; you.eff=[];
-        }
+        you.eff.forEach(e => e.active = false);
+        you.eff = [];
+
         empty(dom.d101);
         global.e_e = [];
         global.e_em = [];
@@ -895,6 +794,8 @@ function load(dt, verbose=false) {
             }
         }
         global.flags.loadstate = false;
+
+        if (verbose===true) console.log(`PLAYER STATS : ${JSON.stringify(yu_s)}`);
         
         let a1 = JSON.parse(str[4]);  
         global.sm = a1.b;
@@ -902,7 +803,7 @@ function load(dt, verbose=false) {
         global.spirits = a1.f;
         global.uid = a1.uid;
         global.msgs_max = a1.g;
-        global.flags = {};
+        //global.flags = {};
         global.sinv = []; 
         global.bestiary = a1.q;
         global.timehold = a1.r || ((time.minute / DAY) << 0);
@@ -1425,6 +1326,7 @@ function load(dt, verbose=false) {
         m_update();
         dom.d7m.update();
         dom.d5_3_1.update();
+        if (verbose===true) console.log(`Updated DOM.`);
 
         if (global.flags.m_freeze === true) {
             dom.m_b_1_c.innerHTML = 'Ｘ';
@@ -1471,6 +1373,8 @@ function load(dt, verbose=false) {
         dom.nthngdsp.style.display = 'none';
         dom.ctrwin6.style.display = 'none';
         invbtsrst();
+
+        if (verbose===true) console.log(`Updated weather.`);
         
         dom.d_time.innerHTML = '<small>' + getDay(global.flags.tmmode || 2) + '</small> ' + timeDisp(time);
 
@@ -1483,6 +1387,7 @@ function load(dt, verbose=false) {
     }
 
     if (!global.flags.stbxinifld) {
+        if (verbose===true) console.log("Checking container flags...")
         addToContainer(home.trunk,eqp.gnt);
         addToContainer(home.trunk,acc.fmlim);
         addToContainer(home.trunk,wpn.bdsrd);
@@ -1490,6 +1395,7 @@ function load(dt, verbose=false) {
         addToContainer(home.trunk,sld.tge);
         addToContainer(home.trunk,item.bonig);
         global.flags.stbxinifld = true;
+        if (verbose===true) console.log("Container flags check passed.")
     }
 
     if (global.flags.bgspc) {
@@ -1517,21 +1423,23 @@ function load(dt, verbose=false) {
         kill(dom.ct_bt4_5b_nc);
     }
 
+    /*
     if (dom.error) {
+        if (verbose===true) console.log("Checking to see that no errors have been raised by the DOM...");
         empty(dom.error);
         document.body.removeChild(dom.error);
         kill(dom.error);
+        if (verbose===true) console.log("Forced DOM error check passed.")
     }
+    */
 
     if (global.flags.autosave === true) {
+        if (verbose===true) console.log("Autosaving is on.")
         dom.autosves.checked = true;
         timers.autos = setInterval(function() {
             save(true);
         }, 30000);
     }
-    
-    //if(global.flags.msgtm===true)dom.ct_bt4_61b.checked=true;
-    ////patch things 
 
     if (skl.pet.lvl >= 10) {
         giveTitle(ttl.pet3);
@@ -1540,8 +1448,6 @@ function load(dt, verbose=false) {
     if (item.amrthsck.data.finished) {
         giveRcp(rcp.appljc);
     }
-
-    ////////////////
 
     if (dom.loading) {
         fade(dom.loading, 5, true);
@@ -12823,8 +12729,18 @@ function define_actions() {
 }
 
 function giveAction(a){
-    if(a.have===false) {if(!global.flags.actsu){global.flags.actsu=true;dom.ct_bt3.innerHTML='actions'}
-    msg('You learned a new action: <span style="color:tomato">"'+a.name+'"</span>','lime',a,9); a.have=true; acts.push(a); if(acts.length>=1&&dom.acccon) {empty(dom.acccon); for(let a in acts)renderAct(acts[a])}
+    if(a.have===false) {
+        if(!global.flags.actsu) {
+            global.flags.actsu=true;
+            dom.ct_bt3.innerHTML='actions'
+        }
+        msg('You learned a new action: <span style="color:tomato">"'+a.name+'"</span>','lime',a,9);
+        a.have=true;
+        acts.push(a);
+        if(acts.length>=1&&dom.acccon) {
+            empty(dom.acccon);
+            for(let a in acts) renderAct(acts[a])
+        }
     }
 } 
 
@@ -14115,7 +14031,9 @@ function define_dom_references() { // @Todo organize
           if(dom.ct_bt4_5b_nbc.value==""||dom.ct_bt4_5b_nbc.value=="?") {dom.ct_bt4_5b_nbc.value='?'; return}
           let storage = window.localStorage; let t = dom.ct_bt4_5b_nbc.value;bt = b64_to_utf8(dom.ct_bt4_5b_nbc.value);
           if(/savevalid/g.test(bt)){
-          storage.setItem("v0.2a", t); load(t);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
+          storage.setItem("v0.2a", t);
+          load(false, t);
+          global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
           else{dom.ct_bt4_5b_nbc.value = 'Save Invalid'; return}
       });
       dom.ct_bt4_5b_nhx = addElement(dom.ct_bt4_5b_nh,'div');
@@ -14133,7 +14051,7 @@ function define_dom_references() { // @Todo organize
           r.addEventListener('load',function(){
           let t = b64_to_utf8(r.result);
           if(/savevalid/g.test(t)){  dom.ct_bt4_5b_nbc.value = 'Load Successful';
-          storage.setItem("v0.2a", r.result); load(r.result);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
+          storage.setItem("v0.2a", r.result); load(false, r.result);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
           else{dom.ct_bt4_5b_nbc.value = 'Save Invalid'; return}})
       })
       dom.ct_bt4_5b_nb = addElement(dom.ct_bt4_5b_nc,'div'); 
@@ -14266,7 +14184,7 @@ function define_dom_references() { // @Todo organize
     dom.sl_s.innerHTML='save'; 
     dom.sl_s.addEventListener('click', ()=>{save();let j = addElement(dom.sl,'span');j.style.fontSize='.9em';j.style.padding='3px';j.innerHTML='saved...';fade(j);setTimeout(()=>{dom.sl.removeChild(j)},500)});
     dom.sl_l = addElement(dom.sl,'span',null,'sl'); dom.sl_l.innerHTML='load';
-    dom.sl_l.addEventListener('click', ()=>load(null,true));
+    dom.sl_l.addEventListener('click', ()=>load(false, null));
     dom.sl_extra = addElement(dom.sl,'span',null,'sl'); dom.sl_extra.style.borderLeft='none';dom.sl_extra.innerHTML='<span style="color:crimson">game not saved!</span>';
     dom.autosve = addElement(dom.sl,'span',null,'sl'); dom.autosve.innerHTML='Autosave';
     dom.autosve.style.position='fixed';dom.autosve.style.width='auto'; dom.autosve.style.right='139px';dom.autosve.style.bottom='1px';
@@ -20419,6 +20337,23 @@ function b64_to_utf8( str ) {
     }
 }
 
+function display_load_error() {
+    dom.error = addElement(document.body,'div', 'terror', 'error');
+    dom.error.style.width='100%';
+    dom.error.style.height='auto';
+    dom.error.style.position='absolute';
+    dom.error.style.fontSize='2em';
+    dom.error.style.color='red';
+    dom.error.style.zIndex=9999;
+    dom.error.style.lineHeight='normal';
+    dom.error.style.opacity=0;
+
+    setTimeout(function() {
+        appear(dom.error)}, 500);
+
+    dom.error.style.textAlign='center';
+    dom.error.innerHTML='SOMETHING BROKE<br>PERHAPS DUE TO STUPIDITY OR DATA STRUCTURE CHANGES<br>⋗1 DELETING THE SAVE IS ADVISED<br>⋗2 OR WAITING FOR SOME TIME TIL FIXED<br>⋗3 OR CHECKING IN DIFFERENT BROWSER, MIGHT WORK THERE(MEANS THE SAVE IS BORKED(REFER TO 1))';
+}
 
 function __dbggiveeverything() { //** debug
     for(let a in item) giveItem(item[a], 99);
