@@ -80,17 +80,14 @@ function main() {
     dom.d_time.innerHTML = '<small>'+getDay(global.flags.tmmode)+'</small> '+timeDisp(time)
 
 
-    //define misc globals
     global.t_n=0;
 
-    for (let x in global.cptchk) {
-        global.cptchk[x]();
-    }
+    for (let x in global.cptchk) global.cptchk[x]();
 
     global.current_location = chss.intro;
 
     window.addEventListener('load', ()=>{
-        load(true);
+        load(undefined, true);
     });
 }
 
@@ -574,891 +571,897 @@ function save(verbose=false) {
     return str;
 }
 
-function load(verbose=false, dt) {
-    if (verbose===true) console.log("Loading...");
-
-    var str = dt || window.localStorage.getItem("v0.3"); 
-    str = b64_to_utf8(str);
-    if (str && str != '') {
-        if (verbose===true) {
-            console.log("The game broke whilst trying to save.")
-            console.log(`ATTEMPTING TO LOAD THIS SAVE DATA : ${str}`);
-        }
-
-        display_load_error();
-
-        clearInterval(timers.moon_charm);
-        clearInterval(timers.sun_charm);
-        clearInterval(timers.autos);
-        clearInterval(timers.rdng);
-        clearInterval(timers.rdngdots);
-        clearInterval(timers.actm);
-        clearInterval(timers.job1t);
-        clearInterval(timers.bstmonupdate);
-        clearInterval(timers.rptbncgt);
-        if (verbose===true) console.log("Timers cleared.");
-
-        global.menuo = 0;
-        global.flags.rptbncgtf = false;
-        global.flags.rptbncgt = false;
-        
-        str = str.split('|');
-        let yu_s = JSON.parse(str[0]);
-        for (let a in ttl) {
-            ttl[a].have=false;
-            ttl[a].tget=false;
-        };
-        global.titles=[]; 
-        you.name = yu_s.name;
-        for (let o in ttl) {
-            if (ttl[o].id === yu_s.title) {
-                you.title = ttl[o];
-                you.lvl = yu_s.lvl;
-            }
-        }
-        you.exp   = yu_s.exp;
-        you.exp_t = yu_s.exp_t; 
-        you.expnext_t = you.expnext();
-        you.sat    = yu_s.sat;
-        you.satmax = yu_s.satmax;
-        you.sat_r  = yu_s.sat_r;
-        you.sata   = yu_s.sata || 0;
-        you.satm   = yu_s.satm || 1;
-        you.ki     = yu_s.ki || new Object();
-        you.hp     = yu_s.hp;
-        you.hpmax  = yu_s.hpmax;
-        you.hp_r   = yu_s.hp_r;
-        you.hpa    = yu_s.hpa || 0;
-        you.hpm    = yu_s.hpm || 1;
-        you.hp = you.hp > you.hpmax ? you.hpmax : you.hp;
-        you.str   = yu_s.str;
-        you.str_r = yu_s.str_r;
-        you.stra  = yu_s.stra || 0;
-        you.strm  = yu_s.strm || 1;
-        you.agl   = yu_s.agl;
-        you.agl_r = yu_s.agl_r;
-        you.agla  = yu_s.agla || 0;
-        you.aglm  = yu_s.aglm || 1;
-        you.int   = yu_s.int;
-        you.int_r = yu_s.int_r;
-        you.inta  = yu_s.inta || 0;
-        you.intm  = yu_s.intm || 1;
-        you.spd   = yu_s.spd;
-        you.spd_r = yu_s.spd_r;
-        you.spda  = yu_s.spda || 0;
-        you.spdm  = yu_s.spdm || 1;
-        you.cls   = yu_s.cls  || [0,0,0];
-        you.ccls  = yu_s.ccls || [0,0,0];
-        you.aff   = yu_s.aff  || [0,0,0,0,0,0,0];
-        you.maff  = yu_s.maff || [0,0,0,0,0,0,0];
-        you.caff  = yu_s.caff || [0,0,0,0,0,0,0];
-        you.cmaff = yu_s.cmaff || [0,0,0,0,0,0,0];
-        you.luck  = yu_s.luck;
-        you.stat_per_lvl = yu_s.stat_per_lvl;
-        you.karma  = yu_s.karma || 0;
-        you.wealth = yu_s.wealth;
-        you.crt = yu_s.crt;
-        global.flags.loadstate = true;
-        
-        for (let key in callback) {
-            if (callback[key].hooks) {
-                for (let i=callback[key].hooks.length-1;i>= 0;i--) {
-                    const hook = callback[key].hooks[i];
-                    if (hook && hook.data && hook.data.q) {
-                        callback[key].hooks.splice(i, 1);
-                    }
-                }
-            }
-        }
-
-        for (let obj in item) {
-            item[obj].amount = 0;
-            item[obj].have = false;
-        }
-        inv=[];
-
-        for (let g in yu_s.res) {
-            you.res[g] = yu_s.res[g];
-        }
-        for(let g in yu_s.mods) {
-            you.mods[g] = yu_s.mods[g];
-        }
-
-        you.eqp = [
-            eqp.dummy,
-            eqp.dummy,
-            eqp.dummy,
-            eqp.dummy,
-            eqp.dummy,
-            eqp.dummy,
-            eqp.dummy,
-            eqp.dummy,
-            eqp.dummy,
-            eqp.dummy
-        ]; 
-
-        you.eff.forEach(e => e.active = false);
-        you.eff = [];
-
-        empty(dom.d101);
-        global.e_e = [];
-        global.e_em = [];
-        empty(dom.d101m);
-        global.current_m.eff = [];
-
-        let a4 = JSON.parse(str[1]);
-        global.msgs_max = 300;
-        empty(dom.mscont);
-        global.rec_d = [];
-        for (let ba in rcp) {
-            rcp[ba].have = false
-        };
-        global.flags.loadstate = false;
-
-        let a6 = JSON.parse(str[2]);
-        you.skls = [];
-        for (let ab in skl) {
-            skl[ab].lvl = 0;
-            skl[ab].exp = 0;
-        }
-        for (let a in global.rec_d) {
-            global.rec_d[a].have = false;
-            global.rec_d = [];
-        }
-        for (let i in skl) {
-            for(let ii in skl[i].mlstn) {
-                skl[i].mlstn[ii].g = false;
-            }
-        }
-        for (let a in a6) {
-            for (let b in skl) {
-                if(a6[a].id===skl[b].id) {
-                    you.skls.push(skl[b]);
-                    skl[b].lvl = a6[a].lvl; 
-                    for (let c in a6[a].mst) {
-                        skl[b].mlstn[c].g=a6[a].mst[c];
-                    }
-                    if (skl[b].mlstn) {
-                        for (let d in skl[b].mlstn) {
-                            if (skl[b].mlstn[d].g === false && skl[b].mlstn[d].lv <= skl[b].lvl) {
-                                skl[b].mlstn[d].f();
-                                skl[b].mlstn[d].g = true;
-                                msg(
-                                    "NEW PERK UNLOCKED "+
-                                    '<span style="color:tomato">("'+skl[b].name+
-                                    '")<span style="color:orange">lvl: '+skl[b].mlstn[d].lv+
-                                    '</span></span>','lime',
-                                    {
-                                        x:skl[b].name,y:'Perk lvl '+
-                                        skl[b].mlstn[d].lv+': <span style="color:yellow">'+
-                                        skl[b].mlstn[d].p+'</span>'
-                                    }, 7);
-                            }
-                        }
-                    }
-                }
-            }
-        } 
-        var ro = [];
-        for (let io in global.rec_d) {
-            ro.push(global.rec_d[io].id);
-        }
-        let a7 = JSON.parse(str[3]);
-        
-        let skk = 0;
-        for (let obj in skl) {
-            if (a7[skk]) {
-                skl[obj].exp = a7[skk][0] || 0;
-                skl[obj].expnext_t = skl[obj].expnext();
-                skl[obj].p = a7[skk++][1];
-                if (!skl[obj].p) {
-                    skl[obj].p = 1;
-                }
-                if (skl[obj].p < 0.99) {
-                    skl[obj].p += 1;
-                }
-            }
-        }
-        global.flags.loadstate = true;
-
-        for (let o = 0; o < a4.length; o++) {
-            for (let obj in effect) {
-                if (effect[obj].id === a4[o].a) {
-                    if (effect[obj].save !== false) {
-                        giveEff(you, effect[obj], a4[o].b, a4[o].c);
-                    } else {
-                        effect[obj].onRemove();
-                    }
-                    continue;
-                }
-            }
-        }
-        global.flags.loadstate = false;
-
-        if (verbose===true) console.log(`PLAYER STATS : ${JSON.stringify(yu_s)}`);
-        
-        let a1 = JSON.parse(str[4]);  
-        global.sm = a1.b;
-        global.rm = a1.a;
-        global.spirits = a1.f;
-        global.uid = a1.uid;
-        global.msgs_max = a1.g;
-        //global.flags = {};
-        global.sinv = []; 
-        global.bestiary = a1.q;
-        global.timehold = a1.r || ((time.minute / DAY) << 0);
-        global.timewold = a1.r2|| ((time.minute / WEEK)<< 0);
-        global.lst_sve = a1.m;
-        global.timescale = a1.u || 1;
-        global.offline_evil_index = a1.z || 1;
-        global.drdata = a1.drdata || {};
-        
-        for (let gb = 0; gb < a1.datas.length; gb++) {
-            for (let itm in item) {
-                if (item[itm].id === a1.datas[gb]) {
-                    item[itm].data.tried = true;
-                }
-            }
-        }
-        if (a1.datar) {
-            for (let gb = 0; gb < a1.datar.length; gb++) {
-                for (let itm in item) {
-                    if (item[itm].id === a1.datar[gb]) {
-                        item[itm].data.finished = true;
-                    }
-                }
-            }
-        }
-        time.minute = a1.j;
-        timeConv(time);
-
-        for (let w in weather) {
-            if (weather[w].id === a1.l) {
-                setWeather(weather[w], a1.k);
-            }
-        }
-        global.bg_r = a1.n;
-        global.bg_g = a1.o;
-        global.bg_b = a1.p;
-        
-        for (let a in global.stat) { 
-            global.stat[a] = a1.jj[a] || 0;
-            let tempt = new Date();
-            if (global.stat.sttime === 0) {
-                global.stat.sttime = tempt.getFullYear() + '/' +
-                (tempt.getMonth() + 1) +'/' + 
-                tempt.getDate() + ' ' +
-                tempt.getHours() + ':' +
-                (tempt.getMinutes() >= 10 ? tempt.getMinutes() : '0' + tempt.getMinutes()) + ':' +
-                (tempt.getSeconds() >  10 ? tempt.getSeconds() : '0' + tempt.getSeconds());
-            
-                if (global.stat.msts === 0 ) {
-                    global.stat.msts = [
-                        [0,0],
-                        [0,0],
-                        [0,0],
-                        [0,0],
-                        [0,0],
-                        [0,0],
-                        [0,0],
-                        [0,0]
-                    ];
-                }
-
-                if (global.stat.msks === 0) {
-                    global.stat.msks = [0,0,0,0,0,0,0];
-                }
-            }
-        }    
-            
-        dom.ct_bt4_21b.value = global.bg_r;
-        dom.ct_bt4_22b.value = global.bg_g;
-        dom.ct_bt4_23b.value = global.bg_b;
-        global.stat.wsnburst = 50;
-        
-        dom.ctrwin4.style.display = 'none';
-        dom.ctrwin2.style.display = 'none';
-        dom.ctrwin1.style.display = '';
-        global.lw_op = 0;
-        
-        if (global.flags.civil === false && global.flags.btl === true) {
-            for (let obj in zone) {
-                if (zone[obj].id === a1.x) {
-                    zone_init(zone[obj]);
-                    break;
-                }
-            }
-        }
-        
-        let a2 = JSON.parse(str[5]);
- 
-        for (let o = 0; o < a2.length; o++) {
-            for (let obj in rcp) {
-                if (rcp[obj].id === a2[o].id && rcp[obj].have === false) {
-                    global.rec_d.push(rcp[obj]);
-                    rcp[obj].have = true;
-                    rcp[obj].data = a2[o].data;
-                }
-            }
-        }
-
-        for (let o = 0; o < ro.length; o++) {
-            for (let obj in rcp) {
-                if (rcp[obj].id === ro[o] && rcp[obj].have === false) {
-                    global.rec_d.push(rcp[obj]);
-                    rcp[obj].have = true;
-                }
-            }
-        }
-        
-        dom.d2.innerHTML = you.name;
-        eqpres();
-        unequip(you.eqp[4], {save:true});
-        unequip(you.eqp[5], {save:true});
-        you.stat_r();
-        
-        let a3 = JSON.parse(str[6]);
-        global.flags.loadstate = true;
-
-        if (a3[0].length !== 0) { //** load general items
-            for (let o = 0; o < a3[0].length; o++) {
-                for (let obj in item) {
-                    if (item[obj].id === a3[0][o].id) {
-                        giveItem(item[obj], a3[0][o].amt, true, {
-                            fi: true
-                        });
-                        inv[o].new = false;
-                        for (let a in a3[0][o].data) {
-                            inv[o].data[a] = a3[0][o].data[a];
-                        }
-                        continue;
-                    }
-                }
-            }
-        }
-
-        if (a3[1].length !== 0) { //** load 'wpn' items... etc.
-            for (let o = 0; o < a3[1].length; o++) {
-                for (let obj in wpn) {
-                    if (wpn[obj].id === a3[1][o].id) {
-                        let t = giveItem(wpn[obj], 1, true);
-                        t.new = false;
-                        t.dp = a3[1][o].dp;
-                        for (let a in a3[1][o].data) {
-                            t.data[a] = a3[1][o].data[a];
-                        }
-                        if (a3[1][o].toeq === true) {
-                            equip(t, {
-                                save: true
-                            });
-                        }
-                        continue;
-                    }
-                }
-            }
-        }
-
-        if (a3[2].length !== 0) {
-            for (let o = 0; o < a3[2].length; o++) {
-                for (let obj in eqp) {
-                    if (eqp[obj].id === a3[2][o].id) {
-                        let t = giveItem(eqp[obj], 1, true);
-                        t.new = false;
-                        t.dp = a3[2][o].dp;
-                        for (let a in a3[2][o].data) {
-                            t.data[a] = a3[2][o].data[a];
-                        }
-                        if (a3[2][o].toeq === true) {
-                            if (t.slot === 5 && you.eqp[5].id === 10000) {
-                                t.slot = 6;
-                            }
-                            equip(t, {
-                                save: true
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        if (a3[3].length !== 0) {
-            for (let o = 0; o < a3[3].length; o++) {
-                for (let obj in sld) {
-                    if (sld[obj].id === a3[3][o].id) {
-                        let t = giveItem(sld[obj], 1, true);
-                        t.new = false;
-                        t.dp = a3[3][o].dp;
-                        for (let a in a3[3][o].data) {
-                            t.data[a] = a3[3][o].data[a];
-                        }
-                        if (a3[3][o].toeq === true) {
-                            equip(t, {
-                                save: true
-                            });
-                        }
-                        continue;
-                    }
-                }
-            }
-        }
-
-        if (a3[4].length !== 0) {
-            for (let o = 0; o < a3[4].length; o++) {
-                for (let obj in acc) {
-                    if (acc[obj].id === a3[4][o].id) {
-                        let t = giveItem(acc[obj], 1, true);
-                        t.new = false;
-                        t.dp = a3[4][o].dp;
-                        for (let a in a3[4][o].data) {
-                            t.data[a] = a3[4][o].data[a];
-                        }
-                        if (a3[4][o].toeq === true) {
-                            equip(t, {
-                                save: true
-                            });
-                        }
-                        continue;
-                    }
-                }
-            }
-        }
-        
-        if (you.eqp[0].id === 10000) {
-            you.eqp[0].cls[2] = you.lvl / 4 << 0;
-            you.eqp[0].aff[0] = you.lvl / 5 << 0;
-            you.eqp[0].ctype = 2;
-        }
-
-        let a5 = JSON.parse(str[7]);
-        let xx = 0;
-        for (let o in zone) {
-            if (a5[xx]) {
-                zone[o].size = a5[xx++];
-            }
-        }
-
-        let a8 = JSON.parse(str[8]);
-        dar = a8;
-
-        if (a8[0].length !== 0) {
-            for (let o = 0; o < a8[0].length; o++) {
-                for (let obj in item) {
-                    if (item[obj].id === a8[0][o]) {
-                        item[obj].data.dscv = true;
-                    }
-                }
-            }
-        }
-
-        if (a8[1].length !== 0) {
-            for (let o = 0; o < a8[1].length; o++) {
-                for (let obj in wpn) {
-                    if (wpn[obj].id === a8[1][o]) {
-                        wpn[obj].data.dscv = true;
-                    }
-                }
-            }
-        }
-
-        if (a8[2].length !== 0) {
-            for (let o = 0; o < a8[2].length; o++) {
-                for (let obj in eqp) {
-                    if (eqp[obj].id === a8[2][o]) {
-                        eqp[obj].data.dscv = true;
-                    }
-                }
-            }
-        }
-
-        if (a8[3].length !== 0) {
-            for (let o = 0; o < a8[3].length; o++) {
-                for (let obj in sld) {
-                    if (sld[obj].id === a8[3][o]) {
-                        sld[obj].data.dscv = true;
-                    }
-                }
-            }
-        }
-
-        if (a8[4].length !== 0) {
-            for (let o = 0; o < a8[4].length; o++) {
-                for (let obj in acc) {
-                    if (acc[obj].id === a8[4][o]) {
-                        acc[obj].data.dscv = true;
-                    }
-                }
-            }
-        }
-
-        if (a3[5].length !== 0) {
-            for (let a in a3[5]) {
-                for (let b in item) {
-                    if (item[b].id === a3[5][a].item) {
-                        item[b].data = a3[5][a].data;
-                    }
-                }
-            }
-        }
-        
-        for (let a in furniture) {
-            furniture[a].active = false;
-        }
-
-        for (let a in furn) {
-            furn[a].data = {};
-        }
-        furn = [];
-
-        let a9 = JSON.parse(str[9]);
-        for (let a = 0; a < a9.length; a++) {
-            for (let obj in furniture) {
-                if (furniture[obj].id === a9[a].id && a9[a].data.amount > 0) {
-                    furn[a] = furniture[obj];
-                    furn[a].data = a9[a].data;
-                }
-            }
-        }
-
-        let a10 = JSON.parse(str[10]);
-        let a11 = JSON.parse(str[11]);
-
-        global.flags = a1.e;
-        global.flags.rdng = false;
-        global.flags.civil = true;
-        global.flags.btl = false;
-        global.current_z = zone.nwh;
-        global.current_m = creature.default;
-        update_m();
-        dom.d7m.update();
-        global.flags.wkdis = false;
-        global.flags.jdgdis = false;
-
-        for (let obj in vendor) {
-            if (a10[obj] && a10[obj].stock) {
-                vendor[obj].stock = a10[obj].stock;
-                vendor[obj].data = a10[obj].data;
-                if (!vendor[obj].data.time || vendor[obj].data.time < 0) {
-                    vendor[obj].data.time = 1;
-                }
-                for (let itm = 0; itm < a10[obj].stock.length; itm++) {
-                    let k = itemgroup[(a10[obj].stock[itm][0] + 1) / 10000 << 0];
-                    for (let v in k) {
-                        if (k[v].id === a10[obj].stock[itm][0]) {
-                            vendor[obj].stock[itm][0] = k[v];
-                            continue;
-                        }
-                    }
-                }
-            } else {
-                restock(vendor[obj]);
-            }
-        }
-        
-        let a12 = JSON.parse(str[11]);
-        for (let ttlid = 0; ttlid < a12.length; ttlid++) {
-            for (let obj in ttl) {
-                if (ttl[obj].id === a12[ttlid]) {
-                    global.titles[ttlid] = ttl[obj];
-                    global.titles[ttlid].have = true;
-                }
-            }
-        }
-        for (let obj in global.titlese) {
-            global.titles.push(global.titlese[obj]);
-        }
-        global.titlese = [];
-
-        let a13 = JSON.parse(str[12]);
-        for (let s in a13) {
-            for (let ss in furn) {
-                if (furn[ss].id === a13[s]) {
-                    home[s] = furn[ss];
-                }
-            }
-        }
-        qsts = [];
-
-        let a14 = JSON.parse(str[13]);
-        for (let obj in a14) {
-            for (let q in quest) {
-                if (quest[q].id === a14[obj].id) {
-                    qsts[obj] = quest[q];
-                    qsts[obj].data = a14[obj].data;
-                    if (qsts[obj].callback) {
-                        qsts[obj].callback();
-                    }
-                }
-            }
-        }
-
-        global.current_a = act.default;
-        acts = [];
-        for (let a in act) {
-            act[a].have = false;
-            act[a].data = {};
-            act[a].active = false;
-        }
-
-        let a15 = JSON.parse(str[14]);
-        for (let obj in a15) {
-            for (let q in act) {
-                if (act[q].id === a15[obj].id) {
-                    acts[obj] = act[q];
-                    acts[obj].data = a15[obj].data;
-                    act[q].have = true;
-                }
-            }
-        }
-
-        for (let a in sectors) {
-            sectors[a].onLeave();
-        }
-        sectors = [];
-
-        let a16 = JSON.parse(str[15]);
-        for (let obj in a16) {
-            for (let q in sector) {
-                if (sector[q].id === a16[obj].id) {
-                    if (objempty(a16[obj].data) === false) {
-                        for (let a in a16[obj].data) {
-                            sector[q].data[a] = a16[obj].data[a];
-                        }
-                    } else if (sector[q].default_data) {
-                        sector[q].data = sector[q].default_data;
-                    }
-                }
-            }
-        }
-
-        clearInterval(timers.vndrstkchk);
-        for (let obj in chss) {
-            if (chss[obj].id === a1.i) {
-                global.current_location = chss[obj];
-                move_to_area(chss[obj], false);
-            }
-        }
-
-        let a17 = JSON.parse(str[16]);
-        for (let a in container) {
-            container[a].c = [];
-        }
-        if (a17[0] && !a17[0].c) {
-            a17 = [{
-                id: 1,
-                c: a17
-            }];
-        }
-        for (let a in a17) {
-            for (let d in container) {
-                if (container[d].id === a17[a].id) {
-                    for (let c in a17[a].c) {
-                        let k = itemgroup[(a17[a].c[c].id + 1) / 10000 << 0];
-                        for (let b in k) {
-                            if (k[b].id === a17[a].c[c].id) {
-                                let ni = {
-                                    item: k[b],
-                                    data: a17[a].c[c].data,
-                                    amt: a17[a].c[c].amt,
-                                    dp: a17[a].c[c].dp
-                                };
-                                container[d].c.push(ni);
-                                break;
-                            }
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-
-        let a18 = JSON.parse(str[17]);
-        for (let obj in a18) {
-            for (let q in chss) {
-                if (chss[q].id === a18[obj].id) {
-                    if (objempty(a18[obj].data) === false) {
-                        chss[q].data = a18[obj].data;
-                    }
-                }
-            }
-        }
-
-        if (str[19]) {
-            let a19 = JSON.parse(str[19]);
-            for (let a in a19) {
-                for (let b in ttl) {
-                    if (a19[a] === ttl[b].id) {
-                        ttl[b].tget = true;
-                    }
-                }
-            }
-        }
-
-        for (let a in ttl) {
-            if (ttl[a].have && ttl[a].talent && !ttl[a].tget) {
-                ttl[a].talent();
-                ttl[a].tget = true;
-            }
-        }
-
-        isort(global.sm);
-        rsort(global.rm);
-        rstcrtthg();
-        you.stat_r();
-        global.spbtsr[global.rm].style.color = 'yellow';
-        if (global.flags.aw_u) {
-            dom.d0.style.display = '';
-            dom.d1m.style.display = '';
-            dom.inv_ctx.style.display = '';
-            dom.gmsgs.style.display = '';
-            dom.ct_ctrl.style.display = '';
-            dom.ctr_1.style.display = '';
-            dom.location.style.display = '';
-        }
-        dom.ctrwin3.style.display = 'none';
-        dom.ctrwin5.style.display = 'none';
-
-        dom.d5_1_1.update();
-        dom.d5_2_1.update();
-        dom.d6.update();
-        update_d();
-        dom.d3.update();
-        update_m();
-        m_update();
-        dom.d7m.update();
-        dom.d5_3_1.update();
-        if (verbose===true) console.log(`Updated DOM.`);
-
-        if (global.flags.m_freeze === true) {
-            dom.m_b_1_c.innerHTML = 'Ｘ';
-        }
-
-        if (global.flags.m_blh === true) {
-            dom.m_b_2_c.innerHTML = 'Ｘ';
-        }
-
-        if (global.flags.jnlu) {
-            dom.ct_bt6.innerHTML = 'journal';
-        }
-        if (global.flags.asbu) {
-            dom.ct_bt1.innerHTML = 'assemble';
-        }
-        if (global.flags.actsu) {
-            dom.ct_bt3.innerHTML = 'actions';
-        }
-        if (global.flags.sklu) {
-            dom.ct_bt2.innerHTML = 'skills';
-        }
-
-        if (global.flags.m_un === true) {
-            dom.mn_2.style.display = '';
-            dom.mn_4.style.display = '';
-            dom.mn_3.style.display = '';
-            if (global.stat.mndrgnu) {
-                dom.mn_1.style.display = '';
-            }
-            m_update();
-        }
-        wManager();
-        dom.d_moon.innerHTML = global.text.lunarp[getLunarPhase()][0];
-        addDesc(dom.d_moon, null, 2, 'Lunar Phase', global.text.lunarp[getLunarPhase()][1]);
-        wdrseason(global.flags.ssngaijin);
-
-        if (global.flags.isday === false) {
-            dom.d_moon.style.display = '';
-        } else {
-            dom.d_moon.style.display = 'none';
-        }
-
-        dom.sl_extra.innerHTML = 'Last save: ' + global.lst_sve;
-        dom.nthngdsp.style.display = 'none';
-        dom.ctrwin6.style.display = 'none';
-        invbtsrst();
-
-        if (verbose===true) console.log(`Updated weather.`);
-        
-        dom.d_time.innerHTML = '<small>' + getDay(global.flags.tmmode || 2) + '</small> ' + timeDisp(time);
-
-        global.flags.loadstate = false;
-        global.flags.savestate = false;
-        global.flags.ttlscrnopn = false;
-        global.flags.expatv = false;
-        global.flags.impatv = false;
-        global.flags.expatv = false;
-    }
-
-    if (!global.flags.stbxinifld) {
-        if (verbose===true) console.log("Checking container flags...")
-        addToContainer(home.trunk,eqp.gnt);
-        addToContainer(home.trunk,acc.fmlim);
-        addToContainer(home.trunk,wpn.bdsrd);
-        addToContainer(home.trunk,item.toolbx);
-        addToContainer(home.trunk,sld.tge);
-        addToContainer(home.trunk,item.bonig);
-        global.flags.stbxinifld = true;
-        if (verbose===true) console.log("Container flags check passed.")
-    }
-
-    if (global.flags.bgspc) {
-        document.body.style.background = 'linear-gradient(180deg,#000,#123)';
-    } else {
-        document.body.style.backgroundColor = 'rgb(' + global.bg_r + ',' + global.bg_g + ',' + global.bg_b + ')';
-    }
-
-    if (dom.bkssttbd) {
-        empty(dom.bkssttbd);
-        document.body.removeChild(dom.bkssttbd);
-        global.flags.bksstt = false;
-        kill(dom.bkssttbd);
-    }
-
-    if (global.flags.expatv) {
-        empty(dom.ct_bt4_5a_nc);
-        document.body.removeChild(dom.ct_bt4_5a_nc);
-        kill(dom.ct_bt4_5a_nc);
-    }
-
-    if (global.flags.impatv) {
-        empty(dom.ct_bt4_5b_nc);
-        document.body.removeChild(dom.ct_bt4_5b_nc);
-        kill(dom.ct_bt4_5b_nc);
-    }
-
-    /*
-    if (dom.error) {
-        if (verbose===true) console.log("Checking to see that no errors have been raised by the DOM...");
-        empty(dom.error);
-        document.body.removeChild(dom.error);
-        kill(dom.error);
-        if (verbose===true) console.log("Forced DOM error check passed.")
-    }
-    */
-
-    if (global.flags.autosave === true) {
-        if (verbose===true) console.log("Autosaving is on.")
-        dom.autosves.checked = true;
-        timers.autos = setInterval(function() {
-            save(true);
-        }, 30000);
-    }
-
-    if (skl.pet.lvl >= 10) {
-        giveTitle(ttl.pet3);
-    }
-
-    if (item.amrthsck.data.finished) {
-        giveRcp(rcp.appljc);
-    }
-
-    if (dom.loading) {
-        fade(dom.loading, 5, true);
-        delete dom.loading;
-    }
-
-    if (dom.loadingt) {
-        fade(dom.loadingt, 5, true);
-        delete dom.loadingt;
-    }
-}
+function load(save_data, verbose=false) {
+      if (verbose===true) console.log("Attempting to load...");
+
+      var raw_data = save_data || window.localStorage.getItem("v0.3");
+
+      if (raw_data) {
+          str = b64_to_utf8(raw_data);
+          if (verbose===true) console.log(str);      
+
+      } else if (!raw_data || str == '') { // save data is completely empty
+          if (!raw_data) console.log("No save data was passed to the load function.");
+          if (str == '') console.log("Save data passed is an empty string.");
+          if (verbose===true) console.log("The game broke whilst trying to save.")
+
+          display_load_error();
+
+          clearInterval(timers.moon_charm);
+          clearInterval(timers.sun_charm);
+          clearInterval(timers.autos);
+          clearInterval(timers.rdng);
+          clearInterval(timers.rdngdots);
+          clearInterval(timers.actm);
+          clearInterval(timers.job1t);
+          clearInterval(timers.bstmonupdate);
+          clearInterval(timers.rptbncgt);
+          if (verbose===true) console.log("Timers cleared.");
+
+          global.menuo = 0;
+          global.flags.rptbncgtf = false;
+          global.flags.rptbncgt = false;
+          
+          str = str.split('|');
+          if (str.length < 10) {
+              console.log("Save data is truncated or corrupt.");
+              return;
+          }
+
+          let yu_s = JSON.parse(str[0]);
+          for (let a in ttl) {
+              ttl[a].have=false;
+              ttl[a].tget=false;
+          };
+          global.titles=[]; 
+          you.name = yu_s.name;
+          for (let o in ttl) {
+              if (ttl[o].id === yu_s.title) {
+                  you.title = ttl[o];
+                  you.lvl = yu_s.lvl;
+              }
+          }
+          you.exp   = yu_s.exp;
+          you.exp_t = yu_s.exp_t; 
+          you.expnext_t = you.expnext();
+          you.sat    = yu_s.sat;
+          you.satmax = yu_s.satmax;
+          you.sat_r  = yu_s.sat_r;
+          you.sata   = yu_s.sata || 0;
+          you.satm   = yu_s.satm || 1;
+          you.ki     = yu_s.ki || new Object();
+          you.hp     = yu_s.hp;
+          you.hpmax  = yu_s.hpmax;
+          you.hp_r   = yu_s.hp_r;
+          you.hpa    = yu_s.hpa || 0;
+          you.hpm    = yu_s.hpm || 1;
+          you.hp = you.hp > you.hpmax ? you.hpmax : you.hp;
+          you.str   = yu_s.str;
+          you.str_r = yu_s.str_r;
+          you.stra  = yu_s.stra || 0;
+          you.strm  = yu_s.strm || 1;
+          you.agl   = yu_s.agl;
+          you.agl_r = yu_s.agl_r;
+          you.agla  = yu_s.agla || 0;
+          you.aglm  = yu_s.aglm || 1;
+          you.int   = yu_s.int;
+          you.int_r = yu_s.int_r;
+          you.inta  = yu_s.inta || 0;
+          you.intm  = yu_s.intm || 1;
+          you.spd   = yu_s.spd;
+          you.spd_r = yu_s.spd_r;
+          you.spda  = yu_s.spda || 0;
+          you.spdm  = yu_s.spdm || 1;
+          you.cls   = yu_s.cls  || [0,0,0];
+          you.ccls  = yu_s.ccls || [0,0,0];
+          you.aff   = yu_s.aff  || [0,0,0,0,0,0,0];
+          you.maff  = yu_s.maff || [0,0,0,0,0,0,0];
+          you.caff  = yu_s.caff || [0,0,0,0,0,0,0];
+          you.cmaff = yu_s.cmaff || [0,0,0,0,0,0,0];
+          you.luck  = yu_s.luck;
+          you.stat_per_lvl = yu_s.stat_per_lvl;
+          you.karma  = yu_s.karma || 0;
+          you.wealth = yu_s.wealth;
+          you.crt = yu_s.crt;
+          global.flags.loadstate = true;
+          
+          for (let key in callback) {
+              if (callback[key].hooks) {
+                  for (let i=callback[key].hooks.length-1;i>= 0;i--) {
+                      const hook = callback[key].hooks[i];
+                      if (hook && hook.data && hook.data.q) {
+                          callback[key].hooks.splice(i, 1);
+                      }
+                  }
+              }
+          }
+
+          for (let obj in item) {
+              item[obj].amount = 0;
+              item[obj].have = false;
+          }
+          inv=[];
+
+          for (let g in yu_s.res) {
+              you.res[g] = yu_s.res[g];
+          }
+          for(let g in yu_s.mods) {
+              you.mods[g] = yu_s.mods[g];
+          }
+
+          you.eqp = [
+              eqp.dummy,
+              eqp.dummy,
+              eqp.dummy,
+              eqp.dummy,
+              eqp.dummy,
+              eqp.dummy,
+              eqp.dummy,
+              eqp.dummy,
+              eqp.dummy,
+              eqp.dummy
+          ]; 
+
+          you.eff.forEach(e => e.active = false);
+          you.eff = [];
+
+          empty(dom.d101);
+          global.e_e = [];
+          global.e_em = [];
+          empty(dom.d101m);
+          global.current_m.eff = [];
+
+          let a4 = JSON.parse(str[1]);
+          global.msgs_max = 300;
+          empty(dom.mscont);
+          global.rec_d = [];
+          for (let ba in rcp) {
+              rcp[ba].have = false
+          };
+          global.flags.loadstate = false;
+
+          let a6 = JSON.parse(str[2]);
+          you.skls = [];
+          for (let ab in skl) {
+              skl[ab].lvl = 0;
+              skl[ab].exp = 0;
+          }
+          for (let a in global.rec_d) {
+              global.rec_d[a].have = false;
+              global.rec_d = [];
+          }
+          for (let i in skl) {
+              for(let ii in skl[i].mlstn) {
+                  skl[i].mlstn[ii].g = false;
+              }
+          }
+          for (let a in a6) {
+              for (let b in skl) {
+                  if(a6[a].id===skl[b].id) {
+                      you.skls.push(skl[b]);
+                      skl[b].lvl = a6[a].lvl; 
+                      for (let c in a6[a].mst) {
+                          skl[b].mlstn[c].g=a6[a].mst[c];
+                      }
+                      if (skl[b].mlstn) {
+                          for (let d in skl[b].mlstn) {
+                              if (skl[b].mlstn[d].g === false && skl[b].mlstn[d].lv <= skl[b].lvl) {
+                                  skl[b].mlstn[d].f();
+                                  skl[b].mlstn[d].g = true;
+                                  msg(
+                                      "NEW PERK UNLOCKED "+
+                                      '<span style="color:tomato">("'+skl[b].name+
+                                      '")<span style="color:orange">lvl: '+skl[b].mlstn[d].lv+
+                                      '</span></span>','lime',
+                                      {
+                                          x:skl[b].name,y:'Perk lvl '+
+                                          skl[b].mlstn[d].lv+': <span style="color:yellow">'+
+                                          skl[b].mlstn[d].p+'</span>'
+                                      }, 7);
+                              }
+                          }
+                      }
+                  }
+              }
+          } 
+          var ro = [];
+          for (let io in global.rec_d) {
+              ro.push(global.rec_d[io].id);
+          }
+          let a7 = JSON.parse(str[3]);
+          
+          let skk = 0;
+          for (let obj in skl) {
+              if (a7[skk]) {
+                  skl[obj].exp = a7[skk][0] || 0;
+                  skl[obj].expnext_t = skl[obj].expnext();
+                  skl[obj].p = a7[skk++][1];
+                  if (!skl[obj].p) {
+                      skl[obj].p = 1;
+                  }
+                  if (skl[obj].p < 0.99) {
+                      skl[obj].p += 1;
+                  }
+              }
+          }
+          global.flags.loadstate = true;
+
+          for (let o = 0; o < a4.length; o++) {
+              for (let obj in effect) {
+                  if (effect[obj].id === a4[o].a) {
+                      if (effect[obj].save !== false) {
+                          giveEff(you, effect[obj], a4[o].b, a4[o].c);
+                      } else {
+                          effect[obj].onRemove();
+                      }
+                      continue;
+                  }
+              }
+          }
+          global.flags.loadstate = false;
+          
+          let a1 = JSON.parse(str[4]);  
+          global.sm = a1.b;
+          global.rm = a1.a;
+          global.spirits = a1.f;
+          global.uid = a1.uid;
+          global.msgs_max = a1.g;
+          //global.flags = {};
+          global.sinv = []; 
+          global.bestiary = a1.q;
+          global.timehold = a1.r || ((time.minute / DAY) << 0);
+          global.timewold = a1.r2|| ((time.minute / WEEK)<< 0);
+          global.lst_sve = a1.m;
+          global.timescale = a1.u || 1;
+          global.offline_evil_index = a1.z || 1;
+          global.drdata = a1.drdata || {};
+          
+          for (let gb = 0; gb < a1.datas.length; gb++) {
+              for (let itm in item) {
+                  if (item[itm].id === a1.datas[gb]) {
+                      item[itm].data.tried = true;
+                  }
+              }
+          }
+          if (a1.datar) {
+              for (let gb = 0; gb < a1.datar.length; gb++) {
+                  for (let itm in item) {
+                      if (item[itm].id === a1.datar[gb]) {
+                          item[itm].data.finished = true;
+                      }
+                  }
+              }
+          }
+          time.minute = a1.j;
+          timeConv(time);
+
+          for (let w in weather) {
+              if (weather[w].id === a1.l) {
+                  setWeather(weather[w], a1.k);
+              }
+          }
+          global.bg_r = a1.n;
+          global.bg_g = a1.o;
+          global.bg_b = a1.p;
+          
+          for (let a in global.stat) { 
+              global.stat[a] = a1.jj[a] || 0;
+              let tempt = new Date();
+              if (global.stat.sttime === 0) {
+                  global.stat.sttime = tempt.getFullYear() + '/' +
+                  (tempt.getMonth() + 1) +'/' + 
+                  tempt.getDate() + ' ' +
+                  tempt.getHours() + ':' +
+                  (tempt.getMinutes() >= 10 ? tempt.getMinutes() : '0' + tempt.getMinutes()) + ':' +
+                  (tempt.getSeconds() >  10 ? tempt.getSeconds() : '0' + tempt.getSeconds());
+              
+                  if (global.stat.msts === 0 ) {
+                      global.stat.msts = [
+                          [0,0],
+                          [0,0],
+                          [0,0],
+                          [0,0],
+                          [0,0],
+                          [0,0],
+                          [0,0],
+                          [0,0]
+                      ];
+                  }
+
+                  if (global.stat.msks === 0) {
+                      global.stat.msks = [0,0,0,0,0,0,0];
+                  }
+              }
+          }    
+              
+          dom.ct_bt4_21b.value = global.bg_r;
+          dom.ct_bt4_22b.value = global.bg_g;
+          dom.ct_bt4_23b.value = global.bg_b;
+          global.stat.wsnburst = 50;
+          
+          dom.ctrwin4.style.display = 'none';
+          dom.ctrwin2.style.display = 'none';
+          dom.ctrwin1.style.display = '';
+          global.lw_op = 0;
+          
+          if (global.flags.civil === false && global.flags.btl === true) {
+              for (let obj in zone) {
+                  if (zone[obj].id === a1.x) {
+                      zone_init(zone[obj]);
+                      break;
+                  }
+              }
+          }
+          
+          let a2 = JSON.parse(str[5]);
+  
+          for (let o = 0; o < a2.length; o++) {
+              for (let obj in rcp) {
+                  if (rcp[obj].id === a2[o].id && rcp[obj].have === false) {
+                      global.rec_d.push(rcp[obj]);
+                      rcp[obj].have = true;
+                      rcp[obj].data = a2[o].data;
+                  }
+              }
+          }
+
+          for (let o = 0; o < ro.length; o++) {
+              for (let obj in rcp) {
+                  if (rcp[obj].id === ro[o] && rcp[obj].have === false) {
+                      global.rec_d.push(rcp[obj]);
+                      rcp[obj].have = true;
+                  }
+              }
+          }
+          
+          dom.d2.innerHTML = you.name;
+          eqpres();
+          unequip(you.eqp[4], {save:true});
+          unequip(you.eqp[5], {save:true});
+          you.stat_r();
+          
+          let a3 = JSON.parse(str[6]);
+          global.flags.loadstate = true;
+
+          if (a3[0].length !== 0) { //** load general items
+              for (let o = 0; o < a3[0].length; o++) {
+                  for (let obj in item) {
+                      if (item[obj].id === a3[0][o].id) {
+                          giveItem(item[obj], a3[0][o].amt, true, {
+                              fi: true
+                          });
+                          inv[o].new = false;
+                          for (let a in a3[0][o].data) {
+                              inv[o].data[a] = a3[0][o].data[a];
+                          }
+                          continue;
+                      }
+                  }
+              }
+          }
+
+          if (a3[1].length !== 0) { //** load 'wpn' items... etc.
+              for (let o = 0; o < a3[1].length; o++) {
+                  for (let obj in wpn) {
+                      if (wpn[obj].id === a3[1][o].id) {
+                          let t = giveItem(wpn[obj], 1, true);
+                          t.new = false;
+                          t.dp = a3[1][o].dp;
+                          for (let a in a3[1][o].data) {
+                              t.data[a] = a3[1][o].data[a];
+                          }
+                          if (a3[1][o].toeq === true) {
+                              equip(t, {
+                                  save: true
+                              });
+                          }
+                          continue;
+                      }
+                  }
+              }
+          }
+
+          if (a3[2].length !== 0) {
+              for (let o = 0; o < a3[2].length; o++) {
+                  for (let obj in eqp) {
+                      if (eqp[obj].id === a3[2][o].id) {
+                          let t = giveItem(eqp[obj], 1, true);
+                          t.new = false;
+                          t.dp = a3[2][o].dp;
+                          for (let a in a3[2][o].data) {
+                              t.data[a] = a3[2][o].data[a];
+                          }
+                          if (a3[2][o].toeq === true) {
+                              if (t.slot === 5 && you.eqp[5].id === 10000) {
+                                  t.slot = 6;
+                              }
+                              equip(t, {
+                                  save: true
+                              });
+                          }
+                      }
+                  }
+              }
+          }
+
+          if (a3[3].length !== 0) {
+              for (let o = 0; o < a3[3].length; o++) {
+                  for (let obj in sld) {
+                      if (sld[obj].id === a3[3][o].id) {
+                          let t = giveItem(sld[obj], 1, true);
+                          t.new = false;
+                          t.dp = a3[3][o].dp;
+                          for (let a in a3[3][o].data) {
+                              t.data[a] = a3[3][o].data[a];
+                          }
+                          if (a3[3][o].toeq === true) {
+                              equip(t, {
+                                  save: true
+                              });
+                          }
+                          continue;
+                      }
+                  }
+              }
+          }
+
+          if (a3[4].length !== 0) {
+              for (let o = 0; o < a3[4].length; o++) {
+                  for (let obj in acc) {
+                      if (acc[obj].id === a3[4][o].id) {
+                          let t = giveItem(acc[obj], 1, true);
+                          t.new = false;
+                          t.dp = a3[4][o].dp;
+                          for (let a in a3[4][o].data) {
+                              t.data[a] = a3[4][o].data[a];
+                          }
+                          if (a3[4][o].toeq === true) {
+                              equip(t, {
+                                  save: true
+                              });
+                          }
+                          continue;
+                      }
+                  }
+              }
+          }
+          
+          if (you.eqp[0].id === 10000) {
+              you.eqp[0].cls[2] = you.lvl / 4 << 0;
+              you.eqp[0].aff[0] = you.lvl / 5 << 0;
+              you.eqp[0].ctype = 2;
+          }
+
+          let a5 = JSON.parse(str[7]);
+          let xx = 0;
+          for (let o in zone) {
+              if (a5[xx]) {
+                  zone[o].size = a5[xx++];
+              }
+          }
+
+          let a8 = JSON.parse(str[8]);
+          dar = a8;
+
+          if (a8[0].length !== 0) {
+              for (let o = 0; o < a8[0].length; o++) {
+                  for (let obj in item) {
+                      if (item[obj].id === a8[0][o]) {
+                          item[obj].data.dscv = true;
+                      }
+                  }
+              }
+          }
+
+          if (a8[1].length !== 0) {
+              for (let o = 0; o < a8[1].length; o++) {
+                  for (let obj in wpn) {
+                      if (wpn[obj].id === a8[1][o]) {
+                          wpn[obj].data.dscv = true;
+                      }
+                  }
+              }
+          }
+
+          if (a8[2].length !== 0) {
+              for (let o = 0; o < a8[2].length; o++) {
+                  for (let obj in eqp) {
+                      if (eqp[obj].id === a8[2][o]) {
+                          eqp[obj].data.dscv = true;
+                      }
+                  }
+              }
+          }
+
+          if (a8[3].length !== 0) {
+              for (let o = 0; o < a8[3].length; o++) {
+                  for (let obj in sld) {
+                      if (sld[obj].id === a8[3][o]) {
+                          sld[obj].data.dscv = true;
+                      }
+                  }
+              }
+          }
+
+          if (a8[4].length !== 0) {
+              for (let o = 0; o < a8[4].length; o++) {
+                  for (let obj in acc) {
+                      if (acc[obj].id === a8[4][o]) {
+                          acc[obj].data.dscv = true;
+                      }
+                  }
+              }
+          }
+
+          if (a3[5].length !== 0) {
+              for (let a in a3[5]) {
+                  for (let b in item) {
+                      if (item[b].id === a3[5][a].item) {
+                          item[b].data = a3[5][a].data;
+                      }
+                  }
+              }
+          }
+          
+          for (let a in furniture) {
+              furniture[a].active = false;
+          }
+
+          for (let a in furn) {
+              furn[a].data = {};
+          }
+          furn = [];
+
+          let a9 = JSON.parse(str[9]);
+          for (let a = 0; a < a9.length; a++) {
+              for (let obj in furniture) {
+                  if (furniture[obj].id === a9[a].id && a9[a].data.amount > 0) {
+                      furn[a] = furniture[obj];
+                      furn[a].data = a9[a].data;
+                  }
+              }
+          }
+
+          let a10 = JSON.parse(str[10]);
+          let a11 = JSON.parse(str[11]);
+
+          global.flags = a1.e;
+          global.flags.rdng = false;
+          global.flags.civil = true;
+          global.flags.btl = false;
+          global.current_z = zone.nwh;
+          global.current_m = creature.default;
+          update_m();
+          dom.d7m.update();
+          global.flags.wkdis = false;
+          global.flags.jdgdis = false;
+
+          for (let obj in vendor) {
+              if (a10[obj] && a10[obj].stock) {
+                  vendor[obj].stock = a10[obj].stock;
+                  vendor[obj].data = a10[obj].data;
+                  if (!vendor[obj].data.time || vendor[obj].data.time < 0) {
+                      vendor[obj].data.time = 1;
+                  }
+                  for (let itm = 0; itm < a10[obj].stock.length; itm++) {
+                      let k = itemgroup[(a10[obj].stock[itm][0] + 1) / 10000 << 0];
+                      for (let v in k) {
+                          if (k[v].id === a10[obj].stock[itm][0]) {
+                              vendor[obj].stock[itm][0] = k[v];
+                              continue;
+                          }
+                      }
+                  }
+              } else {
+                  restock(vendor[obj]);
+              }
+          }
+          
+          let a12 = JSON.parse(str[11]);
+          for (let ttlid = 0; ttlid < a12.length; ttlid++) {
+              for (let obj in ttl) {
+                  if (ttl[obj].id === a12[ttlid]) {
+                      global.titles[ttlid] = ttl[obj];
+                      global.titles[ttlid].have = true;
+                  }
+              }
+          }
+          for (let obj in global.titlese) {
+              global.titles.push(global.titlese[obj]);
+          }
+          global.titlese = [];
+
+          let a13 = JSON.parse(str[12]);
+          for (let s in a13) {
+              for (let ss in furn) {
+                  if (furn[ss].id === a13[s]) {
+                      home[s] = furn[ss];
+                  }
+              }
+          }
+          qsts = [];
+
+          let a14 = JSON.parse(str[13]);
+          for (let obj in a14) {
+              for (let q in quest) {
+                  if (quest[q].id === a14[obj].id) {
+                      qsts[obj] = quest[q];
+                      qsts[obj].data = a14[obj].data;
+                      if (qsts[obj].callback) {
+                          qsts[obj].callback();
+                      }
+                  }
+              }
+          }
+
+          global.current_a = act.default;
+          acts = [];
+          for (let a in act) {
+              act[a].have = false;
+              act[a].data = {};
+              act[a].active = false;
+          }
+
+          let a15 = JSON.parse(str[14]);
+          for (let obj in a15) {
+              for (let q in act) {
+                  if (act[q].id === a15[obj].id) {
+                      acts[obj] = act[q];
+                      acts[obj].data = a15[obj].data;
+                      act[q].have = true;
+                  }
+              }
+          }
+
+          for (let a in sectors) {
+              sectors[a].onLeave();
+          }
+          sectors = [];
+
+          let a16 = JSON.parse(str[15]);
+          for (let obj in a16) {
+              for (let q in sector) {
+                  if (sector[q].id === a16[obj].id) {
+                      if (objempty(a16[obj].data) === false) {
+                          for (let a in a16[obj].data) {
+                              sector[q].data[a] = a16[obj].data[a];
+                          }
+                      } else if (sector[q].default_data) {
+                          sector[q].data = sector[q].default_data;
+                      }
+                  }
+              }
+          }
+
+          clearInterval(timers.vndrstkchk);
+          for (let obj in chss) {
+              if (chss[obj].id === a1.i) {
+                  global.current_location = chss[obj];
+                  move_to_area(chss[obj], false);
+              }
+          }
+
+          let a17 = JSON.parse(str[16]);
+          for (let a in container) {
+              container[a].c = [];
+          }
+          if (a17[0] && !a17[0].c) {
+              a17 = [{
+                  id: 1,
+                  c: a17
+              }];
+          }
+          for (let a in a17) {
+              for (let d in container) {
+                  if (container[d].id === a17[a].id) {
+                      for (let c in a17[a].c) {
+                          let k = itemgroup[(a17[a].c[c].id + 1) / 10000 << 0];
+                          for (let b in k) {
+                              if (k[b].id === a17[a].c[c].id) {
+                                  let ni = {
+                                      item: k[b],
+                                      data: a17[a].c[c].data,
+                                      amt: a17[a].c[c].amt,
+                                      dp: a17[a].c[c].dp
+                                  };
+                                  container[d].c.push(ni);
+                                  break;
+                              }
+                          }
+                      }
+                      break;
+                  }
+              }
+          }
+
+          let a18 = JSON.parse(str[17]);
+          for (let obj in a18) {
+              for (let q in chss) {
+                  if (chss[q].id === a18[obj].id) {
+                      if (objempty(a18[obj].data) === false) {
+                          chss[q].data = a18[obj].data;
+                      }
+                  }
+              }
+          }
+
+          if (str[19]) {
+              let a19 = JSON.parse(str[19]);
+              for (let a in a19) {
+                  for (let b in ttl) {
+                      if (a19[a] === ttl[b].id) {
+                          ttl[b].tget = true;
+                      }
+                  }
+              }
+          }
+
+          for (let a in ttl) {
+              if (ttl[a].have && ttl[a].talent && !ttl[a].tget) {
+                  ttl[a].talent();
+                  ttl[a].tget = true;
+              }
+          }
+
+          isort(global.sm);
+          rsort(global.rm);
+          rstcrtthg();
+          you.stat_r();
+          global.spbtsr[global.rm].style.color = 'yellow';
+          if (global.flags.aw_u) {
+              dom.d0.style.display = '';
+              dom.d1m.style.display = '';
+              dom.inv_ctx.style.display = '';
+              dom.gmsgs.style.display = '';
+              dom.ct_ctrl.style.display = '';
+              dom.ctr_1.style.display = '';
+              dom.location.style.display = '';
+          }
+          dom.ctrwin3.style.display = 'none';
+          dom.ctrwin5.style.display = 'none';
+
+          dom.d5_1_1.update();
+          dom.d5_2_1.update();
+          dom.d6.update();
+          update_d();
+          dom.d3.update();
+          update_m();
+          m_update();
+          dom.d7m.update();
+          dom.d5_3_1.update();
+          if (verbose===true) console.log(`Updated DOM.`);
+
+          if (global.flags.m_freeze === true) {
+              dom.m_b_1_c.innerHTML = 'Ｘ';
+          }
+
+          if (global.flags.m_blh === true) {
+              dom.m_b_2_c.innerHTML = 'Ｘ';
+          }
+
+          if (global.flags.jnlu) {
+              dom.ct_bt6.innerHTML = 'journal';
+          }
+          if (global.flags.asbu) {
+              dom.ct_bt1.innerHTML = 'assemble';
+          }
+          if (global.flags.actsu) {
+              dom.ct_bt3.innerHTML = 'actions';
+          }
+          if (global.flags.sklu) {
+              dom.ct_bt2.innerHTML = 'skills';
+          }
+
+          if (global.flags.m_un === true) {
+              dom.mn_2.style.display = '';
+              dom.mn_4.style.display = '';
+              dom.mn_3.style.display = '';
+              if (global.stat.mndrgnu) {
+                  dom.mn_1.style.display = '';
+              }
+              m_update();
+          }
+          wManager();
+          dom.d_moon.innerHTML = global.text.lunarp[getLunarPhase()][0];
+          addDesc(dom.d_moon, null, 2, 'Lunar Phase', global.text.lunarp[getLunarPhase()][1]);
+          wdrseason(global.flags.ssngaijin);
+
+          if (global.flags.isday === false) {
+              dom.d_moon.style.display = '';
+          } else {
+              dom.d_moon.style.display = 'none';
+          }
+
+          dom.sl_extra.innerHTML = 'Last save: ' + global.lst_sve;
+          dom.nthngdsp.style.display = 'none';
+          dom.ctrwin6.style.display = 'none';
+          invbtsrst();
+
+          if (verbose===true) console.log(`Updated weather.`);
+          
+          dom.d_time.innerHTML = '<small>' + getDay(global.flags.tmmode || 2) + '</small> ' + timeDisp(time);
+
+          global.flags.loadstate = false;
+          global.flags.savestate = false;
+          global.flags.ttlscrnopn = false;
+          global.flags.expatv = false;
+          global.flags.impatv = false;
+          global.flags.expatv = false;
+      }
+
+      if (!global.flags.stbxinifld) {
+          if (verbose===true) console.log("Checking container flags...")
+          addToContainer(home.trunk,eqp.gnt);
+          addToContainer(home.trunk,acc.fmlim);
+          addToContainer(home.trunk,wpn.bdsrd);
+          addToContainer(home.trunk,item.toolbx);
+          addToContainer(home.trunk,sld.tge);
+          addToContainer(home.trunk,item.bonig);
+          global.flags.stbxinifld = true;
+          if (verbose===true) console.log("Container flags check passed.")
+      }
+
+      if (global.flags.bgspc) {
+          document.body.style.background = 'linear-gradient(180deg,#000,#123)';
+      } else {
+          document.body.style.backgroundColor = 'rgb(' + global.bg_r + ',' + global.bg_g + ',' + global.bg_b + ')';
+      }
+
+      if (dom.bkssttbd) {
+          empty(dom.bkssttbd);
+          document.body.removeChild(dom.bkssttbd);
+          global.flags.bksstt = false;
+          kill(dom.bkssttbd);
+      }
+
+      if (global.flags.expatv) {
+          empty(dom.ct_bt4_5a_nc);
+          document.body.removeChild(dom.ct_bt4_5a_nc);
+          kill(dom.ct_bt4_5a_nc);
+      }
+
+      if (global.flags.impatv) {
+          empty(dom.ct_bt4_5b_nc);
+          document.body.removeChild(dom.ct_bt4_5b_nc);
+          kill(dom.ct_bt4_5b_nc);
+      }
+
+      /*
+      if (dom.error) {
+          if (verbose===true) console.log("Checking to see that no errors have been raised by the DOM...");
+          empty(dom.error);
+          document.body.removeChild(dom.error);
+          kill(dom.error);
+          if (verbose===true) console.log("Forced DOM error check passed.")
+      }
+      */
+
+      if (global.flags.autosave === true) {
+          if (verbose===true) console.log("Autosaving is on.")
+          dom.autosves.checked = true;
+          timers.autos = setInterval(function() {
+              save(true);
+          }, 30000);
+      }
+
+      if (skl.pet.lvl >= 10) {
+          giveTitle(ttl.pet3);
+      }
+
+      if (item.amrthsck.data.finished) {
+          giveRcp(rcp.appljc);
+      }
+
+      if (dom.loading) {
+          fade(dom.loading, 5, true);
+          delete dom.loading;
+      }
+
+      if (dom.loadingt) {
+          fade(dom.loadingt, 5, true);
+          delete dom.loadingt;
+      }
+  }
 
 
 function Title(id){
@@ -14032,7 +14035,7 @@ function define_dom_references() { // @Todo organize
           let storage = window.localStorage; let t = dom.ct_bt4_5b_nbc.value;bt = b64_to_utf8(dom.ct_bt4_5b_nbc.value);
           if(/savevalid/g.test(bt)){
           storage.setItem("v0.2a", t);
-          load(false, t);
+          load(t);
           global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
           else{dom.ct_bt4_5b_nbc.value = 'Save Invalid'; return}
       });
@@ -14051,7 +14054,7 @@ function define_dom_references() { // @Todo organize
           r.addEventListener('load',function(){
           let t = b64_to_utf8(r.result);
           if(/savevalid/g.test(t)){  dom.ct_bt4_5b_nbc.value = 'Load Successful';
-          storage.setItem("v0.2a", r.result); load(false, r.result);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
+          storage.setItem("v0.2a", r.result); load(r.result);global.flags.impatv=false;empty(dom.ct_bt4_5b_nc);document.body.removeChild(dom.ct_bt4_5b_nc); kill(dom.ct_bt4_5b_nc)}
           else{dom.ct_bt4_5b_nbc.value = 'Save Invalid'; return}})
       })
       dom.ct_bt4_5b_nb = addElement(dom.ct_bt4_5b_nc,'div'); 
@@ -14184,7 +14187,7 @@ function define_dom_references() { // @Todo organize
     dom.sl_s.innerHTML='save'; 
     dom.sl_s.addEventListener('click', ()=>{save();let j = addElement(dom.sl,'span');j.style.fontSize='.9em';j.style.padding='3px';j.innerHTML='saved...';fade(j);setTimeout(()=>{dom.sl.removeChild(j)},500)});
     dom.sl_l = addElement(dom.sl,'span',null,'sl'); dom.sl_l.innerHTML='load';
-    dom.sl_l.addEventListener('click', ()=>load(false, null));
+    dom.sl_l.addEventListener('click', ()=>load(null));
     dom.sl_extra = addElement(dom.sl,'span',null,'sl'); dom.sl_extra.style.borderLeft='none';dom.sl_extra.innerHTML='<span style="color:crimson">game not saved!</span>';
     dom.autosve = addElement(dom.sl,'span',null,'sl'); dom.autosve.innerHTML='Autosave';
     dom.autosve.style.position='fixed';dom.autosve.style.width='auto'; dom.autosve.style.right='139px';dom.autosve.style.bottom='1px';
