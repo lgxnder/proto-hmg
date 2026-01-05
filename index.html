@@ -13832,7 +13832,7 @@ function define_dom_references() { // @Todo organize
     dom.sl_l = addElement(dom.sl,'span',null,'sl');
     dom.sl_l.innerHTML='load';
     dom.sl_l.addEventListener('click', ()=>{
-        load(null, true)
+        load(null, false)
         let temp_txt = addElement(dom.sl,'span');
         temp_txt.style.fontSize='.9em';
         temp_txt.style.padding='3px';
@@ -14835,6 +14835,7 @@ function giveEff(target, e, d, y, z) {
 }
 
 function removeEff(e, t) {
+    if (!e || e.active !== true) return;
     if (e.active === true) {
         if (e.x) {
             if (e.target.id === you.id) {
@@ -15893,80 +15894,96 @@ function clr_chs(index){
     else dom.ctr_2.removeChild(dom.ctr_2.children[index]);
 }
 
-function move_to_area(where, giveWalkingExp=true) {
-    if (!where || typeof where !== 'object') { //let me bust out the updated JS for this
+function move_to_area(where, giveWalkingExp=true, verbose=false) {
+    if (verbose===true) console.log(where)
+
+    if (!where || typeof where !== 'object') {
         console.warn("move_to_area called with invalid chs:", where);
         return;
     }
+
+    if (!Array.isArray(where.sector)) where.sector = [];
 
     global.flags.busy = false;
     global.flags.work = false;
     global.wdwidx = 0;
 
-    if (global.flags.loadstate) return;
+    if (typeof where.sl === 'function') where.sl();
 
-    if (!global.flags.wkdis) { // calculate walking exp
-        global.flags.wkdis = true;
-        if (giveWalkingExp) giveSkExp(skl.walk, 0.25);
-        setTimeout(() => { global.flags.wkdis = false; }, 500);
-    }
-
-    you.eqp[6].dp = Math.max(0, you.eqp[6].dp - 0.08); // reduce eqp durability
-
-    global.current_location.sector.forEach(current_sector => {
-        const should_stay = where.sector.some(target_sector =>
-            target_sector.group.includes(global.current_location.id) &&
-            target_sector.id === current_sector.id
-        );
-
-        if (!should_stay) {
-            current_sector.onLeave();
-            deactivateEffectors(current_sector.effectors);
-            const index = sectors.indexOf(current_sector);
-            if (index !== -1) sectors.splice(index, 1);
-        }
-    });
-
-    global.current_location.onLeave();
-    deactivateEffectors(global.current_location.effectors);
-
-    global.flags.civil = true;
-    global.flags.btl = false;
-
-    global.current_z = zone.nwh;
-    dom.d7m.update();
-    global.stat.move_to_areat++;
-
-    global.flags.inside = where.inside || where.sector.some(sec => sec.inside);
-
-    clr_chs();
-    activateEffectors(where.effectors);
-    where.sl();
     global.current_location = where;
 
-    sectors.forEach(sector => sector.onMove());
+    dom.d7m.update();
+    if (typeof m_update === 'function') m_update();
 
-    global.current_a.deactivate();
-    global.current_a = act.default;
-    dom.ct_bt3.style.backgroundColor = 'inherit';
+    global.stat.move_to_areat++;
 
-    where.sector.forEach(sector => {
-        if (!scanbyid(sectors, sector.id)) {
-            sectors.push(sector);
-            sector.onEnter();
-            activateEffectors(sector.effectors);
+    if (where.sector.length > 0) {
+
+        if (global.flags.loadstate) return;
+
+        if (!global.flags.wkdis && giveWalkingExp) {
+            global.flags.wkdis = true;
+            giveSkExp(skl.walk, 0.25);
+            setTimeout(() => { global.flags.wkdis = false; }, 500);
         }
-    });
 
-    where.onEnter();
-    rfeff(where);
+        you.eqp[6].dp = Math.max(0, you.eqp[6].dp - 0.08);
 
-    if (!global.flags.btl) {
-        global.current_m = creature.default;
-        global.current_m.eff = [];
-        empty(dom.d101m);
-        dom.d5_1_1m.update();
-        update_m();
+        global.current_location.sector.forEach(current_sector => {
+            const should_stay = where.sector.some(target_sector =>
+                target_sector.group.includes(global.current_location.id) &&
+                target_sector.id === current_sector.id
+            );
+
+            if (!should_stay) {
+                if (typeof current_sector.onLeave === 'function') current_sector.onLeave();
+                deactivateEffectors(current_sector.effectors);
+                const index = sectors.indexOf(current_sector);
+                if (index !== -1) sectors.splice(index, 1);
+            }
+        });
+
+        if (typeof global.current_location.onLeave === 'function') global.current_location.onLeave();
+        deactivateEffectors(global.current_location.effectors);
+
+        global.flags.civil = true;
+        global.flags.btl = false;
+
+        global.current_z = zone.nwh;
+
+        global.flags.inside = !!where.inside || where.sector.some(sec => sec.inside);
+
+        activateEffectors(where.effectors || []);
+
+        sectors.forEach(sector => {
+            if (typeof sector.onMove === 'function') sector.onMove();
+        });
+
+        global.current_a.deactivate();
+        global.current_a = act.default;
+        dom.ct_bt3.style.backgroundColor = 'inherit';
+
+        where.sector.forEach(sector => {
+            if (!scanbyid(sectors, sector.id)) {
+                sectors.push(sector);
+                if (typeof sector.onEnter === 'function') sector.onEnter();
+                activateEffectors(sector.effectors || []);
+            }
+        });
+
+        if (typeof where.onEnter === 'function') where.onEnter();
+        rfeff(where);
+
+        if (!global.flags.btl) {
+            global.current_m = creature.default;
+            global.current_m.eff = [];
+            empty(dom.d101m);
+            dom.d5_1_1m.update();
+            update_m();
+        }
+
+    } else {
+        if (typeof where.onEnter === 'function') where.onEnter();
     }
 }
 
@@ -18969,7 +18986,9 @@ function ontick(){
     '</small> '+
     timeDisp(time); //global.stat.seed1=(random()*7e+7<<7)%7&7
     
-    global.current_location.onStay();
+    if (typeof global.current_location.onStay === 'function') {
+        global.current_location.onStay();
+    }
     runEffectors(global.current_location.effectors);
   
     for (let a in sectors) {
