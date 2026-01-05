@@ -1,9 +1,3 @@
-<!-- 
-  TODO:
-       - Polish the intro sequence
-       - Build out the general progression of the game
-       - Implement new mechanics ;o
--->
 <!DOCTYPE html>
 <html>
 <head>
@@ -147,6 +141,7 @@ function define_global() {
     global.ver = 470;
     global.sm = 1;
     global.rm = 0;
+
 
     global.bg_r = 255;
     global.bg_g = 227;
@@ -572,7 +567,6 @@ function save(verbose=false) {
 }
 
 function load(save_data, verbose=false) {
-      //if (verbose===true) console.log("Attempting to load...");
       var raw_data = save_data ?? window.localStorage.getItem("v0.3");
 
       if (raw_data) {
@@ -12980,24 +12974,14 @@ function define_dom_references() { // @Todo organize
     dom.d7_slot_7.addEventListener('mouseleave',function(){this.innerHTML=global._tad;});
 
     dom.d1m = addElement(document.body,'div','d1','d');
-    if(!global.flags.aw_u) dom.d1m.style.display='none';
-    dom.d101m = addElement(dom.d1m,'div','se_i');  
-    dom.d1m.style.top=8;
-    dom.d1m.style.left = 457;
+    dom.d1m.style.top='8px';
+    dom.d1m.style.left='457px';
     dom.d1m.style.position='absolute';
-    dom.d101m.style.top=264;
+    if(!global.flags.aw_u) dom.d1m.style.display='none';
 
-    global.special_x = dom.d1m.style.left;
-    global.special_y = dom.d1m.style.top;
+    dom.d101m = addElement(dom.d1m,'div','se_i');  
+    dom.d101m.style.top='264px';
 
-    /*dom.d1m.addEventListener('mousedown',function(){
-      this.style.left=parseInt(global.special_x)+rand(-5,5)+'px';
-      this.style.top=parseInt(global.special_y)+rand(-5,5)+'px';
-    });
-    dom.d1m.addEventListener('mouseup',function(){
-      this.style.left=parseInt(global.special_x)+'px';
-      this.style.top=parseInt(global.special_y)+'px';
-    });*/
     dom._d23m = addElement(dom.d1m,'div');
     addDesc(dom._d23m,null,3,global.current_m.name,global.current_m.desc);
     dom.d2m = addElement(dom._d23m,'div',null,'d2'); 
@@ -20428,12 +20412,13 @@ function __dbgsp() { // debug : send placeholder message in message log
 }
 
 function __dbgqs() { // quickstart, reveal all the menus/alter flags to show info that would be revealed after intro
+    empty(dom.mscont)     // clear message log  
+
     appear(dom.d_weather, dom.d_weathert); // show weather
     appear(dom.location); // show location
-    empty(dom.mscont)     // clear message log
     appear(dom.d0);       // show player menu
     appear(dom.gmsgs);    // show message log
-    appear(dom.d1m);
+    appear(dom.d1m);      // monsta
     appear(dom.d_time);
     appear(dom.inv_ctx);  // show inventory
     appear(dom.ct_ctrl);  // center-bottom clickables
@@ -20444,6 +20429,8 @@ function __dbgqs() { // quickstart, reveal all the menus/alter flags to show inf
     global.flags.sklu  = true;
     global.flags.actsu = true;
     global.flags.jnlu  = true;
+
+    m_update();
 }
 
 </script>
