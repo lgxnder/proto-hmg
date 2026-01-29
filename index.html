@@ -573,7 +573,8 @@ function load(save_data, verbose=false) {
 
     if (!window.localStorage.getItem("v0.3")) {
         you.stat_r();
-        save(true);
+        //save(true);
+        save();
     }
 
     let raw_data = save_data ?? window.localStorage.getItem("v0.3");
@@ -4233,7 +4234,7 @@ function define_skills() {
     skl.sleep.name = 'Sleeping';
     skl.sleep.desc = 'The rest of Body'+dom.dseparator+'<small style="color:darkorange">Increases health gain during sleep</small>';
     skl.sleep.use = function(x,y) {
-        giveSkExp(this,x.sq || 1);
+        giveSkExp(this, 1);
         return 5 * this.lvl * x.sq;
     };
     skl.sleep.mlstn = [
@@ -17532,7 +17533,7 @@ function define_areas() {
     chss.fdwrg1qt = new Chs(); chss.fdwrg1qt.id = 165; 
     chss.fdwrg1qt.sl=()=>{
         u_loc('Marketplace, Stalls'); 
-        chs('"<span style="color:cyan">Nervous Guy:</span> Argh, what amt I gonna do now! How could this... Uh? S-sorry, can\'t talk right now, please leave me be. Ahh damn it..."<div style="color: darkgrey">The man then proceeds to fidget in unrest</div>',true)
+        chs('"<span style="color:cyan">Nervous Guy:</span> Argh, what am I gonna do now! How could this... Uh? S-sorry, can\'t talk right now, please leave me be. Ahh damn it..."<div style="color: darkgrey">The man then proceeds to fidget in unrest</div>',true)
         chs('"<= Walk away"',false).addEventListener('click',()=>{ 
             move_to_area(chss.marketplace,false);
         });
@@ -18611,7 +18612,7 @@ function define_areas() {
                         chs('Old Man: "Heh... I remember it being like this for a little while when I was young, too. The energy present in all things in nature runs its course and finds its cycle disrupted. Nature mutates and evolves on its own, and sometimes it gives rise to something like this contamination. There are different things that can spur it on... its effects started getting stronger a couple months ago."');
                         achs('"Is there any way to stop it?"', () => {
                             chs('Old Man: "Why yes but, an endeavour like that might take the peace of living out of a young person with potential like yourself. Nature will run its course, and it\'ll all dissipate eventually, I\'m sure. For now, focus on saving your strength and growing stronger. You might need some rest after ingesting some of that water."');
-                            achs('"I\'m not going to die, amt I?"', () => {
+                            achs('"I\'m not going to die, am I?"', () => {
                                 chs('Old Man: "No, of course not. With just a sip, you should be fine. But, I will leave you with a special charm that should negate any onset implications from the river\'s Qi. Be careful out there. You never know what kind of power lies where, until it leaps out at you on a rest day."');
                                 achs('"Thank you." *Take the charm*', () => {
                                     giveItem(acc.river_charm);
@@ -19056,7 +19057,10 @@ function ontick(){
 }
 
 function update() {
-    setTimeout(function() {update(); ontick()},
+    setTimeout(function() {
+        update();
+        ontick();
+    },
     1000/global.fps);
 }
 
